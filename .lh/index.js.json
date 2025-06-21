@@ -3,11 +3,19 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 2,
             "patches": [
                 {
                     "date": 1750481102624,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1750482036550,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -16,8 +16,31 @@\n   .catch(err => console.error('Connection error ❌', err.stack));\r\n \r\n app.use(express.json());\r\n \r\n+app.post('/api/babysitters', async (req, res) => {\r\n+  const { name, email, region, availability } = req.body;\r\n+\r\n+  try {\r\n+    const query = `\r\n+      INSERT INTO babysitters (name, email, region, availability)\r\n+      VALUES ($1, $2, $3, $4)\r\n+      RETURNING *;\r\n+    `;\r\n+\r\n+    const values = [name, email, region, availability];\r\n+    const result = await db.query(query, values);\r\n+\r\n+    res.status(201).json({\r\n+      message: 'Babysitter registered successfully',\r\n+      data: result.rows[0],\r\n+    });\r\n+  } catch (error) {\r\n+    console.error('Error inserting babysitter:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n+\r\n app.get('/', (req, res) => {\r\n   res.send('TrustaSitter backend is running!');\r\n });\r\n \r\n"
+                },
+                {
+                    "date": 1750482453869,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -39,8 +39,17 @@\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n \r\n+app.get('/api/babysitters', async (req, res) => {\r\n+  try {\r\n+    const result = await db.query('SELECT * FROM babysitters ORDER BY id ASC');\r\n+    res.status(200).json(result.rows);\r\n+  } catch (error) {\r\n+    console.error('Error fetching babysitters:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n app.get('/', (req, res) => {\r\n   res.send('TrustaSitter backend is running!');\r\n });\r\n \r\n"
                 }
             ],
             "date": 1750481102624,

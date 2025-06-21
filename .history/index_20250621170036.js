@@ -40,15 +40,6 @@ app.post('/api/babysitters', async (req, res) => {
   }
 });
 
-app.get('/api/babysitters', async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM babysitters ORDER BY id ASC');
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching babysitters:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 app.get('/', (req, res) => {
   res.send('TrustaSitter backend is running!');
 });
