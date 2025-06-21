@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 3,
+            "activePatchIndex": 4,
             "patches": [
                 {
                     "date": 1750481102624,
@@ -20,6 +20,10 @@
                 {
                     "date": 1750485233528,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -56,4 +56,22 @@\n const PORT = process.env.PORT || 3000;\r\n app.listen(PORT, () => {\r\n   console.log(`Server is running on port ${PORT}`);\r\n });\r\n+app.get('/api/babysitters/search', async (req, res) => {\r\n+  const { region, availability } = req.query;\r\n+\r\n+  try {\r\n+    const query = `\r\n+      SELECT * FROM babysitters\r\n+      WHERE region ILIKE $1 AND availability ILIKE $2\r\n+      ORDER BY id ASC\r\n+    `;\r\n+    const values = [`%${region}%`, `%${availability}%`];\r\n+    const result = await db.query(query, values);\r\n+\r\n+    res.status(200).json(result.rows);\r\n+  } catch (error) {\r\n+    console.error('Error searching babysitters:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n"
+                },
+                {
+                    "date": 1750486119633,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,6 +1,7 @@\n const express = require('express');\r\n const app = express();\r\n+const bcrypt = require('bcrypt');\r\n \r\n const { Client } = require('pg');\r\n \r\n const db = new Client({\r\n@@ -74,4 +75,30 @@\n     console.error('Error searching babysitters:', error);\r\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n+\r\n+app.post('/api/users/register', async (req, res) => {\r\n+  const { name, email, password } = req.body;\r\n+\r\n+  try {\r\n+    // Criptografar a senha\r\n+    const hashedPassword = await bcrypt.hash(password, 10);\r\n+\r\n+    const query = `\r\n+      INSERT INTO users (name, email, password)\r\n+      VALUES ($1, $2, $3)\r\n+      RETURNING id, name, email, created_at;\r\n+    `;\r\n+\r\n+    const values = [name, email, hashedPassword];\r\n+    const result = await db.query(query, values);\r\n+\r\n+    res.status(201).json({\r\n+      message: 'User registered successfully',\r\n+      user: result.rows[0],\r\n+    });\r\n+  } catch (error) {\r\n+    console.error('Error registering user:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n"
                 }
             ],
             "date": 1750481102624,
