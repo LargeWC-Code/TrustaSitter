@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 2,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1750481102624,
@@ -16,6 +16,10 @@
                 {
                     "date": 1750482453869,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -39,8 +39,17 @@\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n \r\n+app.get('/api/babysitters', async (req, res) => {\r\n+  try {\r\n+    const result = await db.query('SELECT * FROM babysitters ORDER BY id ASC');\r\n+    res.status(200).json(result.rows);\r\n+  } catch (error) {\r\n+    console.error('Error fetching babysitters:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n app.get('/', (req, res) => {\r\n   res.send('TrustaSitter backend is running!');\r\n });\r\n \r\n"
+                },
+                {
+                    "date": 1750485233528,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -56,4 +56,22 @@\n const PORT = process.env.PORT || 3000;\r\n app.listen(PORT, () => {\r\n   console.log(`Server is running on port ${PORT}`);\r\n });\r\n+app.get('/api/babysitters/search', async (req, res) => {\r\n+  const { region, availability } = req.query;\r\n+\r\n+  try {\r\n+    const query = `\r\n+      SELECT * FROM babysitters\r\n+      WHERE region ILIKE $1 AND availability ILIKE $2\r\n+      ORDER BY id ASC\r\n+    `;\r\n+    const values = [`%${region}%`, `%${availability}%`];\r\n+    const result = await db.query(query, values);\r\n+\r\n+    res.status(200).json(result.rows);\r\n+  } catch (error) {\r\n+    console.error('Error searching babysitters:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n"
                 }
             ],
             "date": 1750481102624,
