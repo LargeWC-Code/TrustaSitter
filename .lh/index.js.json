@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 4,
+            "activePatchIndex": 5,
             "patches": [
                 {
                     "date": 1750481102624,
@@ -24,6 +24,10 @@
                 {
                     "date": 1750486119633,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,6 +1,7 @@\n const express = require('express');\r\n const app = express();\r\n+const bcrypt = require('bcrypt');\r\n \r\n const { Client } = require('pg');\r\n \r\n const db = new Client({\r\n@@ -74,4 +75,30 @@\n     console.error('Error searching babysitters:', error);\r\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n+\r\n+app.post('/api/users/register', async (req, res) => {\r\n+  const { name, email, password } = req.body;\r\n+\r\n+  try {\r\n+    // Criptografar a senha\r\n+    const hashedPassword = await bcrypt.hash(password, 10);\r\n+\r\n+    const query = `\r\n+      INSERT INTO users (name, email, password)\r\n+      VALUES ($1, $2, $3)\r\n+      RETURNING id, name, email, created_at;\r\n+    `;\r\n+\r\n+    const values = [name, email, hashedPassword];\r\n+    const result = await db.query(query, values);\r\n+\r\n+    res.status(201).json({\r\n+      message: 'User registered successfully',\r\n+      user: result.rows[0],\r\n+    });\r\n+  } catch (error) {\r\n+    console.error('Error registering user:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n"
+                },
+                {
+                    "date": 1750486351040,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -101,4 +101,37 @@\n     console.error('Error registering user:', error);\r\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n+\r\n+app.post('/api/users/login', async (req, res) => {\r\n+  const { email, password } = req.body;\r\n+\r\n+  try {\r\n+    const query = `SELECT * FROM users WHERE email = $1`;\r\n+    const result = await db.query(query, [email]);\r\n+\r\n+    if (result.rows.length === 0) {\r\n+      return res.status(401).json({ error: 'Invalid email or password' });\r\n+    }\r\n+\r\n+    const user = result.rows[0];\r\n+    const passwordMatch = await bcrypt.compare(password, user.password);\r\n+\r\n+    if (!passwordMatch) {\r\n+      return res.status(401).json({ error: 'Invalid email or password' });\r\n+    }\r\n+\r\n+    res.status(200).json({\r\n+      message: 'Login successful',\r\n+      user: {\r\n+        id: user.id,\r\n+        name: user.name,\r\n+        email: user.email,\r\n+        created_at: user.created_at\r\n+      }\r\n+    });\r\n+  } catch (error) {\r\n+    console.error('Login error:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n"
                 }
             ],
             "date": 1750481102624,
