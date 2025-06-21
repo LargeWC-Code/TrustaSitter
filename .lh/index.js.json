@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 5,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1750481102624,
@@ -28,6 +28,10 @@
                 {
                     "date": 1750486351040,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -101,4 +101,37 @@\n     console.error('Error registering user:', error);\r\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n+\r\n+app.post('/api/users/login', async (req, res) => {\r\n+  const { email, password } = req.body;\r\n+\r\n+  try {\r\n+    const query = `SELECT * FROM users WHERE email = $1`;\r\n+    const result = await db.query(query, [email]);\r\n+\r\n+    if (result.rows.length === 0) {\r\n+      return res.status(401).json({ error: 'Invalid email or password' });\r\n+    }\r\n+\r\n+    const user = result.rows[0];\r\n+    const passwordMatch = await bcrypt.compare(password, user.password);\r\n+\r\n+    if (!passwordMatch) {\r\n+      return res.status(401).json({ error: 'Invalid email or password' });\r\n+    }\r\n+\r\n+    res.status(200).json({\r\n+      message: 'Login successful',\r\n+      user: {\r\n+        id: user.id,\r\n+        name: user.name,\r\n+        email: user.email,\r\n+        created_at: user.created_at\r\n+      }\r\n+    });\r\n+  } catch (error) {\r\n+    console.error('Login error:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n"
+                },
+                {
+                    "date": 1750486650745,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -134,4 +134,27 @@\n     console.error('Login error:', error);\r\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n+\r\n+app.post('/api/bookings', async (req, res) => {\r\n+  const { user_id, babysitter_id, date, time_start, time_end } = req.body;\r\n+\r\n+  try {\r\n+    const query = `\r\n+      INSERT INTO bookings (user_id, babysitter_id, date, time_start, time_end)\r\n+      VALUES ($1, $2, $3, $4, $5)\r\n+      RETURNING *;\r\n+    `;\r\n+\r\n+    const values = [user_id, babysitter_id, date, time_start, time_end];\r\n+    const result = await db.query(query, values);\r\n+\r\n+    res.status(201).json({\r\n+      message: 'Booking created successfully',\r\n+      booking: result.rows[0],\r\n+    });\r\n+  } catch (error) {\r\n+    console.error('Error creating booking:', error);\r\n+    res.status(500).json({ error: 'Internal server error' });\r\n+  }\r\n+});\r\n"
                 }
             ],
             "date": 1750481102624,
