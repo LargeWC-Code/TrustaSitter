@@ -1,10 +1,9 @@
-// Import dependencies
 const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
+
 const { Client } = require('pg');
 
-// PostgreSQL client configuration
 const db = new Client({
   user: 'postgres',
   host: 'localhost',
@@ -13,19 +12,12 @@ const db = new Client({
   port: 5432,
 });
 
-// Connect to PostgreSQL
 db.connect()
   .then(() => console.log('Connected to PostgreSQL ✅'))
   .catch(err => console.error('Connection error ❌', err.stack));
 
-// Middleware to parse JSON requests
 app.use(express.json());
 
-/* ---------------------------
-   Babysitters Routes
-----------------------------*/
-
-// Route: Register a new babysitter
 app.post('/api/babysitters', async (req, res) => {
   const { name, email, region, availability } = req.body;
 
@@ -49,7 +41,6 @@ app.post('/api/babysitters', async (req, res) => {
   }
 });
 
-// Route: Get all babysitters
 app.get('/api/babysitters', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM babysitters ORDER BY id ASC');
@@ -59,8 +50,14 @@ app.get('/api/babysitters', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+app.get('/', (req, res) => {
+  res.send('TrustaSitter backend is running!');
+});
 
-// Route: Search babysitters by region and availability
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 app.get('/api/babysitters/search', async (req, res) => {
   const { region, availability } = req.query;
 
@@ -80,16 +77,11 @@ app.get('/api/babysitters/search', async (req, res) => {
   }
 });
 
-/* ---------------------------
-   Users Routes
-----------------------------*/
-
-// Route: Register a new user (family)
 app.post('/api/users/register', async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    // Hash the user's password
+    // Criptografar a senha
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const query = `
@@ -111,7 +103,6 @@ app.post('/api/users/register', async (req, res) => {
   }
 });
 
-// Route: User login
 app.post('/api/users/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -145,11 +136,6 @@ app.post('/api/users/login', async (req, res) => {
   }
 });
 
-/* ---------------------------
-   Bookings Routes
-----------------------------*/
-
-// Route: Create a new booking
 app.post('/api/bookings', async (req, res) => {
   const { user_id, babysitter_id, date, time_start, time_end } = req.body;
 
@@ -173,7 +159,6 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-// Route: Get all bookings for a specific user
 app.get('/api/bookings/:user_id', async (req, res) => {
   const { user_id } = req.params;
 
@@ -189,29 +174,9 @@ app.get('/api/bookings/:user_id', async (req, res) => {
     `;
 
     const result = await db.query(query, [user_id]);
-
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching bookings:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
-
-/* ---------------------------
-   Root Endpoint
-----------------------------*/
-
-// Route: Root check
-app.get('/', (req, res) => {
-  res.send('TrustaSitter backend is running!');
-});
-
-/* ---------------------------
-   Server Initialization
-----------------------------*/
-
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
 });
