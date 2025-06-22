@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const RegisterBabysitter = () => {
-  // Local state to store form data
+  // Form data state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -11,22 +11,23 @@ const RegisterBabysitter = () => {
     rate: '',
     about: '',
     backgroundCheck: null,
+    profilePhoto: null, // new field
   });
 
-  // Handle input changes (including file upload)
+  // Handle input and file changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === 'backgroundCheck') {
-      setFormData({ ...formData, [name]: files[0] }); // Save uploaded file
+    if (name === 'backgroundCheck' || name === 'profilePhoto') {
+      setFormData({ ...formData, [name]: files[0] });
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
-  // Handle form submission
+  // Form submission (temporary only console)
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData); // Temporary output for testing
+    console.log(formData);
     alert('Babysitter profile submitted!');
   };
 
@@ -37,7 +38,7 @@ const RegisterBabysitter = () => {
       {/* Babysitter registration form */}
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* Full name */}
+        {/* Name */}
         <input
           type="text"
           name="name"
@@ -48,7 +49,7 @@ const RegisterBabysitter = () => {
           required
         />
 
-        {/* Email address */}
+        {/* Email */}
         <input
           type="email"
           name="email"
@@ -59,7 +60,7 @@ const RegisterBabysitter = () => {
           required
         />
 
-        {/* Phone number */}
+        {/* Phone */}
         <input
           type="tel"
           name="phone"
@@ -70,7 +71,7 @@ const RegisterBabysitter = () => {
           required
         />
 
-        {/* Region dropdown */}
+        {/* Region */}
         <select
           name="region"
           value={formData.region}
@@ -86,7 +87,7 @@ const RegisterBabysitter = () => {
           <option value="West Auckland">West Auckland</option>
         </select>
 
-        {/* Availability field */}
+        {/* Availability */}
         <input
           type="text"
           name="availability"
@@ -97,7 +98,7 @@ const RegisterBabysitter = () => {
           required
         />
 
-        {/* Hourly rate */}
+        {/* Hourly Rate */}
         <input
           type="number"
           name="rate"
@@ -108,7 +109,7 @@ const RegisterBabysitter = () => {
           required
         />
 
-        {/* About me (bio) */}
+        {/* About Me */}
         <textarea
           name="about"
           placeholder="Tell us about yourself"
@@ -119,7 +120,7 @@ const RegisterBabysitter = () => {
           required
         />
 
-        {/* Background check file upload */}
+        {/* Upload Background Check */}
         <div>
           <label className="block mb-1 font-medium">Upload Background Check:</label>
           <input
@@ -132,7 +133,20 @@ const RegisterBabysitter = () => {
           />
         </div>
 
-        {/* Submit button */}
+        {/* Upload Profile Photo */}
+        <div>
+          <label className="block mb-1 font-medium">Upload Profile Photo:</label>
+          <input
+            type="file"
+            name="profilePhoto"
+            accept="image/*"
+            onChange={handleChange}
+            className="w-full"
+            required
+          />
+        </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
