@@ -2,15 +2,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Search from './pages/Search';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Bookings from './pages/Bookings';
-import ChooseRole from './pages/ChooseRole';
-import RegisterBabysitter from './pages/RegisterBabysitter';
-import RegisterClient from './pages/RegisterClient';
+import Navbar from './components/Navbar'; // Importing the Navbar component
+import Home from './pages/Home';  // Importing the Home component
+import Search from './pages/Search';  // Importing the Search component
+import Login from './pages/Login';  // Importing the Login component
+import Register from './pages/Register';  // Importing the Register component
+import Bookings from './pages/Bookings';    // Importing the Bookings component
+import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component
+import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component
+import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component
+import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
       <Navbar />
       <div className="p-6">
         <Routes>
+          <Route path="/homeclient" element={<HomeClient />} />
           <Route path="/register-client" element={<RegisterClient />} />
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
