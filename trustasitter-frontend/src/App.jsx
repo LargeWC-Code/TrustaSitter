@@ -11,10 +11,6 @@ import Bookings from './pages/Bookings';
 import ChooseRole from './pages/ChooseRole';
 import RegisterBabysitter from './pages/RegisterBabysitter';
 
-<Route path="/register-babysitter" element={<RegisterBabysitter />} />;
-<Route path="/choose-role" element={<ChooseRole />} />
-
-
 const App = () => {
   return (
     <Router>
@@ -26,6 +22,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/bookings" element={<Bookings />} />
+          <Route path="/choose-role" element={<ChooseRole />} />
+          <Route path="/register-babysitter" element={<RegisterBabysitter />} />
         </Routes>
       </div>
     </Router>
