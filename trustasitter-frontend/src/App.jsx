@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import Bookings from './pages/Bookings';
 import ChooseRole from './pages/ChooseRole';
 import RegisterBabysitter from './pages/RegisterBabysitter';
+import RegisterClient from './pages/RegisterClient';
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
       <Navbar />
       <div className="p-6">
         <Routes>
+          <Route path="/register-client" element={<RegisterClient />} />
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
           <Route path="/login" element={<Login />} />
