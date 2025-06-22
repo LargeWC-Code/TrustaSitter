@@ -1,0 +1,18 @@
+{
+    "sourceFile": "trustasitter-frontend/src/pages/Search.jsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1750492885976,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1750492885976,
+            "name": "Commit-0",
+            "content": "// Page: Search\r\nimport React from 'react';\r\n\r\nconst Search = () => {\r\n  return (\r\n    <div>\r\n      <h2>Search Babysitters</h2>\r\n      <p>Use filters to find the right babysitter for your needs.</p>\r\n    </div>\r\n  );\r\n};\r\n\r\nexport default Search;\r\n"
+        }
+    ]
+}

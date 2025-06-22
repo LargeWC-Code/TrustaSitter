@@ -1,0 +1,30 @@
+{
+    "sourceFile": "trustasitter-frontend/src/main.jsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 3,
+            "patches": [
+                {
+                    "date": 1750500691019,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1750500852764,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,7 +1,7 @@\n import { StrictMode } from 'react'\n import { createRoot } from 'react-dom/client'\n-import './index.css'\n+import './index.css';\n import App from './App.jsx'\n \n createRoot(document.getElementById('root')).render(\n   <StrictMode>\n"
+                },
+                {
+                    "date": 1750500883949,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,7 +1,7 @@\n+import './index.css'\n import { StrictMode } from 'react'\n import { createRoot } from 'react-dom/client'\n-import './index.css';\n import App from './App.jsx'\n \n createRoot(document.getElementById('root')).render(\n   <StrictMode>\n"
+                },
+                {
+                    "date": 1750502342293,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,10 +1,10 @@\n-import './index.css'\n-import { StrictMode } from 'react'\n-import { createRoot } from 'react-dom/client'\n-import App from './App.jsx'\n+import React from 'react';\n+import ReactDOM from 'react-dom/client';\n+import App from './App';\n+import './index.css'; // Importing global styles\n \n-createRoot(document.getElementById('root')).render(\n-  <StrictMode>\n+ReactDOM.createRoot(document.getElementById('root')).render(\n+  <React.StrictMode>\n     <App />\n-  </StrictMode>,\n-)\n+  </React.StrictMode>\n+);\n"
+                }
+            ],
+            "date": 1750500691019,
+            "name": "Commit-0",
+            "content": "import { StrictMode } from 'react'\nimport { createRoot } from 'react-dom/client'\nimport './index.css'\nimport App from './App.jsx'\n\ncreateRoot(document.getElementById('root')).render(\n  <StrictMode>\n    <App />\n  </StrictMode>,\n)\n"
+        }
+    ]
+}

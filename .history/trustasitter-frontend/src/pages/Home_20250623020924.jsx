@@ -1,6 +1,4 @@
-// src/pages/Home.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
@@ -49,7 +47,7 @@ const Home = () => {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-white rounded shadow hover:shadow-lg transition overflow-hidden">
             <img
-              src="https://images.pexels.com/photos/3933063/pexels-photo-3933063.jpeg?auto=compress&cs=tinysrgb&w=800"
+              src="https://images.unsplash.com/photo-1601990743045-453b8b9deae0?auto=format&fit=crop&w=800&q=80"
               alt="Happy babysitter with child"
               className="w-full h-48 object-cover"
             />
@@ -58,52 +56,30 @@ const Home = () => {
               <p className="text-gray-600">Our sitters love what they do and bring joy to every home they visit.</p>
             </div>
           </div>
-
           <div className="bg-white rounded shadow hover:shadow-lg transition overflow-hidden">
             <img
-              src="https://images.pexels.com/photos/4260323/pexels-photo-4260323.jpeg?auto=compress&cs=tinysrgb&w=800"
-              alt="Scheduling babysitter"
+              src="https://images.unsplash.com/photo-1612638907344-6d814a7c0d88?auto=format&fit=crop&w=800&q=80"
+              alt="Booking interface"
               className="w-full h-48 object-cover"
             />
             <div className="p-4">
               <h3 className="text-lg font-semibold mb-2">Smart Scheduling</h3>
-              <p className="text-gray-600">Use our platform to book sitters instantly with full control and visibility.</p>
+              <p className="text-gray-600">Use our intuitive platform to find the perfect sitter when you need one.</p>
             </div>
           </div>
-
           <div className="bg-white rounded shadow hover:shadow-lg transition overflow-hidden">
             <img
-              src="https://images.pexels.com/photos/3662665/pexels-photo-3662665.jpeg?auto=compress&cs=tinysrgb&w=800"
+              src="https://images.unsplash.com/photo-1623489466485-049775c4dc3e?auto=format&fit=crop&w=800&q=80"
               alt="Family relaxing"
               className="w-full h-48 object-cover"
             />
             <div className="p-4">
               <h3 className="text-lg font-semibold mb-2">Peace of Mind</h3>
-              <p className="text-gray-600">All our sitters go through a verification process so you can feel safe.</p>
+              <p className="text-gray-600">Rest easy knowing your children are in safe and caring hands.</p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Section 4 – Call to Action */}
-      <section className="bg-purple-600 text-white text-center py-12 px-6 rounded-lg mt-10 shadow-md">
-        <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
-        <p className="mb-6 text-lg">Join our community of trusted families and babysitters today.</p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link
-            to="/search"
-            className="bg-white text-purple-600 px-6 py-3 rounded font-semibold hover:bg-gray-100 transition"
-          >
-            Find a Babysitter
-          </Link>
-          <Link
-            to="/register"
-            className="bg-white text-purple-600 px-6 py-3 rounded font-semibold hover:bg-gray-100 transition"
-          >
-            Become a Babysitter
-          </Link>
-        </div>
-      </section>
     </main>
   );
 };

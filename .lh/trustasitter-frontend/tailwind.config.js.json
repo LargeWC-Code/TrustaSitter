@@ -1,0 +1,18 @@
+{
+    "sourceFile": "trustasitter-frontend/tailwind.config.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1750501055824,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1750501055824,
+            "name": "Commit-0",
+            "content": "/** @type {import('tailwindcss').Config} */\nexport default {\n  content: [\n    \"./index.html\",\n    \"./src/**/*.{js,jsx}\",\n  ],\n  theme: {\n    extend: {},\n  },\n  plugins: [],\n}\n"
+        }
+    ]
+}

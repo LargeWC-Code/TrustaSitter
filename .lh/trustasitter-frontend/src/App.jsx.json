@@ -1,0 +1,86 @@
+{
+    "sourceFile": "trustasitter-frontend/src/App.jsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 17,
+            "patches": [
+                {
+                    "date": 1750493037902,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1750496628823,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,8 +1,9 @@\n-// App.jsx – Router setup\n+// App.jsx – Router setup with Navbar\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n \n+import Navbar from './components/Navbar';\n import Home from './pages/Home';\n import Search from './pages/Search';\n import Login from './pages/Login';\n import Register from './pages/Register';\n@@ -10,9 +11,10 @@\n \n const App = () => {\n   return (\n     <Router>\n-      <div style={{ padding: '20px' }}>\n+      <Navbar />\n+      <div style={{ padding: '24px' }}>\n         <Routes>\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n"
+                },
+                {
+                    "date": 1750501913960,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,16 +1,16 @@\n-// App.jsx – Router setup with Navbar\n+// App.tsx – Router setup with Navbar\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n \n import Navbar from './components/Navbar';\n import Home from './pages/Home';\n import Search from './pages/Search';\n import Login from './pages/Login';\n import Register from './pages/Register';\n-import Bookings from './pages/Bookings';\n+import Bookings from './pages/Bookings.';\n \n-const App = () => {\n+const App: React.FC = () => {\n   return (\n     <Router>\n       <Navbar />\n       <div style={{ padding: '24px' }}>\n"
+                },
+                {
+                    "date": 1750502107611,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,20 +1,20 @@\n-// App.tsx – Router setup with Navbar\n+// App.jsx – Router setup with Navbar\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n \n import Navbar from './components/Navbar';\n import Home from './pages/Home';\n import Search from './pages/Search';\n import Login from './pages/Login';\n import Register from './pages/Register';\n-import Bookings from './pages/Bookings.';\n+import Bookings from './pages/Bookings';\n \n-const App: React.FC = () => {\n+const App = () => {\n   return (\n     <Router>\n       <Navbar />\n-      <div style={{ padding: '24px' }}>\n+      <div className=\"p-6\">\n         <Routes>\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n"
+                },
+                {
+                    "date": 1750505759192,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -7,9 +7,13 @@\n import Search from './pages/Search';\n import Login from './pages/Login';\n import Register from './pages/Register';\n import Bookings from './pages/Bookings';\n+import ChooseRole from './pages/ChooseRole';\n \n+<Route path=\"/choose-role\" element={<ChooseRole />} />\n+\n+\n const App = () => {\n   return (\n     <Router>\n       <Navbar />\n"
+                },
+                {
+                    "date": 1750506900058,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -8,9 +8,11 @@\n import Login from './pages/Login';\n import Register from './pages/Register';\n import Bookings from './pages/Bookings';\n import ChooseRole from './pages/ChooseRole';\n+import RegisterBabysitter from './pages/RegisterBabysitter';\n \n+<Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />;\n <Route path=\"/choose-role\" element={<ChooseRole />} />\n \n \n const App = () => {\n"
+                },
+                {
+                    "date": 1750579083139,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,26 +10,24 @@\n import Bookings from './pages/Bookings';\n import ChooseRole from './pages/ChooseRole';\n import RegisterBabysitter from './pages/RegisterBabysitter';\n \n-<Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />;\n-<Route path=\"/choose-role\" element={<ChooseRole />} />\n-\n-\n const App = () => {\n   return (\n-    <Router>\n+    <Routes>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n           <Route path=\"/register\" element={<Register />} />\n           <Route path=\"/bookings\" element={<Bookings />} />\n-        </Routes>\n+          <Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />\n+          <Route path=\"/choose-role\" element={<ChooseRole />} />\n+          </Routes>\n       </div>\n-    </Router>\n+    </Routes>\n   );\n };\n \n export default App;\n"
+                },
+                {
+                    "date": 1750579203657,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,22 +12,22 @@\n import RegisterBabysitter from './pages/RegisterBabysitter';\n \n const App = () => {\n   return (\n-    <Routes>\n+    <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n           <Route path=\"/register\" element={<Register />} />\n           <Route path=\"/bookings\" element={<Bookings />} />\n+          <Route path=\"/choose-role\" element={<ChooseRole />} />\n           <Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />\n-          <Route path=\"/choose-role\" element={<ChooseRole />} />\n-          </Routes>\n+        </Routes>\n       </div>\n-    </Routes>\n+    </Router>\n   );\n };\n \n export default App;\n"
+                },
+                {
+                    "date": 1750581446743,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,15 +9,17 @@\n import Register from './pages/Register';\n import Bookings from './pages/Bookings';\n import ChooseRole from './pages/ChooseRole';\n import RegisterBabysitter from './pages/RegisterBabysitter';\n+import RegisterCliet from './pages/RegisterClient';\n \n const App = () => {\n   return (\n     <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n+          <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n           <Route path=\"/register\" element={<Register />} />\n"
+                },
+                {
+                    "date": 1750581476735,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,9 +9,9 @@\n import Register from './pages/Register';\n import Bookings from './pages/Bookings';\n import ChooseRole from './pages/ChooseRole';\n import RegisterBabysitter from './pages/RegisterBabysitter';\n-import RegisterCliet from './pages/RegisterClient';\n+import RegisterClient from './pages/RegisterClient';\n \n const App = () => {\n   return (\n     <Router>\n"
+                },
+                {
+                    "date": 1750590078615,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,15 +10,17 @@\n import Bookings from './pages/Bookings';\n import ChooseRole from './pages/ChooseRole';\n import RegisterBabysitter from './pages/RegisterBabysitter';\n import RegisterClient from './pages/RegisterClient';\n+import ClientHome from './pages/ClientHome';\n \n const App = () => {\n   return (\n     <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n+          <Route path=\"/client-home\" element={<ClientHome />} />\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n"
+                },
+                {
+                    "date": 1750590539156,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,17 +10,18 @@\n import Bookings from './pages/Bookings';\n import ChooseRole from './pages/ChooseRole';\n import RegisterBabysitter from './pages/RegisterBabysitter';\n import RegisterClient from './pages/RegisterClient';\n-import ClientHome from './pages/ClientHome';\n+import ClientHome from './pages/HomeClient';\n+import HomeClient from './pages/HomeClient';\n \n const App = () => {\n   return (\n     <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n-          <Route path=\"/client-home\" element={<ClientHome />} />\n+          <Route path=\"/client-home\" element={<HomeClient />} />\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n"
+                },
+                {
+                    "date": 1750590595014,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,9 +11,8 @@\n import ChooseRole from './pages/ChooseRole';\n import RegisterBabysitter from './pages/RegisterBabysitter';\n import RegisterClient from './pages/RegisterClient';\n import ClientHome from './pages/HomeClient';\n-import HomeClient from './pages/HomeClient';\n \n const App = () => {\n   return (\n     <Router>\n"
+                },
+                {
+                    "date": 1750590677972,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,18 +1,18 @@\n // App.jsx – Router setup with Navbar\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n \n-import Navbar from './components/Navbar';\n-import Home from './pages/Home';\n-import Search from './pages/Search';\n-import Login from './pages/Login';\n-import Register from './pages/Register';\n-import Bookings from './pages/Bookings';\n-import ChooseRole from './pages/ChooseRole';\n-import RegisterBabysitter from './pages/RegisterBabysitter';\n-import RegisterClient from './pages/RegisterClient';\n-import ClientHome from './pages/HomeClient';\n+import Navbar from './components/Navbar'; // Importing the Navbar component\n+import Home from './pages/Home';  // Importing the Home component\n+import Search from './pages/Search';  // Importing the Search component\n+import Login from './pages/Login';  // Importing the Login component\n+import Register from './pages/Register';  // Importing the Register component\n+import Bookings from './pages/Bookings';    // Importing the Bookings component\n+import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n+import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n+import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n+import  ClientHome from './pages/HomeClient'; // Importing the HomeClient component\n \n const App = () => {\n   return (\n     <Router>\n"
+                },
+                {
+                    "date": 1750590765579,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -10,9 +10,9 @@\n import Bookings from './pages/Bookings';    // Importing the Bookings component\n import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n-import  ClientHome from './pages/HomeClient'; // Importing the HomeClient component\n+import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component\n \n const App = () => {\n   return (\n     <Router>\n"
+                },
+                {
+                    "date": 1750591035779,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -18,9 +18,9 @@\n     <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n-          <Route path=\"/client-home\" element={<HomeClient />} />\n+          <Route path=\"/homeclient\" element={<HomeClient />} />\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n"
+                },
+                {
+                    "date": 1750596380785,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,15 +11,17 @@\n import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component\n+import ClientDashboard from './pages/ClientDashboard'; // Importing the ClientDashboard component\n \n const App = () => {\n   return (\n     <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n+          <Route path=\"/client-dashboard\" element={<ClientDashboard />} />\n           <Route path=\"/homeclient\" element={<HomeClient />} />\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n"
+                },
+                {
+                    "date": 1750596796340,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,17 +11,15 @@\n import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component\n-import ClientDashboard from './pages/ClientDashboard'; // Importing the ClientDashboard component\n \n const App = () => {\n   return (\n     <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n-          <Route path=\"/client-dashboard\" element={<ClientDashboard />} />\n           <Route path=\"/homeclient\" element={<HomeClient />} />\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n"
+                }
+            ],
+            "date": 1750493037902,
+            "name": "Commit-0",
+            "content": "// App.jsx – Router setup\nimport React from 'react';\nimport { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n\nimport Home from './pages/Home';\nimport Search from './pages/Search';\nimport Login from './pages/Login';\nimport Register from './pages/Register';\nimport Bookings from './pages/Bookings';\n\nconst App = () => {\n  return (\n    <Router>\n      <div style={{ padding: '20px' }}>\n        <Routes>\n          <Route path=\"/\" element={<Home />} />\n          <Route path=\"/search\" element={<Search />} />\n          <Route path=\"/login\" element={<Login />} />\n          <Route path=\"/register\" element={<Register />} />\n          <Route path=\"/bookings\" element={<Bookings />} />\n        </Routes>\n      </div>\n    </Router>\n  );\n};\n\nexport default App;\n"
+        }
+    ]
+}
