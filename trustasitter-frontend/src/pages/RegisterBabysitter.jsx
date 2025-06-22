@@ -1,39 +1,147 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-export default function RegisterBabysitter() {
+const RegisterBabysitter = () => {
+  // Local state to store form data
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    region: '',
+    availability: '',
+    rate: '',
+    about: '',
+    backgroundCheck: null,
+  });
+
+  // Handle input changes (including file upload)
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    if (name === 'backgroundCheck') {
+      setFormData({ ...formData, [name]: files[0] }); // Save uploaded file
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(formData); // Temporary output for testing
+    alert('Babysitter profile submitted!');
+  };
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-4">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-lg">
-        <h2 className="text-2xl font-bold text-purple-700 mb-6 text-center">
-          Babysitter Registration
-        </h2>
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded shadow">
+      <h1 className="text-2xl font-bold mb-6 text-center">Babysitter Registration</h1>
 
-        <form className="space-y-4">
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Full Name</label>
-            <input type="text" className="w-full border px-4 py-2 rounded-md" placeholder="Maria Johnson" />
-          </div>
+      {/* Babysitter registration form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Regions you serve</label>
-            <input type="text" className="w-full border px-4 py-2 rounded-md" placeholder="South Auckland, East Auckland..." />
-          </div>
+        {/* Full name */}
+        <input
+          type="text"
+          name="name"
+          placeholder="Full Name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded"
+          required
+        />
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Availability</label>
-            <input type="text" className="w-full border px-4 py-2 rounded-md" placeholder="Weekdays after 3pm, weekends..." />
-          </div>
+        {/* Email address */}
+        <input
+          type="email"
+          name="email"
+          placeholder="Email Address"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded"
+          required
+        />
 
-          <div>
-            <label className="block text-gray-700 font-medium mb-1">Background Check (Upload)</label>
-            <input type="file" className="w-full border px-4 py-2 rounded-md" />
-          </div>
+        {/* Phone number */}
+        <input
+          type="tel"
+          name="phone"
+          placeholder="Phone Number"
+          value={formData.phone}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded"
+          required
+        />
 
-          <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition">
-            Complete Registration
-          </button>
-        </form>
-      </div>
+        {/* Region dropdown */}
+        <select
+          name="region"
+          value={formData.region}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded"
+          required
+        >
+          <option value="">Select Region</option>
+          <option value="Central Auckland">Central Auckland</option>
+          <option value="North Shore">North Shore</option>
+          <option value="East Auckland">East Auckland</option>
+          <option value="South Auckland">South Auckland</option>
+          <option value="West Auckland">West Auckland</option>
+        </select>
+
+        {/* Availability field */}
+        <input
+          type="text"
+          name="availability"
+          placeholder="Availability (e.g. Mon-Fri, 9am-5pm)"
+          value={formData.availability}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded"
+          required
+        />
+
+        {/* Hourly rate */}
+        <input
+          type="number"
+          name="rate"
+          placeholder="Hourly Rate (NZD)"
+          value={formData.rate}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded"
+          required
+        />
+
+        {/* About me (bio) */}
+        <textarea
+          name="about"
+          placeholder="Tell us about yourself"
+          value={formData.about}
+          onChange={handleChange}
+          className="w-full border px-4 py-2 rounded"
+          rows={4}
+          required
+        />
+
+        {/* Background check file upload */}
+        <div>
+          <label className="block mb-1 font-medium">Upload Background Check:</label>
+          <input
+            type="file"
+            name="backgroundCheck"
+            accept=".pdf,.jpg,.jpeg,.png"
+            onChange={handleChange}
+            className="w-full"
+            required
+          />
+        </div>
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition"
+        >
+          Submit Registration
+        </button>
+      </form>
     </div>
   );
-}
+};
+
+export default RegisterBabysitter;
