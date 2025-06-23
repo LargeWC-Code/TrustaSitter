@@ -19,15 +19,15 @@ jobs:
         with:
           node-version: 18
 
-      - name: Clean up potential Rollup issue
+      - name: Clean install state
         run: |
           rm -rf node_modules package-lock.json
-        working-directory: ./Trustasitter-backend/trustasitter-frontend
+        working-directory: ./trustasitter-frontend
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./Trustasitter-backend/trustasitter-frontend
+        working-directory: ./trustasitter-frontend
 
       - name: Run build
         run: npm run build
-        working-directory: ./Trustasitter-backend/trustasitter-frontend
+        working-directory: ./trustasitter-frontend
