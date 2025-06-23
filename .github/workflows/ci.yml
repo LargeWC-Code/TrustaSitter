@@ -24,8 +24,8 @@ jobs:
           rm -rf node_modules package-lock.json
         working-directory: ./trustasitter-frontend
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install dependencies with legacy peer deps
+        run: npm install --legacy-peer-deps
         working-directory: ./trustasitter-frontend
 
       - name: Run build
