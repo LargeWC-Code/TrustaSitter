@@ -21,8 +21,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./trustasitter-frontend
+        working-directory: ./TrustaSitter-backend/trustasitter-frontend
 
       - name: Run build
         run: npm run build
-        working-directory: ./trustasitter-frontend
+        working-directory: ./TrustaSitter-backend/trustasitter-frontend
