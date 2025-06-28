@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Navbar from './components/Navbar'; // Importing the Navbar component
+import Footer from './components/Footer'; // Importing the Footer component
 import Home from './pages/Home';  // Importing the Home component
 import Search from './pages/Search';  // Importing the Search component
 import Login from './pages/Login';  // Importing the Login component
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/register-babysitter" element={<RegisterBabysitter />} />
         </Routes>
       </div>
+      <Footer />
     </Router>
   );
 };
