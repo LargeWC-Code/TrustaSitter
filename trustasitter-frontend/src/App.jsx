@@ -12,6 +12,7 @@ import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole compon
 import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component
 import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component
 import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component
+import HomeBabysitter from './pages/HomeBabysitter'; // Importing the HomeBabysitter component
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
         <Routes>
           <Route path="/homeclient" element={<HomeClient />} />
           <Route path="/register-client" element={<RegisterClient />} />
+          <Route path="/home-babysitter" element={<HomeBabysitter />} />
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
           <Route path="/login" element={<Login />} />

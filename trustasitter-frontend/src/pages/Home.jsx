@@ -15,12 +15,19 @@ const Home = () => {
           Your trusted babysitter finder in Auckland. Safe, fast, and reliable.
         </p>
         <div className="flex justify-center gap-6">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition">
+          <Link
+            to="/search"
+            onClick={() => window.scrollTo(0,0)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
+          >
             Find a Babysitter
-          </button>
-          <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded transition">
+          </Link>
+          <Link
+            to="/bookings"
+            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded transition"
+          >
             View My Bookings
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -92,15 +99,17 @@ const Home = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Link
             to="/search"
+            onClick={() => window.scrollTo(0,0)}
             className="bg-white text-purple-600 px-6 py-3 rounded font-semibold hover:bg-gray-100 transition"
           >
             Find a Babysitter
           </Link>
           <Link
-            to="/register"
+            to="/register-babysitter"
+            onClick={() => window.scrollTo(0,0)}
             className="bg-white text-purple-600 px-6 py-3 rounded font-semibold hover:bg-gray-100 transition"
           >
-            Become a Babysitter
+            Register as Babysitter
           </Link>
         </div>
       </section>
