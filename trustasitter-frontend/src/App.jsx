@@ -13,6 +13,7 @@ import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the Re
 import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component
 import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component
 import HomeBabysitter from './pages/HomeBabysitter'; // Importing the HomeBabysitter component
+import ProfileBabysitter from "./pages/ProfileBabysitter"; // Importing the ProfileBabysitter component
 
 const App = () => {
   return (
@@ -29,6 +30,7 @@ const App = () => {
           <Route path="/bookings" element={<Bookings />} />
           <Route path="/choose-role" element={<ChooseRole />} />
           <Route path="/register-babysitter" element={<RegisterBabysitter />} />
+          <Route path="/profile" element={<ProfileBabysitter />} />
         </Routes>
       </div>
       <Footer />
