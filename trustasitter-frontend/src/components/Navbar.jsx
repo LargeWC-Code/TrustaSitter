@@ -14,7 +14,6 @@ function Navbar() {
         <Link to="/search" className="text-gray-700 hover:text-blue-600">Search</Link>
         <Link to="/bookings" className="text-gray-700 hover:text-blue-600">Bookings</Link>
         <Link to="/login" className="text-gray-700 hover:text-blue-600">Login</Link>
-        <Link to="/register" className="text-gray-700 hover:text-blue-600">Register</Link>
       </div>
     </nav>
   );

@@ -7,7 +7,6 @@ import Footer from './components/Footer'; // Importing the Footer component
 import Home from './pages/Home';  // Importing the Home component
 import Search from './pages/Search';  // Importing the Search component
 import Login from './pages/Login';  // Importing the Login component
-import Register from './pages/Register';  // Importing the Register component
 import Bookings from './pages/Bookings';    // Importing the Bookings component
 import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component
 import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component
@@ -25,7 +24,6 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/bookings" element={<Bookings />} />
           <Route path="/choose-role" element={<ChooseRole />} />
           <Route path="/register-babysitter" element={<RegisterBabysitter />} />

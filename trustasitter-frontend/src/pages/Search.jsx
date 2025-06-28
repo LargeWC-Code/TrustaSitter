@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Search = () => {
   const [babysitters, setBabysitters] = useState([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Aqui ainda vai o fetch real quando conectarmos o backend
+    // For now, we use mock data to display babysitters
     setBabysitters([
       {
         id: 1,
@@ -31,23 +34,33 @@ const Search = () => {
     ]);
   }, []);
 
+  // Handle booking logic
+  const handleBooking = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // User is logged in: show success modal
+      setShowSuccessModal(true);
+    } else {
+      // User is not logged in: show login/register modal
+      setShowLoginModal(true);
+    }
+  };
+
   return (
     <main className="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen py-12 px-6">
-      {/* Título */}
+      {/* Page title */}
       <h1 className="text-4xl font-bold text-center mb-10">
         <span className="text-blue-600">Find</span>{" "}
         <span className="text-purple-500">a Babysitter</span>
       </h1>
 
-      {/* Filtros */}
+      {/* Filters */}
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <select className="border border-gray-300 p-3 rounded w-full">
           <option value="">Select Region</option>
           <option value="Central">Central</option>
-          <option value="East">East</option>
           <option value="West">West</option>
-          <option value="North">North</option>
-          <option value="South">South</option>          
+          <option value="East">East</option>
         </select>
         <input
           type="date"
@@ -64,7 +77,7 @@ const Search = () => {
         </button>
       </div>
 
-      {/* Resultados */}
+      {/* Babysitters list */}
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {babysitters.map((babysitter) => (
           <div
@@ -85,12 +98,89 @@ const Search = () => {
                 <strong>Price:</strong> {babysitter.price}
               </p>
             </div>
-            <button className="mt-4 bg-purple-500 hover:bg-purple-600 text-white py-2 rounded transition">
+            <button
+              onClick={handleBooking}
+              className="mt-4 bg-purple-500 hover:bg-purple-600 text-white py-2 rounded transition"
+            >
               Book Now
             </button>
           </div>
         ))}
       </div>
+
+      {/* Modal when user is not logged in */}
+      {showLoginModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowLoginModal(false)}
+        >
+          <div
+            className="bg-white p-6 rounded shadow-md text-center max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-4 text-gray-800">
+              To book a babysitter,
+            </h3>
+            <p className="text-gray-600 mb-6">
+              please login or create an account.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => navigate("/login")}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => navigate("/choose-role")}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+              >
+                Register
+              </button>
+            </div>
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="mt-4 text-sm text-gray-500 hover:underline"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal when booking is successful */}
+      {showSuccessModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div
+            className="bg-white p-6 rounded shadow-md text-center max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-4 text-gray-800">
+              Booking confirmed! 🎉
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Check your bookings in your dashboard.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => navigate("/bookings")}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded"
+              >
+                Go to My Bookings
+              </button>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

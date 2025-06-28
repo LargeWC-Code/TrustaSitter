@@ -14,6 +14,8 @@ const RegisterBabysitter = () => {
     about: '',
     backgroundCheck: null,
     profilePhoto: null,
+    password: '',
+    confirmPassword: '',
   });
 
   const handleChange = (e) => {
@@ -87,6 +89,28 @@ const RegisterBabysitter = () => {
             <label className="block mb-1 font-medium">Upload Profile Photo:</label>
             <input type="file" name="profilePhoto" accept="image/*" onChange={handleChange} required className="w-full" />
           </div>
+
+          {/* Campo Password */}
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className="w-full border px-4 py-2 rounded"
+          />
+
+          {/* Campo Confirm Password */}
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+            className="w-full border px-4 py-2 rounded"
+          />
 
           <button type="submit" className="w-full bg-purple-600 text-white font-semibold py-2 rounded hover:bg-purple-700 transition">Submit Registration</button>
         </form>
