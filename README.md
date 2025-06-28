@@ -1,3 +1,7 @@
+[![Build Status](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci.yml/badge.svg)](https://github.com/Bruno8006/TrustaSitter/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0-blue)]()
+
 # TrustaSitter – Babysitter Booking System
 
 **TrustaSitter** is a full-stack babysitter booking platform developed as part of the **SOFT806 – Continuous Integration and Continuous Deployment** assignment at AIS.
