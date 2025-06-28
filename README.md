@@ -1,4 +1,5 @@
 [![Build Status](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci.yml/badge.svg)](https://github.com/Bruno8006/TrustaSitter/actions)
+[![Backend CI](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci-backend.yml/badge.svg)](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci-backend.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0-blue)]()
 
