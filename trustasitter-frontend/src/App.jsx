@@ -14,10 +14,12 @@ import RegisterClient from './pages/RegisterClient'; // Importing the RegisterCl
 import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component
 import HomeBabysitter from './pages/HomeBabysitter'; // Importing the HomeBabysitter component
 import ProfileBabysitter from "./pages/ProfileBabysitter"; // Importing the ProfileBabysitter component
+import ScrollToTop from './components/ScrollToTop'; // Importing the ScrollToTop component
 
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Navbar />
       <div className="p-6">
         <Routes>

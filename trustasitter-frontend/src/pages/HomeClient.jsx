@@ -1,11 +1,16 @@
-import React from 'react';
-import { FaSearch, FaCalendarCheck } from 'react-icons/fa';
+import React, { useContext } from "react";
+import { FaSearch, FaCalendarCheck } from "react-icons/fa";
+import { AuthContext } from "../context/AuthContext";
 
 const ClientDashboard = () => {
+  const { user } = useContext(AuthContext);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 flex items-start justify-center pt-24 px-6">
       <div className="text-center max-w-2xl">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">Welcome, Rita!</h1>
+        <h1 className="text-4xl font-bold text-gray-800 mb-4">
+          Welcome, {user?.name || "Client"}!
+        </h1>
         <p className="text-lg text-gray-700 mb-10">
           Thank you for trusting <strong>TrustaSitter</strong> to help care for what matters most.
           Use the options below to search for available babysitters in your area or review your existing bookings.
