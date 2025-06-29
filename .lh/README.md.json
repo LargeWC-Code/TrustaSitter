@@ -1,0 +1,22 @@
+{
+    "sourceFile": "README.md",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1751086375898,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1751088355832,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,5 +1,6 @@\n [![Build Status](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci.yml/badge.svg)](https://github.com/Bruno8006/TrustaSitter/actions)\r\n+[![Backend CI](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci-backend.yml/badge.svg)](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci-backend.yml)\r\n [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)\r\n [![Version](https://img.shields.io/badge/version-1.0-blue)]()\r\n \r\n # TrustaSitter – Babysitter Booking System\r\n"
+                }
+            ],
+            "date": 1751086375898,
+            "name": "Commit-0",
+            "content": "[![Build Status](https://github.com/Bruno8006/TrustaSitter/actions/workflows/ci.yml/badge.svg)](https://github.com/Bruno8006/TrustaSitter/actions)\r\n[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)\r\n[![Version](https://img.shields.io/badge/version-1.0-blue)]()\r\n\r\n# TrustaSitter – Babysitter Booking System\r\n\r\n**TrustaSitter** is a full-stack babysitter booking platform developed as part of the **SOFT806 – Continuous Integration and Continuous Deployment** assignment at AIS.\r\n\r\nThis project demonstrates the application of:\r\n- ✅ Agile methodology using **Scrum**\r\n- ✅ Project management with **Trello**\r\n- ✅ CI/CD automation using **GitHub Actions**\r\n- ✅ Deployment to cloud platforms\r\n\r\n---\r\n\r\n## 📌 Project Overview\r\n\r\nFamilies can search and book trusted babysitters based on:\r\n- Region\r\n- Availability (daytime or overnight)\r\n- Verified profiles with background checks\r\n\r\nBabysitters can:\r\n- Register with documents\r\n- Set availability and service area\r\n- Manage their profile\r\n\r\n---\r\n\r\n## 🛠️ Tech Stack\r\n\r\n| Layer      | Technology       |\r\n|------------|------------------|\r\n| Frontend   | React.js         |\r\n| Backend    | Node.js + Express|\r\n| Database   | PostgreSQL       |\r\n| CI/CD      | GitHub Actions   |\r\n| Dev Tools  | Trello, Git      |\r\n\r\n\r\nThis repository is dedicated to the CI/CD assignment. It includes:\r\n- Git-based version control with meaningful commit history\r\n- Trello board for Sprint planning and tracking\r\n- CI/CD pipeline for automated testing and deployment\r\n- All implementation and evidence files as required by the assignment\r\n\r\n---\r\n\r\n## 🔗 Links\r\n\r\n- 🔗 [Trello Board](https://trello.com/b/2ncKzBWI/trustasitter) \r\n\r\n---\r\n\r\n## 👨‍💻 Author\r\n\r\nBruno Henrique da Silva – Student ID: 20232270  \r\nAuckland Institute of Studies (AIS)  \r\nSOFT806 – Trimester 2, 2025\r\n"
+        }
+    ]
+}

@@ -1,0 +1,18 @@
+{
+    "sourceFile": ".github/workflows/ci-backend.yml",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1751087987342,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1751087987342,
+            "name": "Commit-0",
+            "content": "name: CI - Backend\r\n\r\non:\r\n  push:\r\n    branches: [main]\r\n  pull_request:\r\n    branches: [main]\r\n\r\njobs:\r\n  build:\r\n    runs-on: ubuntu-latest\r\n\r\n    steps:\r\n      - name: Checkout code\r\n        uses: actions/checkout@v3\r\n\r\n      - name: Setup Node.js\r\n        uses: actions/setup-node@v3\r\n        with:\r\n          node-version: 18\r\n\r\n      - name: Install dependencies\r\n        run: npm install\r\n        working-directory: ./\r\n\r\n      - name: Check server startup\r\n        run: npm run start &\r\n        working-directory: ./\r\n\r\n      - name: Wait for server to respond\r\n        run: sleep 5\r\n\r\n      - name: Stop server\r\n        run: pkill node || true\r\n"
+        }
+    ]
+}

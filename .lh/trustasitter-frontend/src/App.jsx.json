@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 17,
+            "activePatchIndex": 26,
             "patches": [
                 {
                     "date": 1750493037902,
@@ -76,6 +76,42 @@
                 {
                     "date": 1750596796340,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,17 +11,15 @@\n import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component\n-import ClientDashboard from './pages/ClientDashboard'; // Importing the ClientDashboard component\n \n const App = () => {\n   return (\n     <Router>\n       <Navbar />\n       <div className=\"p-6\">\n         <Routes>\n-          <Route path=\"/client-dashboard\" element={<ClientDashboard />} />\n           <Route path=\"/homeclient\" element={<HomeClient />} />\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n"
+                },
+                {
+                    "date": 1751089887201,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,8 +2,9 @@\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n \n import Navbar from './components/Navbar'; // Importing the Navbar component\n+import Footer from './components/Footer'; // Importing the Footer component\n import Home from './pages/Home';  // Importing the Home component\n import Search from './pages/Search';  // Importing the Search component\n import Login from './pages/Login';  // Importing the Login component\n import Register from './pages/Register';  // Importing the Register component\n"
+                },
+                {
+                    "date": 1751092383820,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,9 +2,9 @@\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n \n import Navbar from './components/Navbar'; // Importing the Navbar component\n-import Footer from './components/Footer'; // Importing the Footer component\n+import Footer from '../components/Footer'; // Importing the Footer component\n import Home from './pages/Home';  // Importing the Home component\n import Search from './pages/Search';  // Importing the Search component\n import Login from './pages/Login';  // Importing the Login component\n import Register from './pages/Register';  // Importing the Register component\n@@ -30,8 +30,9 @@\n           <Route path=\"/choose-role\" element={<ChooseRole />} />\n           <Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />\n         </Routes>\n       </div>\n+      <Footer />\n     </Router>\n   );\n };\n \n"
+                },
+                {
+                    "date": 1751092410925,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,9 +2,9 @@\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n \n import Navbar from './components/Navbar'; // Importing the Navbar component\n-import Footer from '../components/Footer'; // Importing the Footer component\n+import Footer from './components/Footer'; // Importing the Footer component\n import Home from './pages/Home';  // Importing the Home component\n import Search from './pages/Search';  // Importing the Search component\n import Login from './pages/Login';  // Importing the Login component\n import Register from './pages/Register';  // Importing the Register component\n"
+                },
+                {
+                    "date": 1751109227783,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -24,9 +24,8 @@\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n-          <Route path=\"/register\" element={<Register />} />\n           <Route path=\"/bookings\" element={<Bookings />} />\n           <Route path=\"/choose-role\" element={<ChooseRole />} />\n           <Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />\n         </Routes>\n"
+                },
+                {
+                    "date": 1751109583629,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -6,9 +6,8 @@\n import Footer from './components/Footer'; // Importing the Footer component\n import Home from './pages/Home';  // Importing the Home component\n import Search from './pages/Search';  // Importing the Search component\n import Login from './pages/Login';  // Importing the Login component\n-import Register from './pages/Register';  // Importing the Register component\n import Bookings from './pages/Bookings';    // Importing the Bookings component\n import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n"
+                },
+                {
+                    "date": 1751116422463,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -20,8 +20,9 @@\n       <div className=\"p-6\">\n         <Routes>\n           <Route path=\"/homeclient\" element={<HomeClient />} />\n           <Route path=\"/register-client\" element={<RegisterClient />} />\n+          <Route path=\"/home-babysitter\" element={<HomeBabysitter />} />\n           <Route path=\"/\" element={<Home />} />\n           <Route path=\"/search\" element={<Search />} />\n           <Route path=\"/login\" element={<Login />} />\n           <Route path=\"/bookings\" element={<Bookings />} />\n"
+                },
+                {
+                    "date": 1751116458134,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,8 +11,9 @@\n import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component\n+import HomeBabysitter from './pages/HomeBabysitter';\n \n const App = () => {\n   return (\n     <Router>\n"
+                },
+                {
+                    "date": 1751116469044,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,9 +11,9 @@\n import ChooseRole from './pages/ChooseRole';  // Importing the ChooseRole component\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component\n-import HomeBabysitter from './pages/HomeBabysitter';\n+import HomeBabysitter from './pages/HomeBabysitter'; // Importing the HomeBabysitter component\n \n const App = () => {\n   return (\n     <Router>\n"
+                },
+                {
+                    "date": 1751117510254,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -12,8 +12,9 @@\n import RegisterBabysitter from './pages/RegisterBabysitter'; // Importing the RegisterBabysitter component\n import RegisterClient from './pages/RegisterClient'; // Importing the RegisterClient component\n import  HomeClient from './pages/HomeClient'; // Importing the HomeClient component\n import HomeBabysitter from './pages/HomeBabysitter'; // Importing the HomeBabysitter component\n+import ProfileBabysitter from \"./pages/ProfileBabysitter\"; // Importing the ProfileBabysitter component\n \n const App = () => {\n   return (\n     <Router>\n@@ -28,8 +29,9 @@\n           <Route path=\"/login\" element={<Login />} />\n           <Route path=\"/bookings\" element={<Bookings />} />\n           <Route path=\"/choose-role\" element={<ChooseRole />} />\n           <Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />\n+          <Route path=\"/profile\" element={<ProfileBabysitter />} />\n         </Routes>\n       </div>\n       <Footer />\n     </Router>\n"
                 }
             ],
             "date": 1750493037902,

@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 4,
+            "activePatchIndex": 8,
             "patches": [
                 {
                     "date": 1750496524998,
@@ -24,6 +24,22 @@
                 {
                     "date": 1750598871888,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -3,9 +3,9 @@\n function Navbar() {\r\n   return (\r\n     <nav className=\"bg-white shadow-md px-6 py-4 flex justify-between items-center\">\r\n       <div className=\"text-xl font-bold\">\r\n-        <Link to=\"/\" className=\"flex items-center space-x-1\">\r\n+        <Link to=\"/\" className=\"text-xl font-bold\">\r\n           <span className=\"text-blue-600\">Trusta</span>\r\n           <span className=\"text-purple-500\">Sitter</span>\r\n         </Link>\r\n       </div>\r\n"
+                },
+                {
+                    "date": 1751112358799,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -13,9 +13,8 @@\n         <Link to=\"/\" className=\"text-gray-700 hover:text-blue-600\">Home</Link>\r\n         <Link to=\"/search\" className=\"text-gray-700 hover:text-blue-600\">Search</Link>\r\n         <Link to=\"/bookings\" className=\"text-gray-700 hover:text-blue-600\">Bookings</Link>\r\n         <Link to=\"/login\" className=\"text-gray-700 hover:text-blue-600\">Login</Link>\r\n-        <Link to=\"/register\" className=\"text-gray-700 hover:text-blue-600\">Register</Link>\r\n       </div>\r\n     </nav>\r\n   );\r\n }\r\n"
+                },
+                {
+                    "date": 1751114919256,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -11,9 +11,8 @@\n       </div>\r\n       <div className=\"space-x-6\">\r\n         <Link to=\"/\" className=\"text-gray-700 hover:text-blue-600\">Home</Link>\r\n         <Link to=\"/search\" className=\"text-gray-700 hover:text-blue-600\">Search</Link>\r\n-        <Link to=\"/bookings\" className=\"text-gray-700 hover:text-blue-600\">Bookings</Link>\r\n         <Link to=\"/login\" className=\"text-gray-700 hover:text-blue-600\">Login</Link>\r\n       </div>\r\n     </nav>\r\n   );\r\n"
+                },
+                {
+                    "date": 1751115142033,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -2,18 +2,42 @@\n \r\n function Navbar() {\r\n   return (\r\n     <nav className=\"bg-white shadow-md px-6 py-4 flex justify-between items-center\">\r\n+      {/* Logo */}\r\n       <div className=\"text-xl font-bold\">\r\n         <Link to=\"/\" className=\"text-xl font-bold\">\r\n           <span className=\"text-blue-600\">Trusta</span>\r\n           <span className=\"text-purple-500\">Sitter</span>\r\n         </Link>\r\n       </div>\r\n-      <div className=\"space-x-6\">\r\n-        <Link to=\"/\" className=\"text-gray-700 hover:text-blue-600\">Home</Link>\r\n-        <Link to=\"/search\" className=\"text-gray-700 hover:text-blue-600\">Search</Link>\r\n-        <Link to=\"/login\" className=\"text-gray-700 hover:text-blue-600\">Login</Link>\r\n+\r\n+      {/* Navigation Links */}\r\n+      <div className=\"flex items-center gap-4\">\r\n+        <Link\r\n+          to=\"/\"\r\n+          className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n+        >\r\n+          Home\r\n+        </Link>\r\n+        <Link\r\n+          to=\"/search\"\r\n+          className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n+        >\r\n+          Search\r\n+        </Link>\r\n+        <Link\r\n+          to=\"/bookings\"\r\n+          className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n+        >\r\n+          Bookings\r\n+        </Link>\r\n+        <Link\r\n+          to=\"/login\"\r\n+          className=\"bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded transition\"\r\n+        >\r\n+          Login\r\n+        </Link>\r\n       </div>\r\n     </nav>\r\n   );\r\n }\r\n"
+                },
+                {
+                    "date": 1751115249783,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -25,14 +25,8 @@\n         >\r\n           Search\r\n         </Link>\r\n         <Link\r\n-          to=\"/bookings\"\r\n-          className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n-        >\r\n-          Bookings\r\n-        </Link>\r\n-        <Link\r\n           to=\"/login\"\r\n           className=\"bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded transition\"\r\n         >\r\n           Login\r\n"
                 }
             ],
             "date": 1750496524997,
