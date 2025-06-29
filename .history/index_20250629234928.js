@@ -426,19 +426,6 @@ app.delete('/api/users/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Route: Get all users (protected)
-app.get('/api/users', authMiddleware, async (req, res) => {
-  try {
-    const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
-    const result = await db.query(query);
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 /* -----------------------------------
    Bookings Routes
 ----------------------------------- */

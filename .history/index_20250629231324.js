@@ -1,11 +1,11 @@
 // Import dependencies
-const express = require('express');
-const app = express();
-require('dotenv').config(); // Load environment variables
-const bcrypt = require('bcrypt'); // For hashing passwords
+const express = require('express'); // Express framework for building the API
+const app = express(); // Express application for building the API
+require('dotenv').config(); // to load environment variables
+const bcrypt = require('bcrypt'); // for hashing passwords
 const jwt = require('jsonwebtoken'); // JSON Web Token for authentication
-const { Client } = require('pg'); // PostgreSQL client
-const authMiddleware = require('./middleware/authMiddleware'); // Custom authentication middleware
+const { Client } = require('pg'); // PostgreSQL client for database operations
+const authMiddleware = require('./middleware/authMiddleware'); // custom authentication middleware
 
 // PostgreSQL client configuration
 const db = new Client({
@@ -224,34 +224,33 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Route: Delete babysitter account (protected, must have no bookings)
-app.delete('/api/babysitters/profile', authMiddleware, async (req, res) => {
+// Route: Get all babysitters
+app.get('/api/babysitters', async (req, res) => {
   try {
-    // Check if babysitter has related bookings
-    const bookingCheck = await db.query(
-      `SELECT id FROM bookings WHERE babysitter_id = $1`,
-      [req.user.id]
-    );
-
-    if (bookingCheck.rows.length > 0) {
-      return res.status(400).json({
-        error: 'You must cancel all bookings before deleting your account.'
-      });
-    }
-
-    // Delete babysitter
-    const result = await db.query(
-      `DELETE FROM babysitters WHERE id = $1 RETURNING id`,
-      [req.user.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Babysitter not found.' });
-    }
-
-    res.status(200).json({ message: 'Babysitter account deleted successfully.' });
+    const result = await db.query('SELECT * FROM babysitters ORDER BY id ASC');
+    res.status(200).json(result.rows);
   } catch (error) {
-    console.error('Error deleting babysitter account:', error.message);
+    console.error('Error fetching babysitters:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Search babysitters by region
+app.get('/api/babysitters/search', async (req, res) => {
+  const { region } = req.query;
+
+  try {
+    const query = `
+      SELECT * FROM babysitters
+      WHERE region ILIKE $1
+      ORDER BY id ASC
+    `;
+    const values = [`%${region}%`];
+    const result = await db.query(query, values);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error searching babysitters:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -390,51 +389,6 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Route: Delete user account (protected, must have no bookings)
-app.delete('/api/users/profile', authMiddleware, async (req, res) => {
-  try {
-    // Check if user has related bookings
-    const bookingCheck = await db.query(
-      `SELECT id FROM bookings WHERE user_id = $1`,
-      [req.user.id]
-    );
-
-    if (bookingCheck.rows.length > 0) {
-      return res.status(400).json({
-        error: 'You must cancel all bookings before deleting your account.'
-      });
-    }
-
-    // Delete user
-    const result = await db.query(
-      `DELETE FROM users WHERE id = $1 RETURNING id`,
-      [req.user.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-
-    res.status(200).json({ message: 'User account deleted successfully.' });
-  } catch (error) {
-    console.error('Error deleting user account:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Route: Get all users (protected)
-app.get('/api/users', authMiddleware, async (req, res) => {
-  try {
-    const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
-    const result = await db.query(query);
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

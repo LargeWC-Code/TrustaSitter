@@ -1,11 +1,11 @@
 // Import dependencies
-const express = require('express');
-const app = express();
-require('dotenv').config(); // Load environment variables
-const bcrypt = require('bcrypt'); // For hashing passwords
+const express = require('express'); // Express framework for building the API
+const app = express(); // Express application for building the API
+require('dotenv').config(); // to load environment variables
+const bcrypt = require('bcrypt'); // for hashing passwords
 const jwt = require('jsonwebtoken'); // JSON Web Token for authentication
-const { Client } = require('pg'); // PostgreSQL client
-const authMiddleware = require('./middleware/authMiddleware'); // Custom authentication middleware
+const { Client } = require('pg'); // PostgreSQL client for database operations
+const authMiddleware = require('./middleware/authMiddleware'); // custom authentication middleware
 
 // PostgreSQL client configuration
 const db = new Client({
@@ -149,109 +149,33 @@ app.get('/api/babysitters/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Route: Update babysitter profile (protected)
-app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
-  const {
-    name,
-    email,
-    phone,
-    region,
-    available_days,
-    available_from,
-    available_to,
-    about,
-    rate,
-    password
-  } = req.body;
-
+// Route: Get all babysitters
+app.get('/api/babysitters', async (req, res) => {
   try {
-    const queryBabysitter = `SELECT * FROM babysitters WHERE id = $1`;
-    const resultBabysitter = await db.query(queryBabysitter, [req.user.id]);
-
-    if (resultBabysitter.rows.length === 0) {
-      return res.status(404).json({ error: 'Babysitter not found.' });
-    }
-
-    const updates = {
-      name: name || resultBabysitter.rows[0].name,
-      email: email || resultBabysitter.rows[0].email,
-      phone: phone || resultBabysitter.rows[0].phone,
-      region: region || resultBabysitter.rows[0].region,
-      available_days: available_days || resultBabysitter.rows[0].available_days,
-      available_from: available_from || resultBabysitter.rows[0].available_from,
-      available_to: available_to || resultBabysitter.rows[0].available_to,
-      about: about || resultBabysitter.rows[0].about,
-      rate: rate || resultBabysitter.rows[0].rate
-    };
-
-    let hashedPassword = resultBabysitter.rows[0].password;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
-
-    const queryUpdate = `
-      UPDATE babysitters
-      SET name = $1, email = $2, phone = $3, region = $4,
-          available_days = $5, available_from = $6, available_to = $7,
-          about = $8, rate = $9, password = $10
-      WHERE id = $11
-      RETURNING id, name, email, region, phone, available_days, available_from, available_to, about, rate, created_at;
-    `;
-
-    const values = [
-      updates.name,
-      updates.email,
-      updates.phone,
-      updates.region,
-      updates.available_days,
-      updates.available_from,
-      updates.available_to,
-      updates.about,
-      updates.rate,
-      hashedPassword,
-      req.user.id
-    ];
-
-    const result = await db.query(queryUpdate, values);
-
-    res.status(200).json({
-      message: 'Babysitter profile updated successfully.',
-      babysitter: result.rows[0]
-    });
+    const result = await db.query('SELECT * FROM babysitters ORDER BY id ASC');
+    res.status(200).json(result.rows);
   } catch (error) {
-    console.error('Error updating babysitter profile:', error);
+    console.error('Error fetching babysitters:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Route: Delete babysitter account (protected, must have no bookings)
-app.delete('/api/babysitters/profile', authMiddleware, async (req, res) => {
+// Route: Search babysitters by region
+app.get('/api/babysitters/search', async (req, res) => {
+  const { region } = req.query;
+
   try {
-    // Check if babysitter has related bookings
-    const bookingCheck = await db.query(
-      `SELECT id FROM bookings WHERE babysitter_id = $1`,
-      [req.user.id]
-    );
+    const query = `
+      SELECT * FROM babysitters
+      WHERE region ILIKE $1
+      ORDER BY id ASC
+    `;
+    const values = [`%${region}%`];
+    const result = await db.query(query, values);
 
-    if (bookingCheck.rows.length > 0) {
-      return res.status(400).json({
-        error: 'You must cancel all bookings before deleting your account.'
-      });
-    }
-
-    // Delete babysitter
-    const result = await db.query(
-      `DELETE FROM babysitters WHERE id = $1 RETURNING id`,
-      [req.user.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Babysitter not found.' });
-    }
-
-    res.status(200).json({ message: 'Babysitter account deleted successfully.' });
+    res.status(200).json(result.rows);
   } catch (error) {
-    console.error('Error deleting babysitter account:', error.message);
+    console.error('Error searching babysitters:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -348,93 +272,6 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
     res.status(200).json(result.rows[0]);
   } catch (error) {
     console.error('Profile fetch error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Route: Update user profile (protected)
-app.put('/api/users/profile', authMiddleware, async (req, res) => {
-  const { name, email, password } = req.body;
-
-  try {
-    const queryUser = `SELECT * FROM users WHERE id = $1`;
-    const resultUser = await db.query(queryUser, [req.user.id]);
-
-    if (resultUser.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-
-    const updates = {
-      name: name || resultUser.rows[0].name,
-      email: email || resultUser.rows[0].email
-    };
-
-    let hashedPassword = resultUser.rows[0].password;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
-
-    const queryUpdate = `
-      UPDATE users
-      SET name = $1, email = $2, password = $3
-      WHERE id = $4
-      RETURNING id, name, email, created_at;
-    `;
-
-    const values = [updates.name, updates.email, hashedPassword, req.user.id];
-    const result = await db.query(queryUpdate, values);
-
-    res.status(200).json({
-      message: 'Profile updated successfully.',
-      user: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Route: Delete user account (protected, must have no bookings)
-app.delete('/api/users/profile', authMiddleware, async (req, res) => {
-  try {
-    // Check if user has related bookings
-    const bookingCheck = await db.query(
-      `SELECT id FROM bookings WHERE user_id = $1`,
-      [req.user.id]
-    );
-
-    if (bookingCheck.rows.length > 0) {
-      return res.status(400).json({
-        error: 'You must cancel all bookings before deleting your account.'
-      });
-    }
-
-    // Delete user
-    const result = await db.query(
-      `DELETE FROM users WHERE id = $1 RETURNING id`,
-      [req.user.id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-
-    res.status(200).json({ message: 'User account deleted successfully.' });
-  } catch (error) {
-    console.error('Error deleting user account:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Route: Get all users (protected)
-app.get('/api/users', authMiddleware, async (req, res) => {
-  try {
-    const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
-    const result = await db.query(query);
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

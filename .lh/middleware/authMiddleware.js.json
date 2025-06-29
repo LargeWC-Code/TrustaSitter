@@ -1,0 +1,18 @@
+{
+    "sourceFile": "middleware/authMiddleware.js",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 0,
+            "patches": [
+                {
+                    "date": 1751192873772,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                }
+            ],
+            "date": 1751192873772,
+            "name": "Commit-0",
+            "content": "const jwt = require('jsonwebtoken');\r\n\r\nconst authMiddleware = (req, res, next) => {\r\n  const authHeader = req.headers.authorization;\r\n\r\n  if (!authHeader || !authHeader.startsWith('Bearer ')) {\r\n    return res.status(401).json({ message: 'No token provided' });\r\n  }\r\n\r\n  const token = authHeader.split(' ')[1];\r\n\r\n  try {\r\n    const decoded = jwt.verify(token, process.env.JWT_SECRET);\r\n    req.user = decoded; // você pode usar req.user.id depois\r\n    next();\r\n  } catch (error) {\r\n    res.status(401).json({ message: 'Invalid token' });\r\n  }\r\n};\r\n\r\nmodule.exports = authMiddleware;\r\n"
+        }
+    ]
+}

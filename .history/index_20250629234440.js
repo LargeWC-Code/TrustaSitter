@@ -394,26 +394,11 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Route: Delete user account (protected, must have no bookings)
+// Route: Delete user account (protected)
 app.delete('/api/users/profile', authMiddleware, async (req, res) => {
   try {
-    // Check if user has related bookings
-    const bookingCheck = await db.query(
-      `SELECT id FROM bookings WHERE user_id = $1`,
-      [req.user.id]
-    );
-
-    if (bookingCheck.rows.length > 0) {
-      return res.status(400).json({
-        error: 'You must cancel all bookings before deleting your account.'
-      });
-    }
-
-    // Delete user
-    const result = await db.query(
-      `DELETE FROM users WHERE id = $1 RETURNING id`,
-      [req.user.id]
-    );
+    const query = `DELETE FROM users WHERE id = $1 RETURNING id`;
+    const result = await db.query(query, [req.user.id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
@@ -426,18 +411,6 @@ app.delete('/api/users/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Route: Get all users (protected)
-app.get('/api/users', authMiddleware, async (req, res) => {
-  try {
-    const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
-    const result = await db.query(query);
-
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 /* -----------------------------------
    Bookings Routes
