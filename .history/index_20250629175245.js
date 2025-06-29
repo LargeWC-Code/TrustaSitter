@@ -2,7 +2,7 @@
 const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); //Import JWT
+const jwt = require('jsonwebtoken'); // ✅ Import JWT
 const { Client } = require('pg');
 
 // PostgreSQL client configuration
@@ -16,8 +16,8 @@ const db = new Client({
 
 // Connect to PostgreSQL
 db.connect()
-  .then(() => console.log('Connected to PostgreSQL'))
-  .catch(err => console.error('Connection error', err.stack));
+  .then(() => console.log('Connected to PostgreSQL ✅'))
+  .catch(err => console.error('Connection error ❌', err.stack));
 
 // Middleware to parse JSON requests
 app.use(express.json());
