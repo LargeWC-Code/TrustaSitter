@@ -15,6 +15,7 @@ import  HomeClient from './pages/HomeClient'; // Importing the HomeClient compon
 import HomeBabysitter from './pages/HomeBabysitter'; // Importing the HomeBabysitter component
 import ProfileBabysitter from "./pages/ProfileBabysitter"; // Importing the ProfileBabysitter component
 import ScrollToTop from './components/ScrollToTop'; // Importing the ScrollToTop component
+import ProfileClient from './pages/ProfileClient';
 
 const App = () => {
   return (
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="/choose-role" element={<ChooseRole />} />
           <Route path="/register-babysitter" element={<RegisterBabysitter />} />
           <Route path="/profile" element={<ProfileBabysitter />} />
+          <Route path="/profile-client" element={<ProfileClient />} />       
         </Routes>
       </div>
       <Footer />

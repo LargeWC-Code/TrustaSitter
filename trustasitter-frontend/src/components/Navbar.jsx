@@ -47,22 +47,13 @@ function Navbar() {
 
         {user && (
           <>
-            {user.role === "client" && (
-              <Link
-                to="/profile-client"
-                className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition"
-              >
-                My Profile
-              </Link>
-            )}
-            {user.role === "babysitter" && (
-              <Link
-                to="/profile-babysitter"
-                className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition"
-              >
-                My Profile
-              </Link>
-            )}
+            {/* Profile link based on role */}
+            <Link
+              to={user.region ? "/profile" : "/profile-client"}
+              className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition"
+            >
+              My Profile
+            </Link>
             <button
               onClick={handleLogout}
               className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded transition"
