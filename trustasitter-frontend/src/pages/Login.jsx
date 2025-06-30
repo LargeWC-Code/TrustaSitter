@@ -17,23 +17,17 @@ const Login = () => {
     try {
       const data = await loginUniversal(email, password);
 
-      // Determine role based on response
-      let role = "client"; // default
-      if (data.role === "babysitter") {
-        role = "babysitter";
-      }
+      // Aqui vamos confiar no backend
+      const role = data.role; // vai ser "user" ou "babysitter"
 
-      // Save user and role in context
       login({
         token: data.token,
-        user: {
-          ...(data.user || data.babysitter),
-          role: role
-        }
+        user: data.user, // dados da pessoa
+        role: role
       });
 
-      // Redirect accordingly
-      if (role === "client") {
+      // Redireciona conforme role
+      if (role === "user") {
         navigate("/homeclient");
       } else if (role === "babysitter") {
         navigate("/home-babysitter");

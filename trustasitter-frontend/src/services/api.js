@@ -43,3 +43,17 @@ export const changeBabysitterPassword = async (token, currentPassword, newPasswo
   );
   return response.data;
 };
+// Function to change user password
+export const updateClientProfile = async (data, token) => {
+  const response = await api.put("/users/profile", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const deleteClientAccount = async (token) => {
+  const response = await api.delete("/users/profile", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};

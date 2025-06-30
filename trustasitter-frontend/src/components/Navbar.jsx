@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 function Navbar() {
-  const { user, logout } = useContext(AuthContext);
+  const { user, role, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -47,13 +47,22 @@ function Navbar() {
 
         {user && (
           <>
+            {/* Dashboard link based on role */}
+            <Link
+              to={role === "user" ? "/homeclient" : "/home-babysitter"}
+              className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition"
+            >
+              Dashboard
+            </Link>
+
             {/* Profile link based on role */}
             <Link
-              to={user.region ? "/profile" : "/profile-client"}
+              to={role === "user" ? "/profile-client" : "/profile"}
               className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition"
             >
               My Profile
             </Link>
+
             <button
               onClick={handleLogout}
               className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded transition"
