@@ -1,0 +1,22 @@
+{
+    "sourceFile": "trustasitter-frontend/src/components/ScrollToTop.jsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 1,
+            "patches": [
+                {
+                    "date": 1751205519774,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1751205528448,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -9,4 +9,5 @@\n   }, [pathname]);\r\n \r\n   return null;\r\n }\r\n+// This component will scroll to the top of the page whenever the pathname changes.\n\\ No newline at end of file\n"
+                }
+            ],
+            "date": 1751205519774,
+            "name": "Commit-0",
+            "content": "import { useEffect } from \"react\";\r\nimport { useLocation } from \"react-router-dom\";\r\n\r\nexport default function ScrollToTop() {\r\n  const { pathname } = useLocation();\r\n\r\n  useEffect(() => {\r\n    window.scrollTo(0, 0);\r\n  }, [pathname]);\r\n\r\n  return null;\r\n}\r\n"
+        }
+    ]
+}

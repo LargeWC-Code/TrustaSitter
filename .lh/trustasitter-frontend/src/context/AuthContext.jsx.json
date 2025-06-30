@@ -1,0 +1,34 @@
+{
+    "sourceFile": "trustasitter-frontend/src/context/AuthContext.jsx",
+    "activeCommit": 0,
+    "commits": [
+        {
+            "activePatchIndex": 4,
+            "patches": [
+                {
+                    "date": 1751200423997,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1751206578706,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -37,4 +37,9 @@\n       {children}\r\n     </AuthContext.Provider>\r\n   );\r\n };\r\n+const logout = () => {\r\n+  setUser(null);\r\n+  setToken(null);\r\n+  localStorage.removeItem(\"token\");\r\n+};\r\n"
+                },
+                {
+                    "date": 1751206939673,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -37,9 +37,4 @@\n       {children}\r\n     </AuthContext.Provider>\r\n   );\r\n };\r\n-const logout = () => {\r\n-  setUser(null);\r\n-  setToken(null);\r\n-  localStorage.removeItem(\"token\");\r\n-};\r\n"
+                },
+                {
+                    "date": 1751280431935,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -15,17 +15,26 @@\n       setUser(JSON.parse(storedUser));\r\n     }\r\n   }, []);\r\n \r\n-  // Login function\r\n-  const login = (data) => {\r\n-    setToken(data.token);\r\n-    setUser(data.user);\r\n-    localStorage.setItem(\"token\", data.token);\r\n-    localStorage.setItem(\"user\", JSON.stringify(data.user));\r\n-  };\r\n+ // Login function\r\n+const login = (data) => {\r\n+  setToken(data.token);\r\n+  setUser({\r\n+    ...data.user,\r\n+    role: data.role, // <-- adiciona o role\r\n+  });\r\n+  localStorage.setItem(\"token\", data.token);\r\n+  localStorage.setItem(\r\n+    \"user\",\r\n+    JSON.stringify({\r\n+      ...data.user,\r\n+      role: data.role,\r\n+    })\r\n+  );\r\n+};\r\n \r\n-  // Logout function\r\n+// Logout function\r\n   const logout = () => {\r\n     setToken(null);\r\n     setUser(null);\r\n     localStorage.removeItem(\"token\");\r\n"
+                },
+                {
+                    "date": 1751281386674,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,46 +4,41 @@\n \r\n export const AuthProvider = ({ children }) => {\r\n   const [user, setUser] = useState(null);\r\n   const [token, setToken] = useState(null);\r\n+  const [role, setRole] = useState(null); // <- novo estado\r\n \r\n-  // On load, check if token exists in localStorage\r\n   useEffect(() => {\r\n     const storedToken = localStorage.getItem(\"token\");\r\n     const storedUser = localStorage.getItem(\"user\");\r\n+    const storedRole = localStorage.getItem(\"role\");\r\n     if (storedToken && storedUser) {\r\n       setToken(storedToken);\r\n       setUser(JSON.parse(storedUser));\r\n+      setRole(storedRole);\r\n     }\r\n   }, []);\r\n \r\n- // Login function\r\n-const login = (data) => {\r\n-  setToken(data.token);\r\n-  setUser({\r\n-    ...data.user,\r\n-    role: data.role, // <-- adiciona o role\r\n-  });\r\n-  localStorage.setItem(\"token\", data.token);\r\n-  localStorage.setItem(\r\n-    \"user\",\r\n-    JSON.stringify({\r\n-      ...data.user,\r\n-      role: data.role,\r\n-    })\r\n-  );\r\n-};\r\n+  const login = (data) => {\r\n+    setToken(data.token);\r\n+    setUser(data.user);\r\n+    setRole(data.role); // salva role\r\n+    localStorage.setItem(\"token\", data.token);\r\n+    localStorage.setItem(\"user\", JSON.stringify(data.user));\r\n+    localStorage.setItem(\"role\", data.role);\r\n+  };\r\n \r\n-// Logout function\r\n   const logout = () => {\r\n     setToken(null);\r\n     setUser(null);\r\n+    setRole(null);\r\n     localStorage.removeItem(\"token\");\r\n     localStorage.removeItem(\"user\");\r\n+    localStorage.removeItem(\"role\");\r\n   };\r\n \r\n   return (\r\n-    <AuthContext.Provider value={{ user, token, login, logout }}>\r\n+    <AuthContext.Provider value={{ user, token, role, login, logout }}>\r\n       {children}\r\n     </AuthContext.Provider>\r\n   );\r\n };\r\n"
+                }
+            ],
+            "date": 1751200423997,
+            "name": "Commit-0",
+            "content": "import React, { createContext, useState, useEffect } from \"react\";\r\n\r\nexport const AuthContext = createContext();\r\n\r\nexport const AuthProvider = ({ children }) => {\r\n  const [user, setUser] = useState(null);\r\n  const [token, setToken] = useState(null);\r\n\r\n  // On load, check if token exists in localStorage\r\n  useEffect(() => {\r\n    const storedToken = localStorage.getItem(\"token\");\r\n    const storedUser = localStorage.getItem(\"user\");\r\n    if (storedToken && storedUser) {\r\n      setToken(storedToken);\r\n      setUser(JSON.parse(storedUser));\r\n    }\r\n  }, []);\r\n\r\n  // Login function\r\n  const login = (data) => {\r\n    setToken(data.token);\r\n    setUser(data.user);\r\n    localStorage.setItem(\"token\", data.token);\r\n    localStorage.setItem(\"user\", JSON.stringify(data.user));\r\n  };\r\n\r\n  // Logout function\r\n  const logout = () => {\r\n    setToken(null);\r\n    setUser(null);\r\n    localStorage.removeItem(\"token\");\r\n    localStorage.removeItem(\"user\");\r\n  };\r\n\r\n  return (\r\n    <AuthContext.Provider value={{ user, token, login, logout }}>\r\n      {children}\r\n    </AuthContext.Provider>\r\n  );\r\n};\r\n"
+        }
+    ]
+}
