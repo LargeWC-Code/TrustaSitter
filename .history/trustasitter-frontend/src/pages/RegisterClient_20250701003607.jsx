@@ -57,7 +57,7 @@ const RegisterClient = () => {
 
     try {
       // Call API to register client
-      const response = await registerClient({
+      await registerClient({
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -67,15 +67,6 @@ const RegisterClient = () => {
         children: formData.children,
       });
 
-      if (response.token) {
-        login({
-          token: response.token,
-          user: response.user,
-          role: "user",
-        });
-        navigate("/homeclient");
-        return;
-      }
       setSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {

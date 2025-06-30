@@ -290,7 +290,7 @@ app.post('/api/users/register', async (req, res) => {
     
     res.status(201).json({
       message: 'User registered successfully.',
-      token,
+      token
       role: 'user',
       user: {
         id: result.rows[0].id,

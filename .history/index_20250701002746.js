@@ -287,19 +287,11 @@ app.post('/api/users/register', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '3h' }
     );
-    
+
     res.status(201).json({
       message: 'User registered successfully.',
-      token,
-      role: 'user',
-      user: {
-        id: result.rows[0].id,
-        name: result.rows[0].name,
-        email: result.rows[0].email,
-        created_at: result.rows[0].created_at
-      }
+      user: result.rows[0]
     });
-
   } catch (error) {
     console.error('Error registering user:', error);
     res.status(500).json({ error: 'Internal server error' });

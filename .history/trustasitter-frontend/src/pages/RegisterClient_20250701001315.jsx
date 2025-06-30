@@ -1,14 +1,11 @@
 // src/pages/RegisterClient.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
 import { FaUser } from "react-icons/fa";
 import { registerClient } from "../services/api";
 
 const RegisterClient = () => {
   const navigate = useNavigate();
-  const {login} = useContext(AuthContext);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -57,7 +54,7 @@ const RegisterClient = () => {
 
     try {
       // Call API to register client
-      const response = await registerClient({
+      await registerClient({
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -67,15 +64,6 @@ const RegisterClient = () => {
         children: formData.children,
       });
 
-      if (response.token) {
-        login({
-          token: response.token,
-          user: response.user,
-          role: "user",
-        });
-        navigate("/homeclient");
-        return;
-      }
       setSuccess("Account created successfully! Redirecting to login...");
       setTimeout(() => navigate("/login"), 2000);
     } catch (err) {

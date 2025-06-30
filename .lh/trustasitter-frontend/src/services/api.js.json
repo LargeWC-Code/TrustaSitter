@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 4,
+            "activePatchIndex": 5,
             "patches": [
                 {
                     "date": 1751199856164,
@@ -24,6 +24,10 @@
                 {
                     "date": 1751247505933,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -42,36 +42,18 @@\n     }\r\n   );\r\n   return response.data;\r\n };\r\n-import axios from \"axios\";\r\n-\r\n-// Create an axios instance with default config\r\n-const api = axios.create({\r\n-  baseURL: \"http://localhost:3000/api\", // Base URL for the API\r\n-});\r\n-\r\n-// Function to log in user\r\n-export const loginUser = async (email, password) => {\r\n-  const response = await api.post(\"/users/login\", {\r\n-    email,\r\n-    password,\r\n+// Function to change user password\r\n+export const updateClientProfile = async (data, token) => {\r\n+  const response = await api.put(\"/users/profile\", data, {\r\n+    headers: { Authorization: `Bearer ${token}` },\r\n   });\r\n-  return response.data; // contains { message, token, user }\r\n+  return response.data;\r\n };\r\n \r\n-// Function to log in babysitter\r\n-export const loginBabysitter = async (email, password) => {\r\n-  const response = await api.post(\"/babysitters/login\", {\r\n-    email,\r\n-    password,\r\n+export const deleteClientAccount = async (token) => {\r\n+  const response = await api.delete(\"/users/profile\", {\r\n+    headers: { Authorization: `Bearer ${token}` },\r\n   });\r\n   return response.data;\r\n };\r\n-// Universal login for users and babysitters\r\n-export const loginUniversal = async (email, password) => {\r\n-  const response = await api.post(\"/login\", {\r\n-    email,\r\n-    password,\r\n-  });\r\n-  return response.data; // contains { message, token, role, user }\r\n-};\r\n"
+                },
+                {
+                    "date": 1751284880587,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -56,4 +56,9 @@\n     headers: { Authorization: `Bearer ${token}` },\r\n   });\r\n   return response.data;\r\n };\r\n+\r\n+export const registerClient = async (data) => {\r\n+  const response = await api.post(\"/users/register\", data);\r\n+  return response.data;\r\n+};\r\n"
                 }
             ],
             "date": 1751199856164,
