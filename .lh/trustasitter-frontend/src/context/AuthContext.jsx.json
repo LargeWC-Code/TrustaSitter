@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 4,
+            "activePatchIndex": 5,
             "patches": [
                 {
                     "date": 1751200423997,
@@ -24,6 +24,10 @@
                 {
                     "date": 1751281386674,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,46 +4,41 @@\n \r\n export const AuthProvider = ({ children }) => {\r\n   const [user, setUser] = useState(null);\r\n   const [token, setToken] = useState(null);\r\n+  const [role, setRole] = useState(null); // <- novo estado\r\n \r\n-  // On load, check if token exists in localStorage\r\n   useEffect(() => {\r\n     const storedToken = localStorage.getItem(\"token\");\r\n     const storedUser = localStorage.getItem(\"user\");\r\n+    const storedRole = localStorage.getItem(\"role\");\r\n     if (storedToken && storedUser) {\r\n       setToken(storedToken);\r\n       setUser(JSON.parse(storedUser));\r\n+      setRole(storedRole);\r\n     }\r\n   }, []);\r\n \r\n- // Login function\r\n-const login = (data) => {\r\n-  setToken(data.token);\r\n-  setUser({\r\n-    ...data.user,\r\n-    role: data.role, // <-- adiciona o role\r\n-  });\r\n-  localStorage.setItem(\"token\", data.token);\r\n-  localStorage.setItem(\r\n-    \"user\",\r\n-    JSON.stringify({\r\n-      ...data.user,\r\n-      role: data.role,\r\n-    })\r\n-  );\r\n-};\r\n+  const login = (data) => {\r\n+    setToken(data.token);\r\n+    setUser(data.user);\r\n+    setRole(data.role); // salva role\r\n+    localStorage.setItem(\"token\", data.token);\r\n+    localStorage.setItem(\"user\", JSON.stringify(data.user));\r\n+    localStorage.setItem(\"role\", data.role);\r\n+  };\r\n \r\n-// Logout function\r\n   const logout = () => {\r\n     setToken(null);\r\n     setUser(null);\r\n+    setRole(null);\r\n     localStorage.removeItem(\"token\");\r\n     localStorage.removeItem(\"user\");\r\n+    localStorage.removeItem(\"role\");\r\n   };\r\n \r\n   return (\r\n-    <AuthContext.Provider value={{ user, token, login, logout }}>\r\n+    <AuthContext.Provider value={{ user, token, role, login, logout }}>\r\n       {children}\r\n     </AuthContext.Provider>\r\n   );\r\n };\r\n"
+                },
+                {
+                    "date": 1751289871205,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -4,9 +4,10 @@\n \r\n export const AuthProvider = ({ children }) => {\r\n   const [user, setUser] = useState(null);\r\n   const [token, setToken] = useState(null);\r\n-  const [role, setRole] = useState(null); // <- novo estado\r\n+  const [role, setRole] = useState(null);\r\n+  const [isLoading, setIsLoading] = useState(true); // NOVO estado\r\n \r\n   useEffect(() => {\r\n     const storedToken = localStorage.getItem(\"token\");\r\n     const storedUser = localStorage.getItem(\"user\");\r\n@@ -15,14 +16,15 @@\n       setToken(storedToken);\r\n       setUser(JSON.parse(storedUser));\r\n       setRole(storedRole);\r\n     }\r\n+    setIsLoading(false); // Indicates that charging has finished\r\n   }, []);\r\n \r\n   const login = (data) => {\r\n     setToken(data.token);\r\n     setUser(data.user);\r\n-    setRole(data.role); // salva role\r\n+    setRole(data.role);\r\n     localStorage.setItem(\"token\", data.token);\r\n     localStorage.setItem(\"user\", JSON.stringify(data.user));\r\n     localStorage.setItem(\"role\", data.role);\r\n   };\r\n@@ -36,9 +38,9 @@\n     localStorage.removeItem(\"role\");\r\n   };\r\n \r\n   return (\r\n-    <AuthContext.Provider value={{ user, token, role, login, logout }}>\r\n+    <AuthContext.Provider value={{ user, token, role, isLoading, login, logout }}>\r\n       {children}\r\n     </AuthContext.Provider>\r\n   );\r\n };\r\n"
                 }
             ],
             "date": 1751200423997,

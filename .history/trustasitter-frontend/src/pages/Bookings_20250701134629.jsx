@@ -1,36 +1,41 @@
-// src/pages/Bookings.jsx
-import React, { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { getUserBookings } from "../services/api";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Bookings = () => {
-  const { user, token } = useContext(AuthContext);
+  const { user, token, isLoading } = useContext(AuthContext);
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingBookings, setLoadingBookings] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      if (!user) return;
+    if (isLoading) return; // Wait until AuthContext is loaded
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
+    const fetchBookings = async () => {
       try {
-        const data = await getUserBookings(user.id, token);
-        setBookings(data);
+        const res = await axios.get(`http://localhost:3000/api/bookings/${user.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setBookings(res.data);
       } catch (err) {
         console.error("Error fetching bookings:", err);
       } finally {
-        setLoading(false);
+        setLoadingBookings(false);
       }
     };
 
     fetchBookings();
-  }, [user, token]);
+  }, [user, token, isLoading, navigate]);
 
-  if (loading) {
+  if (isLoading || loadingBookings) {
     return (
       <main className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-600">Loading your bookings...</p>
+        <p className="text-gray-600">Loading bookings...</p>
       </main>
     );
   }
@@ -43,11 +48,11 @@ const Bookings = () => {
       </h1>
 
       {bookings.length === 0 ? (
-        <div className="text-center text-gray-600">
-          <p>You don’t have any bookings yet.</p>
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">You have no bookings yet.</p>
           <button
             onClick={() => navigate("/search")}
-            className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded transition"
+            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded transition"
           >
             Find a Babysitter
           </button>
@@ -66,22 +71,33 @@ const Bookings = () => {
                 <p className="text-gray-600 mb-1">
                   <strong>Date:</strong>{" "}
                   {new Date(booking.date).toLocaleDateString("en-NZ", {
-                    day: "numeric",
-                    month: "long",
                     year: "numeric",
+                    month: "long",
+                    day: "numeric"
                   })}
                 </p>
                 <p className="text-gray-600 mb-1">
                   <strong>Time:</strong>{" "}
-                  {booking.time_start.slice(0,5)} - {booking.time_end.slice(0,5)}
+                  {new Date(`1970-01-01T${booking.time_start}`).toLocaleTimeString("en-NZ", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true
+                  })}
+                  {" - "}
+                  {new Date(`1970-01-01T${booking.time_end}`).toLocaleTimeString("en-NZ", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    hour12: true
+                  })}
                 </p>
+                
                 <p className="text-gray-600">
                   <strong>Status:</strong>{" "}
-                  {booking.status}
+                  {booking.status ? booking.status : "Pending"}
                 </p>
               </div>
               <button
-                onClick={() => alert("Cancel booking logic here")}
+                onClick={() => alert("Cancel functionality not implemented yet.")}
                 className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
               >
                 Cancel Booking

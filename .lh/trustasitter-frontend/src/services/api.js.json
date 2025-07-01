@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 5,
+            "activePatchIndex": 6,
             "patches": [
                 {
                     "date": 1751199856164,
@@ -28,6 +28,10 @@
                 {
                     "date": 1751284880587,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -56,4 +56,9 @@\n     headers: { Authorization: `Bearer ${token}` },\r\n   });\r\n   return response.data;\r\n };\r\n+\r\n+export const registerClient = async (data) => {\r\n+  const response = await api.post(\"/users/register\", data);\r\n+  return response.data;\r\n+};\r\n"
+                },
+                {
+                    "date": 1751350962151,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -61,4 +61,11 @@\n export const registerClient = async (data) => {\r\n   const response = await api.post(\"/users/register\", data);\r\n   return response.data;\r\n };\r\n+// Get bookings for a user\r\n+export const getUserBookings = async (userId, token) => {\r\n+  const res = await axios.get(`http://localhost:3000/api/bookings/${userId}`, {\r\n+    headers: { Authorization: `Bearer ${token}` }\r\n+  });\r\n+  return res.data;\r\n+};\r\n"
                 }
             ],
             "date": 1751199856164,

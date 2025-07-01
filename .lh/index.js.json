@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 38,
+            "activePatchIndex": 39,
             "patches": [
                 {
                     "date": 1750481102624,
@@ -160,6 +160,10 @@
                 {
                     "date": 1751286673408,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -289,9 +289,9 @@\n     );\r\n     \r\n     res.status(201).json({\r\n       message: 'User registered successfully.',\r\n-      token\r\n+      token,\r\n       role: 'user',\r\n       user: {\r\n         id: result.rows[0].id,\r\n         name: result.rows[0].name,\r\n"
+                },
+                {
+                    "date": 1751352373889,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -663,8 +663,44 @@\n     res.status(500).json({ error: 'Internal server error' });\r\n   }\r\n });\r\n \r\n+// Route: Update booking status (protected)\r\n+app.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {\r\n+  const { id } = req.params;\r\n+  const { status } = req.body;\r\n+\r\n+  try {\r\n+    // Valida status permitido\r\n+    const validStatuses = ['pending', 'confirmed', 'rejected', 'cancelled'];\r\n+    if (!validStatuses.includes(status)) {\r\n+      return res.status(400).json({ error: 'Invalid status value.' });\r\n+    }\r\n+\r\n+    // Atualiza no banco\r\n+    const query = `\r\n+      UPDATE bookings\r\n+      SET status = $1\r\n+      WHERE id = $2\r\n+      RETURNING *;\r\n+    `;\r\n+    const values = [status, id];\r\n+    const result = await db.query(query, values);\r\n+\r\n+    if (result.rows.length === 0) {\r\n+      return res.status(404).json({ error: 'Booking not found.' });\r\n+    }\r\n+\r\n+    res.status(200).json({\r\n+      message: 'Booking status updated successfully.',\r\n+      booking: result.rows[0],\r\n+    });\r\n+  } catch (error) {\r\n+    console.error('Error updating booking status:', error);\r\n+    res.status(500).json({ error: 'Internal server error.' });\r\n+  }\r\n+});\r\n+\r\n /* -----------------------------------\r\n    Bookings Routes\r\n ----------------------------------- */\r\n \r\n"
                 }
             ],
             "date": 1750481102624,

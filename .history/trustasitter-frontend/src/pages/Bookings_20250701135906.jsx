@@ -1,36 +1,42 @@
 // src/pages/Bookings.jsx
 import React, { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { getUserBookings } from "../services/api";
+import { getBookingsByUser } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const Bookings = () => {
   const { user, token } = useContext(AuthContext);
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      if (!user) return;
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch bookings when page loads
+  useEffect(() => {
+    if (!user) return;
+    const fetchBookings = async () => {
       try {
-        const data = await getUserBookings(user.id, token);
+        const data = await getBookingsByUser(user.id, token);
         setBookings(data);
       } catch (err) {
-        console.error("Error fetching bookings:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchBookings();
   }, [user, token]);
 
-  if (loading) {
+  const handleCancel = (id) => {
+    // You can implement cancellation here
+    const updated = bookings.filter((b) => b.id !== id);
+    setBookings(updated);
+  };
+
+  if (!user) {
     return (
-      <main className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-600">Loading your bookings...</p>
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100">
+        <p className="text-lg text-gray-700">Please log in to view your bookings.</p>
       </main>
     );
   }
@@ -42,12 +48,16 @@ const Bookings = () => {
         <span className="text-purple-500">Bookings</span>
       </h1>
 
-      {bookings.length === 0 ? (
-        <div className="text-center text-gray-600">
-          <p>You don’t have any bookings yet.</p>
+      {loading ? (
+        <p className="text-center text-gray-600">Loading...</p>
+      ) : bookings.length === 0 ? (
+        <div className="text-center">
+          <p className="text-gray-700 mb-4">
+            You have no bookings yet.
+          </p>
           <button
             onClick={() => navigate("/search")}
-            className="mt-4 bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded transition"
+            className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded transition"
           >
             Find a Babysitter
           </button>
@@ -73,7 +83,7 @@ const Bookings = () => {
                 </p>
                 <p className="text-gray-600 mb-1">
                   <strong>Time:</strong>{" "}
-                  {booking.time_start.slice(0,5)} - {booking.time_end.slice(0,5)}
+                  {`${booking.time_start} - ${booking.time_end}`}
                 </p>
                 <p className="text-gray-600">
                   <strong>Status:</strong>{" "}
@@ -81,7 +91,7 @@ const Bookings = () => {
                 </p>
               </div>
               <button
-                onClick={() => alert("Cancel booking logic here")}
+                onClick={() => handleCancel(booking.id)}
                 className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
               >
                 Cancel Booking
