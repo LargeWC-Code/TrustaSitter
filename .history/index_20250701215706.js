@@ -75,7 +75,7 @@ app.post('/api/babysitters/register', async (req, res) => {
       hashedPassword,
       phone,
       region,
-      availableDaysArray,
+      available_DaysArray,
       available_from,
       available_to,
       about,
@@ -160,44 +160,6 @@ app.get('/api/babysitters/profile', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-// Route: Get babysitter profile by ID
-app.get("/api/babysitters/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-
-    // Query to select all relevant fields except password
-    const query = `
-      SELECT 
-        id,
-        name,
-        email,
-        region,
-        background_check_uploaded,
-        created_at,
-        available_days,
-        available_from,
-        available_to,
-        phone,
-        rate,
-        about,
-        profile_photo
-      FROM babysitters
-      WHERE id = $1
-    `;
-
-    const result = await db.query(query, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Babysitter not found." });
-    }
-
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error("Error fetching babysitter profile:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
-});
 
 // Route: Update babysitter profile (protected)
 app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
@@ -210,7 +172,8 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
     available_from,
     available_to,
     about,
-    rate
+    rate,
+    password
   } = req.body;
 
   try {
@@ -233,18 +196,17 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
       rate: rate || resultBabysitter.rows[0].rate
     };
 
+    let hashedPassword = resultBabysitter.rows[0].password;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
     const queryUpdate = `
       UPDATE babysitters
-      SET name = $1,
-          email = $2,
-          phone = $3,
-          region = $4,
-          available_days = $5,
-          available_from = $6,
-          available_to = $7,
-          about = $8,
-          rate = $9
-      WHERE id = $10
+      SET name = $1, email = $2, phone = $3, region = $4,
+          available_days = $5, available_from = $6, available_to = $7,
+          about = $8, rate = $9, password = $10
+      WHERE id = $11
       RETURNING id, name, email, region, phone, available_days, available_from, available_to, about, rate, created_at;
     `;
 
@@ -258,6 +220,7 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
       updates.available_to,
       updates.about,
       updates.rate,
+      hashedPassword,
       req.user.id
     ];
 
@@ -301,34 +264,6 @@ app.delete('/api/babysitters/profile', authMiddleware, async (req, res) => {
     res.status(200).json({ message: 'Babysitter account deleted successfully.' });
   } catch (error) {
     console.error('Error deleting babysitter account:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Route: Get all babysitters
-app.get('/api/babysitters', async (req, res) => {
-  try {
-    const query = `
-      SELECT
-        id,
-        name,
-        email,
-        phone,
-        region,
-        rate,
-        about,
-        available_days,
-        available_from,
-        available_to,
-        profile_photo,
-        created_at
-      FROM babysitters
-      ORDER BY created_at DESC;
-    `;
-    const result = await db.query(query);
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching babysitters:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

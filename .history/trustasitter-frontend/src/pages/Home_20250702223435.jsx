@@ -9,11 +9,23 @@ const Home = () => {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const navigate = useNavigate();
 
-  const handleBookingsClick = () => {
+  // Handle "Find a Babysitter"
+  const handleFindBabysitter = () => {
     if (!role) {
       setShowLoginPopup(true);
     } else if (role === "babysitter") {
       setShowBabysitterPopup(true);
+    } else {
+      navigate("/search");
+    }
+  };
+
+  // Handle "View My Bookings"
+  const handleBookingsClick = () => {
+    if (!role) {
+      setShowLoginPopup(true);
+    } else if (role === "babysitter") {
+      navigate("/home-babysitter");
     } else {
       navigate("/bookings");
     }
@@ -32,13 +44,7 @@ const Home = () => {
         </p>
         <div className="flex justify-center gap-6">
           <button
-            onClick={() => {
-              if (role === "babysitter") {
-                setShowBabysitterPopup(true);
-              } else {
-                navigate("/search");
-              }
-            }}
+            onClick={handleFindBabysitter}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition"
           >
             Find a Babysitter
@@ -61,8 +67,7 @@ const Home = () => {
               Trusted Babysitters
             </h3>
             <p className="text-gray-600">
-              All sitters are verified and background-checked to ensure your
-              child's safety.
+              All sitters are verified and background-checked to ensure your child's safety.
             </p>
           </div>
           <div className="bg-white p-6 rounded shadow hover:shadow-lg transition">
@@ -70,8 +75,7 @@ const Home = () => {
               Easy Booking
             </h3>
             <p className="text-gray-600">
-              Schedule and manage bookings with just a few clicks — fast and
-              hassle-free.
+              Schedule and manage bookings with just a few clicks — fast and hassle-free.
             </p>
           </div>
           <div className="bg-white p-6 rounded shadow hover:shadow-lg transition">
@@ -79,55 +83,13 @@ const Home = () => {
               Local Support
             </h3>
             <p className="text-gray-600">
-              We are based in Auckland and understand the needs of local
-              families.
+              We are based in Auckland and understand the needs of local families.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Section 3 – Highlights */}
-      <div className="max-w-6xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
-          What Makes Us Special
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              img: "https://images.pexels.com/photos/3933063/pexels-photo-3933063.jpeg?auto=compress&cs=tinysrgb&w=800",
-              title: "Care with a Smile",
-              desc: "Our sitters love what they do and bring joy to every home they visit.",
-            },
-            {
-              img: "https://images.pexels.com/photos/4260323/pexels-photo-4260323.jpeg?auto=compress&cs=tinysrgb&w=800",
-              title: "Smart Scheduling",
-              desc: "Use our platform to book sitters instantly with full control and visibility.",
-            },
-            {
-              img: "https://images.pexels.com/photos/3662665/pexels-photo-3662665.jpeg?auto=compress&cs=tinysrgb&w=800",
-              title: "Peace of Mind",
-              desc: "All our sitters go through a verification process so you can feel safe.",
-            },
-          ].map((card, index) => (
-            <div
-              key={index}
-              className="bg-white rounded shadow hover:shadow-lg transition overflow-hidden"
-            >
-              <img
-                src={card.img}
-                alt={card.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
-                <p className="text-gray-600">{card.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Section 4 – CTA */}
+      {/* Section 4 – Call to Action */}
       <section className="bg-purple-600 text-white text-center py-12 px-6 rounded-lg mt-10 shadow-md">
         <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
         <p className="mb-6 text-lg">
@@ -135,13 +97,7 @@ const Home = () => {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button
-            onClick={() => {
-              if (role === "babysitter") {
-                setShowBabysitterPopup(true);
-              } else {
-                navigate("/search");
-              }
-            }}
+            onClick={handleFindBabysitter}
             className="bg-white text-purple-600 px-6 py-3 rounded font-semibold hover:bg-gray-100 transition"
           >
             Find a Babysitter
@@ -166,11 +122,11 @@ const Home = () => {
             className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-semibold mb-4 text-center">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
               Login Required
             </h3>
-            <p className="mb-6 text-gray-600 text-center">
-              To view your bookings, please log in or create an account.
+            <p className="mb-6 text-gray-600">
+              To access this feature, please log in or create an account.
             </p>
             <div className="flex justify-end gap-4">
               <button
@@ -206,12 +162,11 @@ const Home = () => {
             className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-xl font-semibold mb-4 text-center">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800 text-center">
               Access Restricted
             </h3>
             <p className="mb-6 text-gray-600 text-center">
-              This feature is only available for parents. You are logged in as
-              a babysitter.
+              This feature is only available for parents. You are logged in as a babysitter.
             </p>
             <div className="flex justify-center">
               <button

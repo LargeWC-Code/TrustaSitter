@@ -14,30 +14,26 @@ const HomeBabysitter = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch bookings when component mounts
-    useEffect(() => {
-  // Wait until user is loaded
-  if (!user) return;
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/api/babysitters/${user.id}/bookings`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setBookings(response.data);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load bookings.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchBookings = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/api/babysitters/${user.id}/bookings`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setBookings(response.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load bookings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchBookings();
-}, [token, user]);
-
+    fetchBookings();
+  }, [token, user]);
 
   // Function to approve or reject a booking
   const handleUpdateStatus = async (bookingId, newStatus) => {
@@ -62,36 +58,41 @@ const HomeBabysitter = () => {
   };
 
   return (
-        <main className="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen py-12 px-6 flex flex-col items-center">
-      {/* Welcome */}
+    <main className="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen py-12 px-6">
+      {/* Title */}
       <h1 className="text-3xl font-bold text-center mb-8">
-        Welcome back,
-        {user?.name && (
-          <span className="text-purple-600"> {user.name}!</span>
-        )}
+        Welcome back, <span className="text-purple-600">Babysitter!</span>
       </h1>
 
-
+      {/* Loading or error */}
       {loading ? (
         <p className="text-center text-gray-600">Loading bookings...</p>
       ) : error ? (
         <p className="text-center text-red-500">{error}</p>
       ) : (
-        <section className="w-full max-w-4xl mb-12">
+        <section className="max-w-4xl mx-auto mb-12">
+          {/* Success message */}
           {successMessage && (
             <div className="mb-4 bg-green-100 text-green-700 p-3 rounded text-center">
               {successMessage}
             </div>
           )}
-
-          <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Your Upcoming Bookings
           </h2>
 
+          {/* If no bookings */}
           {bookings.length === 0 ? (
             <div className="text-center text-gray-600 flex flex-col items-center">
+              <FaCalendarAlt className="text-5xl mb-3 text-purple-400" />
               <p className="mb-2">You don’t have any bookings yet.</p>
-              <p className="">Once a parent books you, it will appear here.</p>
+              <p className="mb-4">Once a parent books you, it will appear here.</p>
+              <Link
+                to="/"
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition"
+              >
+                Back to Home
+              </Link>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,8 +145,29 @@ const HomeBabysitter = () => {
           )}
         </section>
       )}
-    </main>
 
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row justify-center gap-4">
+        <Link
+          to="/"
+          className="bg-white text-purple-600 px-6 py-3 rounded font-semibold hover:bg-gray-100 transition"
+        >
+          Back to Home
+        </Link>
+        <Link
+          to="/profile"
+          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded font-semibold transition"
+        >
+          Manage Profile
+        </Link>
+        <Link
+          to="/login"
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded font-semibold transition"
+        >
+          Logout
+        </Link>
+      </div>
+    </main>
   );
 };
 

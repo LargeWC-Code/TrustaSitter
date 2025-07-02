@@ -14,30 +14,26 @@ const HomeBabysitter = () => {
   const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch bookings when component mounts
-    useEffect(() => {
-  // Wait until user is loaded
-  if (!user) return;
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/api/babysitters/${user.id}/bookings`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setBookings(response.data);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load bookings.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchBookings = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/api/babysitters/${user.id}/bookings`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setBookings(response.data);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load bookings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchBookings();
-}, [token, user]);
-
+    fetchBookings();
+  }, [token, user]);
 
   // Function to approve or reject a booking
   const handleUpdateStatus = async (bookingId, newStatus) => {
@@ -65,12 +61,8 @@ const HomeBabysitter = () => {
         <main className="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen py-12 px-6 flex flex-col items-center">
       {/* Welcome */}
       <h1 className="text-3xl font-bold text-center mb-8">
-        Welcome back,
-        {user?.name && (
-          <span className="text-purple-600"> {user.name}!</span>
-        )}
+        Welcome back, <span className="text-purple-600">Babysitter!</span>
       </h1>
-
 
       {loading ? (
         <p className="text-center text-gray-600">Loading bookings...</p>

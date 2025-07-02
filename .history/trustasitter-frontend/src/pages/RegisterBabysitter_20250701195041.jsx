@@ -6,11 +6,9 @@ import { AuthContext } from "../context/AuthContext";
 import { FaUserNurse } from "react-icons/fa";
 
 const RegisterBabysitter = () => {
-  // Access login context
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Form state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,17 +21,13 @@ const RegisterBabysitter = () => {
     availableFrom: "",
     availableTo: "",
     about: "",
-    profilePicture: null,
-    certificates: [],
   });
 
-  // Error and success messages
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Handle field changes
   const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
+    const { name, value, type, checked } = e.target;
 
     if (type === "checkbox") {
       setFormData((prev) => {
@@ -42,24 +36,16 @@ const RegisterBabysitter = () => {
           : prev.availableDays.filter((day) => day !== value);
         return { ...prev, availableDays: updatedDays };
       });
-    } else if (type === "file") {
-      if (name === "certificates") {
-        setFormData((prev) => ({ ...prev, certificates: files }));
-      } else {
-        setFormData((prev) => ({ ...prev, profilePicture: files[0] }));
-      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Validation
     if (
       !formData.name ||
       !formData.email ||
@@ -80,7 +66,7 @@ const RegisterBabysitter = () => {
     }
 
     try {
-      // Create babysitter
+      // Register babysitter
       await axios.post("http://localhost:3000/api/babysitters/register", {
         name: formData.name,
         email: formData.email,
@@ -92,10 +78,9 @@ const RegisterBabysitter = () => {
         available_to: formData.availableTo,
         about: formData.about,
         rate: formData.rate,
-        // For now, profilePicture and certificates are not being sent to backend
       });
 
-      // Auto login
+      // Auto-login
       const loginResponse = await axios.post(
         "http://localhost:3000/api/babysitters/login",
         {
@@ -112,7 +97,7 @@ const RegisterBabysitter = () => {
         },
       });
 
-      // Redirect to babysitter home
+      // Go to babysitter dashboard
       navigate("/home-babysitter");
     } catch (err) {
       console.error(err);
@@ -126,7 +111,6 @@ const RegisterBabysitter = () => {
   return (
     <div className="flex items-start justify-center min-h-screen bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
-        {/* Header */}
         <div className="flex flex-col items-center mb-6">
           <FaUserNurse className="text-purple-600 text-4xl mb-2" />
           <h2 className="text-2xl font-bold text-gray-800">Babysitter Registration</h2>
@@ -135,7 +119,6 @@ const RegisterBabysitter = () => {
           </p>
         </div>
 
-        {/* Feedback messages */}
         {error && (
           <p className="text-red-500 text-center mb-4">{error}</p>
         )}
@@ -143,9 +126,7 @@ const RegisterBabysitter = () => {
           <p className="text-green-600 text-center mb-4">{success}</p>
         )}
 
-        {/* Registration Form */}
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Name */}
           <input
             name="name"
             value={formData.name}
@@ -154,7 +135,6 @@ const RegisterBabysitter = () => {
             placeholder="Full Name"
             className="w-full px-4 py-2 border rounded focus:outline-none"
           />
-          {/* Email */}
           <input
             name="email"
             value={formData.email}
@@ -163,7 +143,6 @@ const RegisterBabysitter = () => {
             placeholder="Email Address"
             className="w-full px-4 py-2 border rounded focus:outline-none"
           />
-          {/* Password */}
           <input
             name="password"
             value={formData.password}
@@ -172,7 +151,6 @@ const RegisterBabysitter = () => {
             placeholder="Password"
             className="w-full px-4 py-2 border rounded focus:outline-none"
           />
-          {/* Confirm Password */}
           <input
             name="confirmPassword"
             value={formData.confirmPassword}
@@ -181,7 +159,6 @@ const RegisterBabysitter = () => {
             placeholder="Confirm Password"
             className="w-full px-4 py-2 border rounded focus:outline-none"
           />
-          {/* Phone */}
           <input
             name="phone"
             value={formData.phone}
@@ -190,7 +167,6 @@ const RegisterBabysitter = () => {
             placeholder="Phone Number"
             className="w-full px-4 py-2 border rounded focus:outline-none"
           />
-          {/* Region */}
           <select
             name="region"
             value={formData.region}
@@ -204,7 +180,6 @@ const RegisterBabysitter = () => {
             <option value="North">North</option>
             <option value="South">South</option>
           </select>
-          {/* Rate */}
           <input
             name="rate"
             value={formData.rate}
@@ -270,34 +245,6 @@ const RegisterBabysitter = () => {
             rows="3"
           />
 
-          {/* Profile Picture */}
-          <div>
-            <label className="block mb-1 text-gray-700 font-medium">
-              Upload Profile Picture
-            </label>
-            <input
-              type="file"
-              name="profilePicture"
-              onChange={handleChange}
-              className="w-full"
-            />
-          </div>
-
-          {/* Certificates */}
-          <div>
-            <label className="block mb-1 text-gray-700 font-medium">
-              Upload Certificates
-            </label>
-            <input
-              type="file"
-              name="certificates"
-              onChange={handleChange}
-              className="w-full"
-              multiple
-            />
-          </div>
-
-          {/* Submit */}
           <button
             type="submit"
             className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 rounded transition"

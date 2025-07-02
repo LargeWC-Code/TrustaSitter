@@ -200,6 +200,7 @@ app.get("/api/babysitters/:id", async (req, res) => {
 });
 
 // Route: Update babysitter profile (protected)
+// Update babysitter profile (protected)
 app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
   const {
     name,
@@ -301,34 +302,6 @@ app.delete('/api/babysitters/profile', authMiddleware, async (req, res) => {
     res.status(200).json({ message: 'Babysitter account deleted successfully.' });
   } catch (error) {
     console.error('Error deleting babysitter account:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Route: Get all babysitters
-app.get('/api/babysitters', async (req, res) => {
-  try {
-    const query = `
-      SELECT
-        id,
-        name,
-        email,
-        phone,
-        region,
-        rate,
-        about,
-        available_days,
-        available_from,
-        available_to,
-        profile_photo,
-        created_at
-      FROM babysitters
-      ORDER BY created_at DESC;
-    `;
-    const result = await db.query(query);
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching babysitters:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

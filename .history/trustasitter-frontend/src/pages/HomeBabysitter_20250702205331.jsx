@@ -65,12 +65,8 @@ const HomeBabysitter = () => {
         <main className="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen py-12 px-6 flex flex-col items-center">
       {/* Welcome */}
       <h1 className="text-3xl font-bold text-center mb-8">
-        Welcome back,
-        {user?.name && (
-          <span className="text-purple-600"> {user.name}!</span>
-        )}
+        Welcome back, <span className="text-purple-600">Babysitter!</span>
       </h1>
-
 
       {loading ? (
         <p className="text-center text-gray-600">Loading bookings...</p>

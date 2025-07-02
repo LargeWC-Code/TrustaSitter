@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 18,
+            "activePatchIndex": 19,
             "patches": [
                 {
                     "date": 1750496524998,
@@ -80,6 +80,10 @@
                 {
                     "date": 1751281897484,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -48,26 +48,27 @@\n         {user && (\r\n           <>\r\n             {/* Dashboard link based on role */}\r\n             <Link\r\n-              to={user.region ? \"/homeclient\" : \"/home-babysitter\"}\r\n+              to={role === \"user\" ? \"/homeclient\" : \"/home-babysitter\"}\r\n               className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n             >\r\n               Dashboard\r\n             </Link>\r\n \r\n             {/* Profile link based on role */}\r\n-             <Link\r\n-                to={role === \"user\" ? \"/profile-client\" : \"/profile\"}\r\n-                className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n-              >\r\n-                My Profile\r\n-              </Link>\r\n-              <button\r\n-                onClick={handleLogout}\r\n-                className=\"bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded transition\"\r\n-              >\r\n-                Logout\r\n+            <Link\r\n+              to={role === \"user\" ? \"/profile-client\" : \"/profile\"}\r\n+              className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n+            >\r\n+              My Profile\r\n+            </Link>\r\n+\r\n+            <button\r\n+              onClick={handleLogout}\r\n+              className=\"bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded transition\"\r\n+            >\r\n+              Logout\r\n             </button>\r\n           </>\r\n         )}\r\n       </div>\r\n"
+                },
+                {
+                    "date": 1751447163165,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -28,15 +28,17 @@\n           className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n         >\r\n           Home\r\n         </Link>\r\n-        <Link\r\n-          to=\"/search\"\r\n-          className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n-        >\r\n-          Search\r\n-        </Link>\r\n-\r\n+        {role !== \"babysitter\" && (\r\n+          <Link\r\n+            to=\"/search\"\r\n+            className=\"text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition\"\r\n+          >\r\n+            Search\r\n+          </Link>\r\n+        )}\r\n+        \r\n         {!user && (\r\n           <Link\r\n             to=\"/login\"\r\n             className=\"bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded transition\"\r\n"
                 }
             ],
             "date": 1750496524997,
