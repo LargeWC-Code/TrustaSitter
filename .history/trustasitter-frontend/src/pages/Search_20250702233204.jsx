@@ -88,7 +88,7 @@ const Search = () => {
                 </p>
               </div>
               <button
-                className="mt-4 bg-purple-500 hover:bg-purple-600 text-white py-2 rounded transition"
+                className="mt-4 bg-purple-500 hover:bg-purple-900 text-white py-2 rounded transition"
                 onClick={() => alert("Booking flow will be implemented here")}
               >
                 Request Booking
