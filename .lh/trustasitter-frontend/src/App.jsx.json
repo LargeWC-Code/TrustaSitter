@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 31,
+            "activePatchIndex": 33,
             "patches": [
                 {
                     "date": 1750493037902,
@@ -132,6 +132,14 @@
                 {
                     "date": 1751209886956,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -33,9 +33,9 @@\n           <Route path=\"/bookings\" element={<Bookings />} />\n           <Route path=\"/choose-role\" element={<ChooseRole />} />\n           <Route path=\"/register-babysitter\" element={<RegisterBabysitter />} />\n           <Route path=\"/profile\" element={<ProfileBabysitter />} />\n-          <Route path=\"/profile-client\" element={ProfileClient}        \n+          <Route path=\"/profile-client\" element={<ProfileClient />} />       \n         </Routes>\n       </div>\n       <Footer />\n     </Router>\n"
+                },
+                {
+                    "date": 1751460168102,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,7 +1,9 @@\n // App.jsx – Router setup with Navbar\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n+import {ToastContainer} from 'react-toastify'; // Importing ToastContainer for notifications\n+import 'react-toastify/dist/ReactToastify.css'; // Importing ToastContainer styles\n \n import Navbar from './components/Navbar'; // Importing the Navbar component\n import Footer from './components/Footer'; // Importing the Footer component\n import Home from './pages/Home';  // Importing the Home component\n"
+                },
+                {
+                    "date": 1751460692495,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -1,9 +1,7 @@\n // App.jsx – Router setup with Navbar\n import React from 'react';\n import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\n-import {ToastContainer} from 'react-toastify'; // Importing ToastContainer for notifications\n-import 'react-toastify/dist/ReactToastify.css'; // Importing ToastContainer styles\n \n import Navbar from './components/Navbar'; // Importing the Navbar component\n import Footer from './components/Footer'; // Importing the Footer component\n import Home from './pages/Home';  // Importing the Home component\n"
                 }
             ],
             "date": 1750493037902,

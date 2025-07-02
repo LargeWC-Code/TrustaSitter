@@ -11,9 +11,6 @@ const Search = () => {
   const [selectedAvailability, setSelectedAvailability] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  // Modal state
-  const [modal, setModal] = useState({ message: "", type: "" });
-
   // Fetch babysitters when component mounts
   useEffect(() => {
     const fetchBabysitters = async () => {
@@ -47,13 +44,17 @@ const Search = () => {
 
   // Filtered babysitters based on selected filters
   const filteredBabysitters = babysitters.filter((sitter) => {
+    // Region filter
     const regionMatch = selectedRegion
       ? sitter.region && sitter.region.toLowerCase() === selectedRegion.toLowerCase()
       : true;
 
+    // Availability filter (morning, afternoon, evening)
     let availabilityMatch = true;
     if (selectedAvailability && sitter.available_from && sitter.available_to) {
       const startHour = parseInt(sitter.available_from.split(":")[0]);
+      const endHour = parseInt(sitter.available_to.split(":")[0]);
+
       if (selectedAvailability === "morning") {
         availabilityMatch = startHour <= 12;
       } else if (selectedAvailability === "afternoon") {
@@ -63,40 +64,17 @@ const Search = () => {
       }
     }
 
+    // Date filter (check if selected day is in available_days)
     const dateMatch = selectedDate
       ? sitter.available_days &&
-        sitter.available_days.includes(
-          new Date(selectedDate).toLocaleDateString("en-US", { weekday: "long" })
-        )
+        sitter.available_days.includes(new Date(selectedDate).toLocaleDateString("en-US", { weekday: "long" }))
       : true;
 
     return regionMatch && availabilityMatch && dateMatch;
   });
 
   return (
-    <main className="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen py-12 px-6 relative">
-      {/* Modal Overlay */}
-      {modal.message && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl text-center">
-            <h2 className="text-xl font-semibold mb-2 text-gray-800">
-              {modal.type === "success" ? "Success" : "Error"}
-            </h2>
-            <p className="text-gray-600 mb-4">{modal.message}</p>
-            <button
-              onClick={() => setModal({ message: "", type: "" })}
-              className={`px-4 py-2 rounded ${
-                modal.type === "success"
-                  ? "bg-purple-500 hover:bg-purple-600"
-                  : "bg-red-500 hover:bg-red-600"
-              } text-white transition`}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
+    <main className="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen py-12 px-6">
       <h1 className="text-4xl font-bold text-center mb-8">
         <span className="text-blue-600">Find</span>{" "}
         <span className="text-purple-500">a Babysitter</span>
@@ -104,6 +82,7 @@ const Search = () => {
 
       {/* Filters */}
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+        {/* Region filter */}
         <select
           className="px-4 py-2 border rounded focus:outline-none"
           value={selectedRegion}
@@ -117,6 +96,7 @@ const Search = () => {
           <option value="South">South</option>
         </select>
 
+        {/* Date filter */}
         <input
           type="date"
           className="px-4 py-2 border rounded focus:outline-none"
@@ -124,6 +104,7 @@ const Search = () => {
           onChange={handleDateChange}
         />
 
+        {/* Availability filter */}
         <select
           className="px-4 py-2 border rounded focus:outline-none"
           value={selectedAvailability}
@@ -135,6 +116,7 @@ const Search = () => {
           <option value="evening">Evening</option>
         </select>
 
+        {/* Clear Filters */}
         <button
           className="bg-purple-500 hover:bg-purple-600 text-white py-2 rounded transition"
           onClick={() => {
@@ -147,12 +129,11 @@ const Search = () => {
         </button>
       </div>
 
+      {/* Babysitter list */}
       {loading ? (
         <p className="text-center text-gray-600">Loading babysitters...</p>
       ) : filteredBabysitters.length === 0 ? (
-        <p className="text-center text-gray-600">
-          No babysitters match your criteria.
-        </p>
+        <p className="text-center text-gray-600">No babysitters match your criteria.</p>
       ) : (
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBabysitters.map((sitter) => (
@@ -184,37 +165,7 @@ const Search = () => {
               </div>
               <button
                 className="mt-4 bg-purple-500 hover:bg-purple-600 text-white py-2 rounded transition"
-                onClick={async () => {
-                  try {
-                    const user = JSON.parse(localStorage.getItem("user"));
-                    const userId = user.id;
-
-                    const bookingData = {
-                      user_id: userId,
-                      babysitter_id: sitter.id,
-                      date: new Date().toISOString().split("T")[0],
-                      time_start: "09:00",
-                      time_end: "12:00",
-                      status: "pending"
-                    };
-
-                    await axios.post(
-                      "http://localhost:3000/api/bookings",
-                      bookingData
-                    );
-
-                    setModal({
-                      message: "Booking created successfully!",
-                      type: "success"
-                    });
-                  } catch (error) {
-                    console.error("Error creating booking:", error);
-                    setModal({
-                      message: "Failed to create booking.",
-                      type: "error"
-                    });
-                  }
-                }}
+                onClick={() => alert("Booking flow will be implemented here")}
               >
                 Request Booking
               </button>

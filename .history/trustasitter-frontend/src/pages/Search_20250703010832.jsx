@@ -11,8 +11,8 @@ const Search = () => {
   const [selectedAvailability, setSelectedAvailability] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  // Modal state
-  const [modal, setModal] = useState({ message: "", type: "" });
+  // Toast state
+  const [toast, setToast] = useState({ message: "", type: "" });
 
   // Fetch babysitters when component mounts
   useEffect(() => {
@@ -47,10 +47,12 @@ const Search = () => {
 
   // Filtered babysitters based on selected filters
   const filteredBabysitters = babysitters.filter((sitter) => {
+    // Region filter
     const regionMatch = selectedRegion
       ? sitter.region && sitter.region.toLowerCase() === selectedRegion.toLowerCase()
       : true;
 
+    // Availability filter (morning, afternoon, evening)
     let availabilityMatch = true;
     if (selectedAvailability && sitter.available_from && sitter.available_to) {
       const startHour = parseInt(sitter.available_from.split(":")[0]);
@@ -63,6 +65,7 @@ const Search = () => {
       }
     }
 
+    // Date filter (check if selected day is in available_days)
     const dateMatch = selectedDate
       ? sitter.available_days &&
         sitter.available_days.includes(
@@ -73,27 +76,24 @@ const Search = () => {
     return regionMatch && availabilityMatch && dateMatch;
   });
 
+  // Show toast for 3 seconds
+  const showToast = (message, type) => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast({ message: "", type: "" });
+    }, 3000);
+  };
+
   return (
     <main className="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen py-12 px-6 relative">
-      {/* Modal Overlay */}
-      {modal.message && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl text-center">
-            <h2 className="text-xl font-semibold mb-2 text-gray-800">
-              {modal.type === "success" ? "Success" : "Error"}
-            </h2>
-            <p className="text-gray-600 mb-4">{modal.message}</p>
-            <button
-              onClick={() => setModal({ message: "", type: "" })}
-              className={`px-4 py-2 rounded ${
-                modal.type === "success"
-                  ? "bg-purple-500 hover:bg-purple-600"
-                  : "bg-red-500 hover:bg-red-600"
-              } text-white transition`}
-            >
-              Close
-            </button>
-          </div>
+      {/* Toast notification */}
+      {toast.message && (
+        <div
+          className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded shadow-lg text-white transition ${
+            toast.type === "success" ? "bg-green-500" : "bg-red-500"
+          }`}
+        >
+          {toast.message}
         </div>
       )}
 
@@ -203,16 +203,10 @@ const Search = () => {
                       bookingData
                     );
 
-                    setModal({
-                      message: "Booking created successfully!",
-                      type: "success"
-                    });
+                    showToast("Booking created successfully!", "success");
                   } catch (error) {
                     console.error("Error creating booking:", error);
-                    setModal({
-                      message: "Failed to create booking.",
-                      type: "error"
-                    });
+                    showToast("Failed to create booking.", "error");
                   }
                 }}
               >

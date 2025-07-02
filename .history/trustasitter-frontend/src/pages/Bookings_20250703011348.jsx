@@ -31,36 +31,31 @@ const Bookings = () => {
 
   // Cancel booking handler
   const handleCancelBooking = async (bookingId) => {
-  try {
-    await axios.put(
-      `http://localhost:3000/api/bookings/${bookingId}/status`,
-      { status: "cancelled" },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      await axios.put(
+        `http://localhost:3000/api/bookings/${bookingId}/status`,
+        { status: "cancelled" }
+      );
 
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === bookingId ? { ...b, status: "cancelled" } : b
-      )
-    );
+      // Update local state to remove the cancelled booking
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === bookingId ? { ...b, status: "cancelled" } : b
+        )
+      );
 
-    setModal({
-      message: "Booking cancelled successfully.",
-      type: "success",
-    });
-  } catch (error) {
-    console.error("Error cancelling booking:", error.response || error);
-    setModal({
-      message: "Failed to cancel booking.",
-      type: "error",
-    });
-  }
-};
-
+      setModal({
+        message: "Booking cancelled successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      setModal({
+        message: "Failed to cancel booking.",
+        type: "error",
+      });
+    }
+  };
 
   if (loading) {
     return (
