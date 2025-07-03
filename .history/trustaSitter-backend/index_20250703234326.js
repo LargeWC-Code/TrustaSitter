@@ -29,18 +29,17 @@ app.use(cors());
 /* -----------------------------------
    Admin Routes
 ----------------------------------- */
-
 /**
- * Admin Register Endpoint
- * POST /api/admin/register
- * Request Body: { name, email, password }
- * Response: { message }
+ * Admin Login Endpoint
+ * POST /api/admin/login
+ * Request Body: { email, password }
+ * Response: { token, user }
  */
-app.post("/api/admin/register", async (req, res) => {
-  const { name, email, password } = req.body;
+app.post("/api/admin/login", async (req, res) => {
+  const { email, password } = req.body;
 
   try {
-    // Check if admin with this email already exists
+     // Check if admin with this email already exists
     const existing = await db.query("SELECT * FROM admins WHERE email = $1", [email]);
     if (existing.rows.length > 0) {
       return res.status(400).json({ message: "Admin with this email already exists" });
@@ -59,34 +58,29 @@ app.post("/api/admin/register", async (req, res) => {
   } catch (err) {
     console.error("Admin register error:", err);
     res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-/**
- * Admin Login Endpoint
- * POST /api/admin/login
- * Request Body: { email, password }
- * Response: { token, user }
- */
-app.post("/api/admin/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
+    
     // Find admin by email
     const result = await db.query("SELECT * FROM admins WHERE email = $1", [email]);
+
+    console.log("Query result:", result.rows);
 
     if (result.rows.length === 0) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const admin = result.rows[0];
+    console.log("Admin found:", admin);
+    console.log("Password from BD:", admin.password);
+    console.log("Compating with:", password)
 
     // Compare password hash
     const validPassword = await bcrypt.compare(password, admin.password);
+    console.log("Password match result:", validPassword);
+
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
+    
     // Generate JWT
     const token = jwt.sign(
       { id: admin.id, email: admin.email, role: "admin" },
@@ -195,69 +189,7 @@ app.get("/api/admin/users", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-/**
- * Admin Update Booking Status Endpoint
- * PUT /api/admin/bookings/:id/status
- * Request Body: { status }
- * Response: { message }
- */
-app.put("/api/admin/bookings/:id/status", async (req, res) => {
-  const bookingId = req.params.id;
-  const { status } = req.body;
 
-  // Validate status
-  const allowedStatuses = ["pending", "approved", "cancelled"];
-  if (!allowedStatuses.includes(status)) {
-    return res.status(400).json({ message: "Invalid status value" });
-  }
-
-  try {
-    // Update booking status in the database using client
-    await db.query(
-      "UPDATE bookings SET status = $1 WHERE id = $2",
-      [status, bookingId]
-    );
-
-    res.json({ message: "Booking status updated successfully" });
-  } catch (err) {
-    console.error("Update booking status error:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-/**
- * Admin Delete User Endpoint
- * DELETE /api/admin/users/:role/:id
- * Response: { message }
- */
-app.delete("/api/admin/users/:role/:id", async (req, res) => {
-  const { role, id } = req.params;
-
-  // Validate role value
-  if (role !== "client" && role !== "babysitter") {
-    return res.status(400).json({ message: "Invalid role" });
-  }
-
-  // Determine table name
-  const table = role === "client" ? "users" : "babysitters";
-
-  try {
-    // Delete related bookings first
-    if (role === "client") {
-      await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
-    } else if (role === "babysitter") {
-      await db.query("DELETE FROM bookings WHERE babysitter_id = $1", [id]);
-    }
-
-    // Delete user or babysitter
-    await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
-
-    res.json({ message: `${role} and related bookings deleted successfully` });
-  } catch (err) {
-    console.error("Delete user error:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
 
 /* -----------------------------------
    Babysitters Routes

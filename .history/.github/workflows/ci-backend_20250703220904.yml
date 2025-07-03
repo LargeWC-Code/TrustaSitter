@@ -1,0 +1,49 @@
+name: CI - Backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Clean install state
+        run: |
+          rm -rf node_modules package-lock.json
+        working-directory: ./TrustaSitter-backend
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./TrustaSitter-backend
+
+      - name: Run build (if any)
+        run: npm run build
+        working-directory: ./TrustaSitter-backend
+        continue-on-error: true
+
+      - name: Run tests (if any)
+        run: npm test
+        working-directory: ./TrustaSitter-backend
+        continue-on-error: true
+
+      - name: Start server
+        run: npm start &
+        working-directory: ./TrustaSitter-backend
+
+      - name: Wait for server to respond
+        run: sleep 5
+
+      - name: Stop server
+        run: pkill node || true

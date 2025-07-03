@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 2,
+            "activePatchIndex": 3,
             "patches": [
                 {
                     "date": 1751087987342,
@@ -16,6 +16,10 @@
                 {
                     "date": 1751530229798,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -19,15 +19,15 @@\n         with:\r\n           node-version: 18\r\n \r\n       - name: Install dependencies\r\n+        working-directory: trustasitter-backend\r\n         run: npm install\r\n+\r\n+      - name: Start server\r\n         working-directory: trustasitter-backend\r\n+        run: npm start &\r\n \r\n-      - name: Check server startup\r\n-        run: npm run start &\r\n-        working-directory: ./\r\n-\r\n       - name: Wait for server to respond\r\n         run: sleep 5\r\n \r\n       - name: Stop server\r\n"
+                },
+                {
+                    "date": 1751537344450,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -18,15 +18,30 @@\n         uses: actions/setup-node@v3\r\n         with:\r\n           node-version: 18\r\n \r\n+      - name: Clean install state\r\n+        run: |\r\n+          rm -rf node_modules package-lock.json\r\n+        working-directory: ./TrustaSitter-backend\r\n+\r\n       - name: Install dependencies\r\n-        working-directory: trustasitter-backend\r\n         run: npm install\r\n+        working-directory: ./TrustaSitter-backend\r\n \r\n+      - name: Run build (if any)\r\n+        run: npm run build\r\n+        working-directory: ./TrustaSitter-backend\r\n+        continue-on-error: true\r\n+\r\n+      - name: Run tests (if any)\r\n+        run: npm test\r\n+        working-directory: ./TrustaSitter-backend\r\n+        continue-on-error: true\r\n+\r\n       - name: Start server\r\n-        working-directory: trustasitter-backend\r\n         run: npm start &\r\n+        working-directory: ./TrustaSitter-backend\r\n \r\n       - name: Wait for server to respond\r\n         run: sleep 5\r\n \r\n"
                 }
             ],
             "date": 1751087987342,

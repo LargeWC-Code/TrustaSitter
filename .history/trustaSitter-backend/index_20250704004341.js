@@ -242,17 +242,10 @@ app.delete("/api/admin/users/:role/:id", async (req, res) => {
   const table = role === "client" ? "users" : "babysitters";
 
   try {
-    // Delete related bookings first
-    if (role === "client") {
-      await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
-    } else if (role === "babysitter") {
-      await db.query("DELETE FROM bookings WHERE babysitter_id = $1", [id]);
-    }
-
-    // Delete user or babysitter
+    // Delete user from the appropriate table
     await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 
-    res.json({ message: `${role} and related bookings deleted successfully` });
+    res.json({ message: `${role} deleted successfully` });
   } catch (err) {
     console.error("Delete user error:", err);
     res.status(500).json({ message: "Internal server error" });

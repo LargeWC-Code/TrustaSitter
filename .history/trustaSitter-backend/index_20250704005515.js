@@ -245,7 +245,7 @@ app.delete("/api/admin/users/:role/:id", async (req, res) => {
     // Delete related bookings first
     if (role === "client") {
       await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
-    } else if (role === "babysitter") {
+    } else {
       await db.query("DELETE FROM bookings WHERE babysitter_id = $1", [id]);
     }
 
@@ -258,6 +258,7 @@ app.delete("/api/admin/users/:role/:id", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 /* -----------------------------------
    Babysitters Routes

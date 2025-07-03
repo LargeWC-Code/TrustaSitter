@@ -212,8 +212,8 @@ app.put("/api/admin/bookings/:id/status", async (req, res) => {
   }
 
   try {
-    // Update booking status in the database using client
-    await db.query(
+    // Update booking status in the database
+    await Client.query(
       "UPDATE bookings SET status = $1 WHERE id = $2",
       [status, bookingId]
     );
@@ -221,40 +221,6 @@ app.put("/api/admin/bookings/:id/status", async (req, res) => {
     res.json({ message: "Booking status updated successfully" });
   } catch (err) {
     console.error("Update booking status error:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-/**
- * Admin Delete User Endpoint
- * DELETE /api/admin/users/:role/:id
- * Response: { message }
- */
-app.delete("/api/admin/users/:role/:id", async (req, res) => {
-  const { role, id } = req.params;
-
-  // Validate role value
-  if (role !== "client" && role !== "babysitter") {
-    return res.status(400).json({ message: "Invalid role" });
-  }
-
-  // Determine table name
-  const table = role === "client" ? "users" : "babysitters";
-
-  try {
-    // Delete related bookings first
-    if (role === "client") {
-      await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
-    } else if (role === "babysitter") {
-      await db.query("DELETE FROM bookings WHERE babysitter_id = $1", [id]);
-    }
-
-    // Delete user or babysitter
-    await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
-
-    res.json({ message: `${role} and related bookings deleted successfully` });
-  } catch (err) {
-    console.error("Delete user error:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 });

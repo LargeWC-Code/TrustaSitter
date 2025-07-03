@@ -30,36 +30,24 @@ app.use(cors());
    Admin Routes
 ----------------------------------- */
 
-/**
- * Admin Register Endpoint
- * POST /api/admin/register
- * Request Body: { name, email, password }
- * Response: { message }
- */
-app.post("/api/admin/register", async (req, res) => {
-  const { name, email, password } = req.body;
+// Initialize Express app
+const app = express();
 
-  try {
-    // Check if admin with this email already exists
-    const existing = await db.query("SELECT * FROM admins WHERE email = $1", [email]);
-    if (existing.rows.length > 0) {
-      return res.status(400).json({ message: "Admin with this email already exists" });
-    }
+// Enable CORS and JSON parsing
+app.use(cors());
+app.use(express.json());
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+// PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
-    // Insert new admin
-    await db.query(
-      "INSERT INTO admins (name, email, password) VALUES ($1, $2, $3)",
-      [name, email, hashedPassword]
-    );
+// JWT secret key
+const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key_here";
 
-    res.json({ message: "Admin created successfully" });
-  } catch (err) {
-    console.error("Admin register error:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
+// Test endpoint to verify API is working
+app.get("/test", (req, res) => {
+  res.send("API is working!");
 });
 
 /**
@@ -72,8 +60,8 @@ app.post("/api/admin/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find admin by email
-    const result = await db.query("SELECT * FROM admins WHERE email = $1", [email]);
+    // Check if the admin exists
+    const result = await pool.query("SELECT * FROM admins WHERE email = $1", [email]);
 
     if (result.rows.length === 0) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -81,19 +69,20 @@ app.post("/api/admin/login", async (req, res) => {
 
     const admin = result.rows[0];
 
-    // Compare password hash
+    // Compare password
     const validPassword = await bcrypt.compare(password, admin.password);
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT
+    // Generate JWT token
     const token = jwt.sign(
       { id: admin.id, email: admin.email, role: "admin" },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: "8h" }
     );
 
+    // Return token and user data
     res.json({
       token,
       user: {
@@ -110,30 +99,21 @@ app.post("/api/admin/login", async (req, res) => {
 
 /**
  * Admin Summary Endpoint
- * GET /api/admin/summary
- * Response: { usersCount, babysittersCount, bookingsCount, pendingBookings }
  */
 app.get("/api/admin/summary", async (req, res) => {
   try {
-    const usersResult = await db.query("SELECT COUNT(*) FROM users");
-    const usersCount = parseInt(usersResult.rows[0].count);
-
-    const babysittersResult = await db.query("SELECT COUNT(*) FROM babysitters");
-    const babysittersCount = parseInt(babysittersResult.rows[0].count);
-
-    const bookingsResult = await db.query("SELECT COUNT(*) FROM bookings");
-    const bookingsCount = parseInt(bookingsResult.rows[0].count);
-
-    const pendingResult = await db.query(
+    const usersResult = await pool.query("SELECT COUNT(*) FROM users");
+    const babysittersResult = await pool.query("SELECT COUNT(*) FROM babysitters");
+    const bookingsResult = await pool.query("SELECT COUNT(*) FROM bookings");
+    const pendingResult = await pool.query(
       "SELECT COUNT(*) FROM bookings WHERE status = 'pending'"
     );
-    const pendingBookings = parseInt(pendingResult.rows[0].count);
 
     res.json({
-      usersCount,
-      babysittersCount,
-      bookingsCount,
-      pendingBookings,
+      usersCount: parseInt(usersResult.rows[0].count),
+      babysittersCount: parseInt(babysittersResult.rows[0].count),
+      bookingsCount: parseInt(bookingsResult.rows[0].count),
+      pendingBookings: parseInt(pendingResult.rows[0].count),
     });
   } catch (err) {
     console.error("Admin summary error:", err);
@@ -143,12 +123,10 @@ app.get("/api/admin/summary", async (req, res) => {
 
 /**
  * Admin Bookings Endpoint
- * GET /api/admin/bookings
- * Response: array of bookings with client and babysitter names
  */
 app.get("/api/admin/bookings", async (req, res) => {
   try {
-    const result = await db.query(`
+    const result = await pool.query(`
       SELECT
         b.id,
         b.date,
@@ -172,91 +150,30 @@ app.get("/api/admin/bookings", async (req, res) => {
 
 /**
  * Admin Users Endpoint
- * GET /api/admin/users
- * Response: array of users and babysitters
  */
 app.get("/api/admin/users", async (req, res) => {
   try {
-    const usersResult = await db.query(`
+    const usersResult = await pool.query(`
       SELECT id, name, email, 'client' AS role, created_at
       FROM users
     `);
 
-    const babysittersResult = await db.query(`
+    const babysittersResult = await pool.query(`
       SELECT id, name, email, 'babysitter' AS role, created_at
       FROM babysitters
     `);
 
     const combined = [...usersResult.rows, ...babysittersResult.rows];
-
     res.json(combined);
   } catch (err) {
     console.error("Admin users error:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
-/**
- * Admin Update Booking Status Endpoint
- * PUT /api/admin/bookings/:id/status
- * Request Body: { status }
- * Response: { message }
- */
-app.put("/api/admin/bookings/:id/status", async (req, res) => {
-  const bookingId = req.params.id;
-  const { status } = req.body;
 
-  // Validate status
-  const allowedStatuses = ["pending", "approved", "cancelled"];
-  if (!allowedStatuses.includes(status)) {
-    return res.status(400).json({ message: "Invalid status value" });
-  }
-
-  try {
-    // Update booking status in the database using client
-    await db.query(
-      "UPDATE bookings SET status = $1 WHERE id = $2",
-      [status, bookingId]
-    );
-
-    res.json({ message: "Booking status updated successfully" });
-  } catch (err) {
-    console.error("Update booking status error:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-/**
- * Admin Delete User Endpoint
- * DELETE /api/admin/users/:role/:id
- * Response: { message }
- */
-app.delete("/api/admin/users/:role/:id", async (req, res) => {
-  const { role, id } = req.params;
-
-  // Validate role value
-  if (role !== "client" && role !== "babysitter") {
-    return res.status(400).json({ message: "Invalid role" });
-  }
-
-  // Determine table name
-  const table = role === "client" ? "users" : "babysitters";
-
-  try {
-    // Delete related bookings first
-    if (role === "client") {
-      await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
-    } else if (role === "babysitter") {
-      await db.query("DELETE FROM bookings WHERE babysitter_id = $1", [id]);
-    }
-
-    // Delete user or babysitter
-    await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
-
-    res.json({ message: `${role} and related bookings deleted successfully` });
-  } catch (err) {
-    console.error("Delete user error:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
+// Start the server
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
 });
 
 /* -----------------------------------
