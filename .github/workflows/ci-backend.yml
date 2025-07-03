@@ -19,13 +19,28 @@ jobs:
         with:
           node-version: 18
 
+      - name: Clean install state
+        run: |
+          rm -rf node_modules package-lock.json
+        working-directory: ./TrustaSitter-backend
+
       - name: Install dependencies
-        working-directory: trustasitter-backend
         run: npm install
+        working-directory: ./TrustaSitter-backend
+
+      - name: Run build (if any)
+        run: npm run build
+        working-directory: ./TrustaSitter-backend
+        continue-on-error: true
+
+      - name: Run tests (if any)
+        run: npm test
+        working-directory: ./TrustaSitter-backend
+        continue-on-error: true
 
       - name: Start server
-        working-directory: trustasitter-backend
         run: npm start &
+        working-directory: ./TrustaSitter-backend
 
       - name: Wait for server to respond
         run: sleep 5
