@@ -3,11 +3,15 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 0,
+            "activePatchIndex": 1,
             "patches": [
                 {
                     "date": 1751087987342,
                     "content": "Index: \n===================================================================\n--- \n+++ \n"
+                },
+                {
+                    "date": 1751529200586,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -20,9 +20,9 @@\n           node-version: 18\r\n \r\n       - name: Install dependencies\r\n         run: npm install\r\n-        working-directory: ./\r\n+        working-directory: trustasitter-backend\r\n \r\n       - name: Check server startup\r\n         run: npm run start &\r\n         working-directory: ./\r\n"
                 }
             ],
             "date": 1751087987342,
