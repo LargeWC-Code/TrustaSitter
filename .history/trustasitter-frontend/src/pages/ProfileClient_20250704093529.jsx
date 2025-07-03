@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -9,49 +9,21 @@ const ProfileClient = () => {
   const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // Form state
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    region: "",
-    address: "",
-    children_count: "",
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    region: user?.region || "",
+    children_count: user?.children_count || "",
+    address: user?.address || "",
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
 
-  // Success and error state
   const [showSuccess, setShowSuccess] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
-
-  // Fetch profile data when component mounts
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/api/users/profile", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setFormData({
-          name: res.data.name || "",
-          email: res.data.email || "",
-          phone: res.data.phone || "",
-          region: res.data.region || "",
-          address: res.data.address || "",
-          children_count: res.data.children_count || "",
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: ""
-        });
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      }
-    };
-
-    fetchProfile();
-  }, [token]);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -59,7 +31,7 @@ const ProfileClient = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle profile update
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -87,9 +59,8 @@ const ProfileClient = () => {
         email: formData.email,
         phone: formData.phone,
         region: formData.region,
+        children_count: formData.children_count,
         address: formData.address,
-        children_count:
-          formData.children_count === "" ? null : parseInt(formData.children_count, 10)
       };
       await updateClientProfile(payload, token);
 
@@ -107,24 +78,35 @@ const ProfileClient = () => {
         );
       }
 
-      // Show success and clear password fields
+      // Update localStorage and context
+      const updatedUser = {
+        ...user,
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        region: payload.region,
+        children_count: payload.children_count,
+        address: payload.address
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
       setShowSuccess(true);
       setFormData((prev) => ({
         ...prev,
         currentPassword: "",
         newPassword: "",
-        confirmPassword: ""
+        confirmPassword: "",
       }));
       setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
-      console.error(err);
-      if (err.response && err.response.data && err.response.data.error) {
-        setError(err.response.data.error);
-      } else {
-        setError("Failed to update profile.");
-      }
-    }
-  };
+          } catch (err) {
+            console.error(err);
+            if (err.response && err.response.data && err.response.data.error) {
+              setError(err.response.data.error);
+            } else {
+              setError("Failed to update profile.");
+            }
+          }
+        };
 
   // Handle account deletion
   const confirmDelete = async () => {

@@ -725,7 +725,7 @@ app.post('/api/users/login', async (req, res) => {
 // Route: Get logged-in user profile (protected)
 app.get('/api/users/profile', authMiddleware, async (req, res) => {
   try {
-    const query = `SELECT id, name, email, phone, region, address, children_count, created_at FROM users WHERE id = $1`;
+    const query = `SELECT id, name, email, created_at FROM users WHERE id = $1`;
     const result = await db.query(query, [req.user.id]);
 
     if (result.rows.length === 0) {
@@ -752,6 +752,7 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
   } = req.body;
 
   try {
+    // Get current user data
     const queryUser = `SELECT * FROM users WHERE id = $1`;
     const resultUser = await db.query(queryUser, [req.user.id]);
 
@@ -761,24 +762,24 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
 
     const existingUser = resultUser.rows[0];
 
-    // Safe updates: use old values if not provided
+    // Keep previous values if not provided
     const updates = {
       name: name || existingUser.name,
       email: email || existingUser.email,
       phone: phone || existingUser.phone,
       region: region || existingUser.region,
-      address: address || existingUser.address,
       children_count:
-        children_count === "" || children_count === undefined
-          ? existingUser.children_count
-          : parseInt(children_count, 10)
+        children_count !== undefined ? children_count : existingUser.children_count,
+      address: address || existingUser.address
     };
 
+    // Password logic
     let hashedPassword = existingUser.password;
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
+    // Update query
     const queryUpdate = `
       UPDATE users
       SET

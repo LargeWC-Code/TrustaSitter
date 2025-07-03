@@ -725,7 +725,7 @@ app.post('/api/users/login', async (req, res) => {
 // Route: Get logged-in user profile (protected)
 app.get('/api/users/profile', authMiddleware, async (req, res) => {
   try {
-    const query = `SELECT id, name, email, phone, region, address, children_count, created_at FROM users WHERE id = $1`;
+    const query = `SELECT id, name, email, created_at FROM users WHERE id = $1`;
     const result = await db.query(query, [req.user.id]);
 
     if (result.rows.length === 0) {
@@ -739,17 +739,9 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Route: Update user profile (protected)
+// // Route: Update user profile (protected)
 app.put('/api/users/profile', authMiddleware, async (req, res) => {
-  const {
-    name,
-    email,
-    password,
-    phone,
-    region,
-    children_count,
-    address
-  } = req.body;
+  const { name, email, password, phone, region, children_count, address } = req.body;
 
   try {
     const queryUser = `SELECT * FROM users WHERE id = $1`;
@@ -761,17 +753,13 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
 
     const existingUser = resultUser.rows[0];
 
-    // Safe updates: use old values if not provided
     const updates = {
       name: name || existingUser.name,
       email: email || existingUser.email,
       phone: phone || existingUser.phone,
       region: region || existingUser.region,
-      address: address || existingUser.address,
-      children_count:
-        children_count === "" || children_count === undefined
-          ? existingUser.children_count
-          : parseInt(children_count, 10)
+      children_count: children_count !== undefined ? children_count : existingUser.children_count,
+      address: address || existingUser.address
     };
 
     let hashedPassword = existingUser.password;
@@ -781,14 +769,7 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
 
     const queryUpdate = `
       UPDATE users
-      SET
-        name = $1,
-        email = $2,
-        password = $3,
-        phone = $4,
-        region = $5,
-        children_count = $6,
-        address = $7
+      SET name = $1, email = $2, password = $3, phone = $4, region = $5, children_count = $6, address = $7
       WHERE id = $8
       RETURNING id, name, email, phone, region, children_count, address, created_at;
     `;
