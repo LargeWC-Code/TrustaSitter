@@ -39,7 +39,7 @@ const HomeBabysitter = () => {
   const handleUpdateStatus = async (bookingId, newStatus) => {
     try {
       await axios.put(
-        `http://localhost:3000/api/babysitters/bookings/${bookingId}/status`,
+        `http://localhost:3000/api/bookings/${bookingId}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -98,21 +98,11 @@ const HomeBabysitter = () => {
                     <p className="text-gray-800 font-medium">
                       Client: {booking.parent_name || "Unknown"}
                     </p>
-                    <p className="text-gray-600">
-                      Phone: {booking.client_phone || "Not specified"}
-                    </p>
-                    <p className="text-gray-600">
-                      Address: {booking.client_address || "Not specified"}
-                    </p>
-                    <p className="text-gray-600">
-                      Region: {booking.client_region || "Not specified"}
-                    </p>
-                    <p className="text-gray-600">
-                      Children:{" "}
-                      {booking.client_children !== null
-                        ? booking.client_children
-                        : "Not specified"}
-                    </p>
+                    {booking.client_address && (
+                      <p className="text-gray-600">
+                        Address: {booking.client_address}
+                      </p>
+                    )}
                     <p className="text-gray-600">
                       Date: {new Date(booking.date).toLocaleDateString()}
                     </p>
@@ -132,18 +122,16 @@ const HomeBabysitter = () => {
                     </p>
                   </div>
 
-                  {(booking.status === "pending" || booking.status === "approved") && (
+                  {booking.status === "pending" && (
                     <div className="flex gap-2 mt-3">
-                      {booking.status === "pending" && (
-                        <button
-                          onClick={() =>
-                            handleUpdateStatus(booking.id, "approved")
-                          }
-                          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition"
-                        >
-                          Approve
-                        </button>
-                      )}
+                      <button
+                        onClick={() =>
+                          handleUpdateStatus(booking.id, "approved")
+                        }
+                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition"
+                      >
+                        Approve
+                      </button>
                       <button
                         onClick={() =>
                           handleUpdateStatus(booking.id, "cancelled")

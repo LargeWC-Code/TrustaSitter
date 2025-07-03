@@ -465,36 +465,6 @@ app.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {
   }
 });
 
-// Get bookings for a babysitter including client details
-app.get("/api/babysitters/:id/bookings", async (req, res) => {
-  const babysitterId = req.params.id;
-
-  try {
-    const result = await db.query(
-      `
-      SELECT
-        bookings.*,
-        users.name AS parent_name,
-        users.address AS client_address,
-        users.phone AS client_phone,
-        users.region AS client_region,
-        users.children_count AS client_children
-      FROM bookings
-      JOIN users
-        ON bookings.user_id = users.id
-      WHERE bookings.babysitter_id = $1
-      ORDER BY bookings.date DESC
-      `,
-      [babysitterId]
-    );
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching babysitter bookings:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
 // Route: Update babysitter profile (protected)
 app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
   const {

@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 26,
+            "activePatchIndex": 30,
             "patches": [
                 {
                     "date": 1751539489446,
@@ -112,6 +112,22 @@
                 {
                     "date": 1751547873362,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -258,9 +258,8 @@\n     res.status(500).json({ message: \"Internal server error\" });\r\n   }\r\n });\r\n \r\n-\r\n /* -----------------------------------\r\n    Babysitters Routes\r\n ----------------------------------- */\r\n \r\n"
+                },
+                {
+                    "date": 1751551852523,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -258,8 +258,18 @@\n     res.status(500).json({ message: \"Internal server error\" });\r\n   }\r\n });\r\n \r\n+app.delete(\"/api/admin/bookings/:id\", async (req, res) => {\r\n+  try {\r\n+    await db.query(\"DELETE FROM bookings WHERE id = $1\", [req.params.id]);\r\n+    res.json({ message: \"Booking deleted successfully\" });\r\n+  } catch (err) {\r\n+    console.error(\"Error deleting booking:\", err);\r\n+    res.status(500).json({ message: \"Internal server error\" });\r\n+  }\r\n+});\r\n+\r\n /* -----------------------------------\r\n    Babysitters Routes\r\n ----------------------------------- */\r\n \r\n"
+                },
+                {
+                    "date": 1751551941301,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -258,8 +258,9 @@\n     res.status(500).json({ message: \"Internal server error\" });\r\n   }\r\n });\r\n \r\n+// DELETE booking by ID (Admin)\r\n app.delete(\"/api/admin/bookings/:id\", async (req, res) => {\r\n   try {\r\n     await db.query(\"DELETE FROM bookings WHERE id = $1\", [req.params.id]);\r\n     res.json({ message: \"Booking deleted successfully\" });\r\n"
+                },
+                {
+                    "date": 1751554550482,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -441,9 +441,31 @@\n     console.error(\"Error fetching babysitter profile:\", error);\r\n     res.status(500).json({ error: \"Internal server error.\" });\r\n   }\r\n });\r\n+// Babysitter approves or cancels a booking\r\n+app.put(\"/api/babysitters/bookings/:bookingId/status\", async (req, res) => {\r\n+  const { bookingId } = req.params;\r\n+  const { status } = req.body;\r\n \r\n+  if (![\"approved\", \"cancelled\"].includes(status)) {\r\n+    return res.status(400).json({ message: \"Invalid status\" });\r\n+  }\r\n+\r\n+  try {\r\n+    // Update the status\r\n+    await db.query(\r\n+      \"UPDATE bookings SET status = $1 WHERE id = $2\",\r\n+      [status, bookingId]\r\n+    );\r\n+\r\n+    res.json({ message: \"Booking status updated successfully\" });\r\n+  } catch (err) {\r\n+    console.error(\"Error updating booking status:\", err);\r\n+    res.status(500).json({ message: \"Internal server error\" });\r\n+  }\r\n+});\r\n+\r\n // Route: Update babysitter profile (protected)\r\n app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {\r\n   const {\r\n     name,\r\n"
+                },
+                {
+                    "date": 1751555392514,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -464,8 +464,38 @@\n     res.status(500).json({ message: \"Internal server error\" });\r\n   }\r\n });\r\n \r\n+// Get bookings for a babysitter including client details\r\n+app.get(\"/api/babysitters/:id/bookings\", async (req, res) => {\r\n+  const babysitterId = req.params.id;\r\n+\r\n+  try {\r\n+    const result = await db.query(\r\n+      `\r\n+      SELECT\r\n+        bookings.*,\r\n+        users.name AS parent_name,\r\n+        users.address AS client_address,\r\n+        users.phone AS client_phone,\r\n+        users.region AS client_region,\r\n+        users.children_count AS client_children\r\n+      FROM bookings\r\n+      JOIN users\r\n+        ON bookings.user_id = users.id\r\n+      WHERE bookings.babysitter_id = $1\r\n+      ORDER BY bookings.date DESC\r\n+      `,\r\n+      [babysitterId]\r\n+    );\r\n+\r\n+    res.json(result.rows);\r\n+  } catch (err) {\r\n+    console.error(\"Error fetching babysitter bookings:\", err);\r\n+    res.status(500).json({ message: \"Internal server error\" });\r\n+  }\r\n+});\r\n+\r\n // Route: Update babysitter profile (protected)\r\n app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {\r\n   const {\r\n     name,\r\n"
                 }
             ],
             "date": 1751539489446,

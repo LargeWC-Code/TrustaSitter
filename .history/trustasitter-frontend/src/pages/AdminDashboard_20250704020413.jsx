@@ -5,6 +5,7 @@ import axios from "axios";
 const AdminDashboard = () => {
   const { token } = useContext(AuthContext);
 
+  // State for summary data
   const [summary, setSummary] = useState({
     usersCount: 0,
     babysittersCount: 0,
@@ -12,10 +13,16 @@ const AdminDashboard = () => {
     pendingBookings: 0,
   });
 
+  // State for bookings list
   const [bookings, setBookings] = useState([]);
+
+  // State for users list
   const [users, setUsers] = useState([]);
+
+  // State for loading indicator
   const [loading, setLoading] = useState(true);
 
+  // State for confirm modal
   const [confirmModal, setConfirmModal] = useState({
     visible: false,
     title: "",
@@ -23,6 +30,7 @@ const AdminDashboard = () => {
     onConfirm: () => {},
   });
 
+  // Fetch summary data when component mounts
   useEffect(() => {
     const fetchSummary = async () => {
       try {
@@ -39,6 +47,7 @@ const AdminDashboard = () => {
     fetchSummary();
   }, [token]);
 
+  // Fetch bookings when component mounts
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -53,6 +62,7 @@ const AdminDashboard = () => {
     fetchBookings();
   }, [token]);
 
+  // Fetch users when component mounts
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -67,6 +77,7 @@ const AdminDashboard = () => {
     fetchUsers();
   }, [token]);
 
+  // Function to update booking status
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
       await axios.put(
@@ -74,43 +85,49 @@ const AdminDashboard = () => {
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
+      // Refresh bookings
       const res = await axios.get("http://localhost:3000/api/admin/bookings", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookings(res.data);
+      alert(`Booking status updated to "${newStatus}".`);
     } catch (err) {
       console.error("Error updating status:", err);
+      alert("Failed to update booking status.");
     }
   };
 
+  // Function to delete booking
   const deleteBooking = async (bookingId) => {
     try {
-      await axios.delete(`http://localhost:3000/api/admin/bookings/${bookingId}`, {
+      await axios.delete(`http://localhost:3000/api/bookings/${bookingId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const res = await axios.get("http://localhost:3000/api/admin/bookings", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookings(res.data);
+      alert("Booking deleted successfully.");
     } catch (err) {
       console.error("Error deleting booking:", err);
+      alert("Failed to delete booking.");
     }
   };
 
+  // Function to delete user
   const deleteUser = async (role, id) => {
     try {
       await axios.delete(`http://localhost:3000/api/admin/users/${role}/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const res = await axios.get("http://localhost:3000/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
+      alert(`${role} deleted successfully.`);
     } catch (err) {
       console.error("Error deleting user:", err);
+      alert("Failed to delete user.");
     }
   };
 
@@ -124,6 +141,7 @@ const AdminDashboard = () => {
 
   return (
     <>
+      {/* Confirm Modal */}
       {confirmModal.visible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl text-center">
@@ -153,6 +171,7 @@ const AdminDashboard = () => {
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-12 px-6">
         <h1 className="text-3xl font-bold mb-8 text-center">Admin Dashboard</h1>
 
+        {/* Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
           {[
             { label: "Clients", count: summary.usersCount },
