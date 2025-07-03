@@ -79,51 +79,20 @@ const Search = () => {
       {modal.message && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl text-center">
-            {modal.type === "login-required" ? (
-              <>
-                <h2 className="text-xl font-semibold mb-2 text-gray-800">
-                  Login Required
-                </h2>
-                <p className="text-gray-600 mb-4">{modal.message}</p>
-                <div className="flex justify-center gap-3">
-                  <button
-                    onClick={() => setModal({ message: "", type: "" })}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => window.location.href = "/login"}
-                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => window.location.href = "/choose-role"}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition"
-                  >
-                    Register
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h2 className="text-xl font-semibold mb-2 text-gray-800">
-                  {modal.type === "success" ? "Success" : "Error"}
-                </h2>
-                <p className="text-gray-600 mb-4">{modal.message}</p>
-                <button
-                  onClick={() => setModal({ message: "", type: "" })}
-                  className={`px-4 py-2 rounded ${
-                    modal.type === "success"
-                      ? "bg-purple-500 hover:bg-purple-600"
-                      : "bg-red-500 hover:bg-red-600"
-                  } text-white transition`}
-                >
-                  Close
-                </button>
-              </>
-            )}
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">
+              {modal.type === "success" ? "Success" : "Error"}
+            </h2>
+            <p className="text-gray-600 mb-4">{modal.message}</p>
+            <button
+              onClick={() => setModal({ message: "", type: "" })}
+              className={`px-4 py-2 rounded ${
+                modal.type === "success"
+                  ? "bg-purple-500 hover:bg-purple-600"
+                  : "bg-red-500 hover:bg-red-600"
+              } text-white transition`}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -248,18 +217,19 @@ const Search = () => {
                         message: "Booking created successfully!",
                         type: "success",
                       });
-                    } catch (error) {
-                      console.error("Error creating booking:", error);
-                      setModal({
-                        message: "Failed to create booking.",
-                        type: "error",
-                      });
-                    }
+                      } catch (error) {
+                        console.error("Error creating booking:", error);
+                        setModal({
+                          message: "Failed to create booking.",
+                          type: "error",
+                        });
+                      }
                   })();
                 }}
-              >
+                >
                 Request Booking
               </button>
+
             </div>
           ))}
         </div>
