@@ -16,7 +16,7 @@ import HomeBabysitter from './pages/HomeBabysitter';
 import ProfileBabysitter from "./pages/ProfileBabysitter";
 import ProfileClient from './pages/ProfileClient';
 import ScrollToTop from './components/ScrollToTop';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/ProtectedRoute'; // NEW: Import ProtectedRoute
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from './pages/AdminLogin';
 
@@ -25,19 +25,15 @@ const App = () => {
     <Router>
       <ScrollToTop />
       <Navbar />
+      <Route path="/admin-login" element={<AdminLogin />} />
       <div className="p-6">
         <Routes>
-          {/* Admin Login */}
-          <Route path="/admin-login" element={<AdminLogin />} />
-
-          {/* Admin Protected */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
+          <Route path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
           />
 
           {/* Public Routes */}

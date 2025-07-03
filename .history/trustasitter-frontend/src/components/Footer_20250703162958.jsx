@@ -46,6 +46,13 @@ const Footer = () => {
                 Login
               </Link>
             </li>
+              <Link 
+                to="/admin-login"
+                onClick={() => window.scrollTo(0, 0)}
+                className="hover:underline hover:text-purple-600 transition"
+              >
+                Admin Access
+              </Link>
             <li>
               <Link
                 to="/register-babysitter"
@@ -55,15 +62,6 @@ const Footer = () => {
                 Register as Babysitter
               </Link>
             </li>
-            <li>
-              <Link 
-                to="/admin-login"
-                onClick={() => window.scrollTo(0, 0)}
-                className="hover:underline hover:text-purple-600 transition"
-              >
-                Admin Access
-              </Link>
-              </li>
           </ul>
         </div>
 
