@@ -27,3 +27,6 @@ dist-ssr
 *.env
 .env
 
+# Ignore VSCode history folders
+.history/
+.lh/
