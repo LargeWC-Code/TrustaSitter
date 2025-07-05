@@ -17,7 +17,7 @@ const RegisterClient = () => {
     phone: "",
     address: "",
     region: "",
-    children_count: "",
+    children: "",
     password: "",
     confirmPassword: "",
   });
@@ -157,8 +157,8 @@ const RegisterClient = () => {
           </select>
           <input
             type="number"
-            name="children_count"
-            value={formData.children_count}
+            name="children"
+            value={formData.children}
             onChange={handleChange}
             placeholder="Number of Children"
             className="w-full px-4 py-2 border rounded-md focus:outline-none"

@@ -1,14 +1,12 @@
-// -----------------------------------
-// Dependencies and Setup
-// -----------------------------------
+// Import dependencies
 const express = require('express');
 const app = express();
-require('dotenv').config();
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { Client } = require('pg');
-const authMiddleware = require('./middleware/authMiddleware');
-const cors = require('cors');
+require('dotenv').config(); // Load environment variables
+const bcrypt = require('bcrypt'); // For hashing passwords
+const jwt = require('jsonwebtoken'); // JSON Web Token for authentication
+const { Client } = require('pg'); // PostgreSQL client
+const authMiddleware = require('./middleware/authMiddleware'); // Custom authentication middleware
+const cors = require('cors'); // For handling CORS
 
 // PostgreSQL client configuration
 const db = new Client({
@@ -24,7 +22,7 @@ db.connect()
   .then(() => console.log('Connected to PostgreSQL'))
   .catch(err => console.error('Connection error', err.stack));
 
-// Middleware
+// Middleware to parse JSON requests
 app.use(express.json());
 app.use(cors());
 
@@ -32,19 +30,31 @@ app.use(cors());
    Admin Routes
 ----------------------------------- */
 
-// Admin Register
+/**
+ * Admin Register Endpoint
+ * POST /api/admin/register
+ * Request Body: { name, email, password }
+ * Response: { message }
+ */
 app.post("/api/admin/register", async (req, res) => {
   const { name, email, password } = req.body;
+
   try {
+    // Check if admin with this email already exists
     const existing = await db.query("SELECT * FROM admins WHERE email = $1", [email]);
     if (existing.rows.length > 0) {
       return res.status(400).json({ message: "Admin with this email already exists" });
     }
+
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert new admin
     await db.query(
       "INSERT INTO admins (name, email, password) VALUES ($1, $2, $3)",
       [name, email, hashedPassword]
     );
+
     res.json({ message: "Admin created successfully" });
   } catch (err) {
     console.error("Admin register error:", err);
@@ -52,24 +62,38 @@ app.post("/api/admin/register", async (req, res) => {
   }
 });
 
-// Admin Login
+/**
+ * Admin Login Endpoint
+ * POST /api/admin/login
+ * Request Body: { email, password }
+ * Response: { token, user }
+ */
 app.post("/api/admin/login", async (req, res) => {
   const { email, password } = req.body;
+
   try {
+    // Find admin by email
     const result = await db.query("SELECT * FROM admins WHERE email = $1", [email]);
+
     if (result.rows.length === 0) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
+
     const admin = result.rows[0];
+
+    // Compare password hash
     const validPassword = await bcrypt.compare(password, admin.password);
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
+
+    // Generate JWT
     const token = jwt.sign(
       { id: admin.id, email: admin.email, role: "admin" },
       process.env.JWT_SECRET,
       { expiresIn: "8h" }
     );
+
     res.json({
       token,
       user: {
@@ -84,19 +108,27 @@ app.post("/api/admin/login", async (req, res) => {
   }
 });
 
-// Admin Summary
+/**
+ * Admin Summary Endpoint
+ * GET /api/admin/summary
+ * Response: { usersCount, babysittersCount, bookingsCount, pendingBookings }
+ */
 app.get("/api/admin/summary", async (req, res) => {
   try {
     const usersResult = await db.query("SELECT COUNT(*) FROM users");
     const usersCount = parseInt(usersResult.rows[0].count);
+
     const babysittersResult = await db.query("SELECT COUNT(*) FROM babysitters");
     const babysittersCount = parseInt(babysittersResult.rows[0].count);
+
     const bookingsResult = await db.query("SELECT COUNT(*) FROM bookings");
     const bookingsCount = parseInt(bookingsResult.rows[0].count);
+
     const pendingResult = await db.query(
       "SELECT COUNT(*) FROM bookings WHERE status = 'pending'"
     );
     const pendingBookings = parseInt(pendingResult.rows[0].count);
+
     res.json({
       usersCount,
       babysittersCount,
@@ -109,7 +141,11 @@ app.get("/api/admin/summary", async (req, res) => {
   }
 });
 
-// Admin Bookings List
+/**
+ * Admin Bookings Endpoint
+ * GET /api/admin/bookings
+ * Response: array of bookings with client and babysitter names
+ */
 app.get("/api/admin/bookings", async (req, res) => {
   try {
     const result = await db.query(`
@@ -126,6 +162,7 @@ app.get("/api/admin/bookings", async (req, res) => {
       JOIN babysitters s ON b.babysitter_id = s.id
       ORDER BY b.date DESC
     `);
+
     res.json(result.rows);
   } catch (err) {
     console.error("Admin bookings error:", err);
@@ -133,38 +170,54 @@ app.get("/api/admin/bookings", async (req, res) => {
   }
 });
 
-// Admin Users List
+/**
+ * Admin Users Endpoint
+ * GET /api/admin/users
+ * Response: array of users and babysitters
+ */
 app.get("/api/admin/users", async (req, res) => {
   try {
     const usersResult = await db.query(`
       SELECT id, name, email, 'client' AS role, created_at
       FROM users
     `);
+
     const babysittersResult = await db.query(`
       SELECT id, name, email, 'babysitter' AS role, created_at
       FROM babysitters
     `);
+
     const combined = [...usersResult.rows, ...babysittersResult.rows];
+
     res.json(combined);
   } catch (err) {
     console.error("Admin users error:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-// Admin Update Booking Status
+/**
+ * Admin Update Booking Status Endpoint
+ * PUT /api/admin/bookings/:id/status
+ * Request Body: { status }
+ * Response: { message }
+ */
 app.put("/api/admin/bookings/:id/status", async (req, res) => {
   const bookingId = req.params.id;
   const { status } = req.body;
+
+  // Validate status
   const allowedStatuses = ["pending", "approved", "cancelled"];
   if (!allowedStatuses.includes(status)) {
     return res.status(400).json({ message: "Invalid status value" });
   }
+
   try {
+    // Update booking status in the database using client
     await db.query(
       "UPDATE bookings SET status = $1 WHERE id = $2",
       [status, bookingId]
     );
+
     res.json({ message: "Booking status updated successfully" });
   } catch (err) {
     console.error("Update booking status error:", err);
@@ -172,20 +225,33 @@ app.put("/api/admin/bookings/:id/status", async (req, res) => {
   }
 });
 
-// Admin Delete User
+/**
+ * Admin Delete User Endpoint
+ * DELETE /api/admin/users/:role/:id
+ * Response: { message }
+ */
 app.delete("/api/admin/users/:role/:id", async (req, res) => {
   const { role, id } = req.params;
+
+  // Validate role value
   if (role !== "client" && role !== "babysitter") {
     return res.status(400).json({ message: "Invalid role" });
   }
+
+  // Determine table name
   const table = role === "client" ? "users" : "babysitters";
+
   try {
+    // Delete related bookings first
     if (role === "client") {
       await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
     } else if (role === "babysitter") {
       await db.query("DELETE FROM bookings WHERE babysitter_id = $1", [id]);
     }
+
+    // Delete user or babysitter
     await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
+
     res.json({ message: `${role} and related bookings deleted successfully` });
   } catch (err) {
     console.error("Delete user error:", err);
@@ -193,7 +259,7 @@ app.delete("/api/admin/users/:role/:id", async (req, res) => {
   }
 });
 
-// Admin Delete Booking
+// DELETE booking by ID (Admin)
 app.delete("/api/admin/bookings/:id", async (req, res) => {
   try {
     await db.query("DELETE FROM bookings WHERE id = $1", [req.params.id]);
@@ -205,221 +271,10 @@ app.delete("/api/admin/bookings/:id", async (req, res) => {
 });
 
 /* -----------------------------------
-   Clients Routes
------------------------------------ */
-
-// Client Register
-app.post('/api/users/register', async (req, res) => {
-  console.log("BODY RECEBIDO NO REGISTRO:", req.body);
-  const { name, email, password, phone, region, address, children } = req.body;
-  try {
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required.' });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const query = `
-      INSERT INTO users (name, email, password, phone, region, address, children_count)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, name, email, phone, region, address, children_count, created_at;
-    `;
-    const values = [
-      name,
-      email,
-      hashedPassword,
-      phone || null,
-      region || null,
-      address || null,
-      children === "" || children === undefined ? null : parseInt(children, 10)
-    ];
-    const result = await db.query(query, values);
-    const token = jwt.sign(
-      { id: result.rows[0].id, email: result.rows[0].email, role: 'user' },
-      process.env.JWT_SECRET,
-      { expiresIn: '3h' }
-    );
-    res.status(201).json({
-      message: 'User registered successfully.',
-      token,
-      role: 'user',
-      user: {
-        id: result.rows[0].id,
-        name: result.rows[0].name,
-        email: result.rows[0].email,
-        phone: result.rows[0].phone,
-        region: result.rows[0].region,
-        address: result.rows[0].address,
-        children_count: result.rows[0].children_count,
-        created_at: result.rows[0].created_at
-      }
-    });
-  } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// -----------------------------------
-// Clients Routes
-// -----------------------------------
-
-// Client Login
-app.post('/api/users/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required.' });
-    }
-    const query = `SELECT * FROM users WHERE email = $1`;
-    const result = await db.query(query, [email]);
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
-    }
-    const user = result.rows[0];
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid email or password.' });
-    }
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '3h' }
-    );
-    res.status(200).json({
-      message: 'Login successful',
-      token,
-      role: 'user',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        created_at: user.created_at
-      }
-    });
-  } catch (error) {
-    console.error('User login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Client Profile Get
-app.get('/api/users/profile', authMiddleware, async (req, res) => {
-  try {
-    const query = `SELECT id, name, email, phone, region, address, children_count, created_at FROM users WHERE id = $1`;
-    const result = await db.query(query, [req.user.id]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-    res.status(200).json(result.rows[0]);
-  } catch (error) {
-    console.error('Profile fetch error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Client Profile Update
-app.put('/api/users/profile', authMiddleware, async (req, res) => {
-  const { name, email, password, phone, region, children_count, address } = req.body;
-  try {
-    const queryUser = `SELECT * FROM users WHERE id = $1`;
-    const resultUser = await db.query(queryUser, [req.user.id]);
-    if (resultUser.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-    const existingUser = resultUser.rows[0];
-    const updates = {
-      name: name || existingUser.name,
-      email: email || existingUser.email,
-      phone: phone || existingUser.phone,
-      region: region || existingUser.region,
-      address: address || existingUser.address,
-      children_count:
-      children_count === "" || children_count === undefined
-        ? existingUser.children_count
-        : Number.isNaN(parseInt(children_count, 10))
-          ? existingUser.children_count
-          : parseInt(children_count, 10)
-    };
-    let hashedPassword = existingUser.password;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
-    const queryUpdate = `
-      UPDATE users
-      SET
-        name = $1,
-        email = $2,
-        password = $3,
-        phone = $4,
-        region = $5,
-        children_count = $6,
-        address = $7
-      WHERE id = $8
-      RETURNING id, name, email, phone, region, children_count, address, created_at;
-    `;
-    const values = [
-      updates.name,
-      updates.email,
-      hashedPassword,
-      updates.phone,
-      updates.region,
-      updates.children_count,
-      updates.address,
-      req.user.id
-    ];
-    const result = await db.query(queryUpdate, values);
-    res.status(200).json({
-      message: 'Profile updated successfully.',
-      user: result.rows[0]
-    });
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Client Delete Account
-app.delete('/api/users/profile', authMiddleware, async (req, res) => {
-  try {
-    const bookingCheck = await db.query(
-      `SELECT id FROM bookings WHERE user_id = $1`,
-      [req.user.id]
-    );
-    if (bookingCheck.rows.length > 0) {
-      return res.status(400).json({
-        error: 'You must cancel all bookings before deleting your account.'
-      });
-    }
-    const result = await db.query(
-      `DELETE FROM users WHERE id = $1 RETURNING id`,
-      [req.user.id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-    res.status(200).json({ message: 'User account deleted successfully.' });
-  } catch (error) {
-    console.error('Error deleting user account:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Client List All Users
-app.get('/api/users', authMiddleware, async (req, res) => {
-  try {
-    const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
-    const result = await db.query(query);
-    res.status(200).json(result.rows);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-/* -----------------------------------
    Babysitters Routes
 ----------------------------------- */
 
-// Babysitter Register
+// Route: Register a new babysitter
 app.post('/api/babysitters/register', async (req, res) => {
   const {
     name,
@@ -433,17 +288,23 @@ app.post('/api/babysitters/register', async (req, res) => {
     about,
     rate
   } = req.body;
-  let availableDaysArray = [];
-  if (Array.isArray(available_days)) {
-    availableDaysArray = available_days;
-  } else if (typeof available_days === "string") {
-    availableDaysArray = available_days.split(",").map(day => day.trim());
+  // Ensure available_days is an array
+    let availableDaysArray = [];
+
+    if (Array.isArray(available_days)) {
+      availableDaysArray = available_days;
+    } else if (typeof available_days === "string") {
+      availableDaysArray = available_days.split(",").map(day => day.trim());
   }
+
+
   try {
     if (!name || !email || !password || !region || !available_days || !available_from || !available_to || !rate) {
       return res.status(400).json({ error: 'All required fields must be filled.' });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const query = `
       INSERT INTO babysitters
       (name, email, password, phone, region, available_days, available_from, available_to, about, rate)
@@ -451,6 +312,7 @@ app.post('/api/babysitters/register', async (req, res) => {
       ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING id, name, email, region, created_at;
     `;
+
     const values = [
       name,
       email,
@@ -463,7 +325,9 @@ app.post('/api/babysitters/register', async (req, res) => {
       about,
       rate
     ];
+
     const result = await db.query(query, values);
+
     res.status(201).json({
       message: 'Babysitter registered successfully.',
       babysitter: result.rows[0]
@@ -474,28 +338,35 @@ app.post('/api/babysitters/register', async (req, res) => {
   }
 });
 
-// Babysitter Login
+// Route: Babysitter login with JWT
 app.post('/api/babysitters/login', async (req, res) => {
   const { email, password } = req.body;
+
   try {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
+
     const query = `SELECT * FROM babysitters WHERE email = $1`;
     const result = await db.query(query, [email]);
+
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
+
     const babysitter = result.rows[0];
     const isMatch = await bcrypt.compare(password, babysitter.password);
+
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
+
     const token = jwt.sign(
       { id: babysitter.id, email: babysitter.email },
       process.env.JWT_SECRET,
       { expiresIn: '3h' }
     );
+
     res.status(200).json({
       message: 'Login successful',
       token,
@@ -513,7 +384,7 @@ app.post('/api/babysitters/login', async (req, res) => {
   }
 });
 
-// Babysitter Profile Get (Self)
+// Route: Get babysitter profile (protected)
 app.get('/api/babysitters/profile', authMiddleware, async (req, res) => {
   try {
     const query = `
@@ -522,20 +393,24 @@ app.get('/api/babysitters/profile', authMiddleware, async (req, res) => {
       WHERE id = $1
     `;
     const result = await db.query(query, [req.user.id]);
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Babysitter not found.' });
     }
+
     res.status(200).json(result.rows[0]);
   } catch (error) {
     console.error('Error fetching babysitter profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// Babysitter Profile Get by ID
+// Route: Get babysitter profile by ID
 app.get("/api/babysitters/:id", async (req, res) => {
   const { id } = req.params;
+
   try {
+
+    // Query to select all relevant fields except password
     const query = `
       SELECT 
         id,
@@ -554,18 +429,73 @@ app.get("/api/babysitters/:id", async (req, res) => {
       FROM babysitters
       WHERE id = $1
     `;
+
     const result = await db.query(query, [id]);
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Babysitter not found." });
     }
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error fetching babysitter profile:", error);
     res.status(500).json({ error: "Internal server error." });
   }
 });
+// Babysitter approves or cancels a booking
+app.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {
+  const { bookingId } = req.params;
+  const { status } = req.body;
 
-// Babysitter Profile Update
+  if (!["approved", "cancelled"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status" });
+  }
+
+  try {
+    // Update the status
+    await db.query(
+      "UPDATE bookings SET status = $1 WHERE id = $2",
+      [status, bookingId]
+    );
+
+    res.json({ message: "Booking status updated successfully" });
+  } catch (err) {
+    console.error("Error updating booking status:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Get bookings for a babysitter including client details
+app.get("/api/babysitters/:id/bookings", async (req, res) => {
+  const babysitterId = req.params.id;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT
+        bookings.*,
+        users.name AS parent_name,
+        users.address AS client_address,
+        users.phone AS client_phone,
+        users.region AS client_region,
+        users.children_count AS client_children
+      FROM bookings
+      JOIN users
+        ON bookings.user_id = users.id
+      WHERE bookings.babysitter_id = $1
+      ORDER BY bookings.date DESC
+      `,
+      [babysitterId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error fetching babysitter bookings:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Route: Update babysitter profile (protected)
 app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
   const {
     name,
@@ -578,12 +508,15 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
     about,
     rate
   } = req.body;
+
   try {
     const queryBabysitter = `SELECT * FROM babysitters WHERE id = $1`;
     const resultBabysitter = await db.query(queryBabysitter, [req.user.id]);
+
     if (resultBabysitter.rows.length === 0) {
       return res.status(404).json({ error: 'Babysitter not found.' });
     }
+
     const updates = {
       name: name || resultBabysitter.rows[0].name,
       email: email || resultBabysitter.rows[0].email,
@@ -595,6 +528,7 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
       about: about || resultBabysitter.rows[0].about,
       rate: rate || resultBabysitter.rows[0].rate
     };
+
     const queryUpdate = `
       UPDATE babysitters
       SET name = $1,
@@ -609,6 +543,7 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
       WHERE id = $10
       RETURNING id, name, email, region, phone, available_days, available_from, available_to, about, rate, created_at;
     `;
+
     const values = [
       updates.name,
       updates.email,
@@ -621,7 +556,9 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
       updates.rate,
       req.user.id
     ];
+
     const result = await db.query(queryUpdate, values);
+
     res.status(200).json({
       message: 'Babysitter profile updated successfully.',
       babysitter: result.rows[0]
@@ -632,25 +569,31 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Babysitter Delete Account
+// Route: Delete babysitter account (protected, must have no bookings)
 app.delete('/api/babysitters/profile', authMiddleware, async (req, res) => {
   try {
+    // Check if babysitter has related bookings
     const bookingCheck = await db.query(
       `SELECT id FROM bookings WHERE babysitter_id = $1`,
       [req.user.id]
     );
+
     if (bookingCheck.rows.length > 0) {
       return res.status(400).json({
         error: 'You must cancel all bookings before deleting your account.'
       });
     }
+
+    // Delete babysitter
     const result = await db.query(
       `DELETE FROM babysitters WHERE id = $1 RETURNING id`,
       [req.user.id]
     );
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Babysitter not found.' });
     }
+
     res.status(200).json({ message: 'Babysitter account deleted successfully.' });
   } catch (error) {
     console.error('Error deleting babysitter account:', error.message);
@@ -658,7 +601,7 @@ app.delete('/api/babysitters/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// Babysitter List All
+// Route: Get all babysitters
 app.get('/api/babysitters', async (req, res) => {
   try {
     const query = `
@@ -686,139 +629,264 @@ app.get('/api/babysitters', async (req, res) => {
   }
 });
 
-// Babysitter Bookings List
-app.get("/api/babysitters/:id/bookings", async (req, res) => {
-  const babysitterId = req.params.id;
-  try {
-    const result = await db.query(
-      `
-      SELECT
-        bookings.*,
-        users.name AS parent_name,
-        users.address AS client_address,
-        users.phone AS client_phone,
-        users.region AS client_region,
-        users.children_count AS client_children
-      FROM bookings
-      JOIN users
-        ON bookings.user_id = users.id
-      WHERE bookings.babysitter_id = $1
-      ORDER BY bookings.date DESC
-      `,
-      [babysitterId]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Error fetching babysitter bookings:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-// Babysitter Update Booking Status
-app.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {
-  const { bookingId } = req.params;
-  const { status } = req.body;
-  if (!["approved", "cancelled"].includes(status)) {
-    return res.status(400).json({ message: "Invalid status" });
-  }
-  try {
-    await db.query(
-      "UPDATE bookings SET status = $1 WHERE id = $2",
-      [status, bookingId]
-    );
-    res.json({ message: "Booking status updated successfully" });
-  } catch (err) {
-    console.error("Error updating booking status:", err);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
 /* -----------------------------------
-   Password Management Routes
+   Users Routes
 ----------------------------------- */
 
-// Babysitter Change Password
-app.put('/api/babysitters/change-password', authMiddleware, async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
+// Route: Register a new user
+app.post('/api/users/register', async (req, res) => {
+  const { name, email, password } = req.body;
+
   try {
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Current and new password are required.' });
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
-    const query = `SELECT * FROM babysitters WHERE id = $1`;
-    const result = await db.query(query, [req.user.id]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Babysitter not found.' });
-    }
-    const babysitter = result.rows[0];
-    const isMatch = await bcrypt.compare(currentPassword, babysitter.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Current password is incorrect.' });
-    }
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await db.query(
-      `UPDATE babysitters SET password = $1 WHERE id = $2`,
-      [hashedPassword, req.user.id]
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const query = `
+      INSERT INTO users (name, email, password)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, email, created_at;
+    `;
+
+    const values = [name, email, hashedPassword];
+    const result = await db.query(query, values);
+    const token = jwt.sign(
+      { id: result.rows[0].id, email: result.rows[0].email, role: 'user' },
+      process.env.JWT_SECRET,
+      { expiresIn: '3h' }
     );
-    res.status(200).json({ message: 'Password updated successfully.' });
+    
+    res.status(201).json({
+      message: 'User registered successfully.',
+      token,
+      role: 'user',
+      user: {
+        id: result.rows[0].id,
+        name: result.rows[0].name,
+        email: result.rows[0].email,
+        created_at: result.rows[0].created_at
+      }
+    });
+
   } catch (error) {
-    console.error('Error changing password:', error.message);
+    console.error('Error registering user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// User Change Password
-app.put('/api/users/change-password', authMiddleware, async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  try {
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'Both current and new passwords are required.' });
-    }
-    const queryUser = `SELECT * FROM users WHERE id = $1`;
-    const resultUser = await db.query(queryUser, [req.user.id]);
-    if (resultUser.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
-    const user = resultUser.rows[0];
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Current password is incorrect.' });
-    }
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await db.query(
-      `UPDATE users SET password = $1 WHERE id = $2`,
-      [hashedPassword, req.user.id]
-    );
-    res.status(200).json({ message: 'Password updated successfully.' });
-  } catch (error) {
-    console.error('Error changing password:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-/* -----------------------------------
-   Universal Login
------------------------------------ */
-
-// Universal Login (User or Babysitter)
-app.post('/api/login', async (req, res) => {
+// Route: User login with JWT
+app.post('/api/users/login', async (req, res) => {
   const { email, password } = req.body;
+
   try {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
+
+    const query = `SELECT * FROM users WHERE email = $1`;
+    const result = await db.query(query, [email]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const user = result.rows[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '3h' }
+    );
+
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      role: 'user',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        created_at: user.created_at
+      }
+    });
+  } catch (error) {
+    console.error('User login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Get logged-in user profile (protected)
+app.get('/api/users/profile', authMiddleware, async (req, res) => {
+  try {
+    const query = `SELECT id, name, email, phone, region, address, children_count, created_at FROM users WHERE id = $1`;
+    const result = await db.query(query, [req.user.id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Update user profile (protected)
+app.put('/api/users/profile', authMiddleware, async (req, res) => {
+  const {
+    name,
+    email,
+    password,
+    phone,
+    region,
+    children_count,
+    address
+  } = req.body;
+
+  try {
+    const queryUser = `SELECT * FROM users WHERE id = $1`;
+    const resultUser = await db.query(queryUser, [req.user.id]);
+
+    if (resultUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const existingUser = resultUser.rows[0];
+
+    // Safe updates: use old values if not provided
+    const updates = {
+      name: name || existingUser.name,
+      email: email || existingUser.email,
+      phone: phone || existingUser.phone,
+      region: region || existingUser.region,
+      address: address || existingUser.address,
+      children_count:
+        children_count === "" || children_count === undefined
+          ? existingUser.children_count
+          : parseInt(children_count, 10)
+    };
+
+    let hashedPassword = existingUser.password;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    const queryUpdate = `
+      UPDATE users
+      SET
+        name = $1,
+        email = $2,
+        password = $3,
+        phone = $4,
+        region = $5,
+        children_count = $6,
+        address = $7
+      WHERE id = $8
+      RETURNING id, name, email, phone, region, children_count, address, created_at;
+    `;
+
+    const values = [
+      updates.name,
+      updates.email,
+      hashedPassword,
+      updates.phone,
+      updates.region,
+      updates.children_count,
+      updates.address,
+      req.user.id
+    ];
+
+    const result = await db.query(queryUpdate, values);
+
+    res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Delete user account (protected, must have no bookings)
+app.delete('/api/users/profile', authMiddleware, async (req, res) => {
+  try {
+    // Check if user has related bookings
+    const bookingCheck = await db.query(
+      `SELECT id FROM bookings WHERE user_id = $1`,
+      [req.user.id]
+    );
+
+    if (bookingCheck.rows.length > 0) {
+      return res.status(400).json({
+        error: 'You must cancel all bookings before deleting your account.'
+      });
+    }
+
+    // Delete user
+    const result = await db.query(
+      `DELETE FROM users WHERE id = $1 RETURNING id`,
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({ message: 'User account deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting user account:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Get all users (protected)
+app.get('/api/users', authMiddleware, async (req, res) => {
+  try {
+    const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
+    const result = await db.query(query);
+
+    res.status(200).json(result.rows);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Universal login (users or babysitters)
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    // First try to find in users
     const userQuery = `SELECT * FROM users WHERE email = $1`;
     const userResult = await db.query(userQuery, [email]);
+
     if (userResult.rows.length > 0) {
       const user = userResult.rows[0];
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res.status(401).json({ error: 'Invalid email or password.' });
       }
+
       const token = jwt.sign(
         { id: user.id, email: user.email, role: 'user' },
         process.env.JWT_SECRET,
         { expiresIn: '3h' }
       );
+
       return res.status(200).json({
         message: 'Login successful',
         token,
@@ -831,19 +899,24 @@ app.post('/api/login', async (req, res) => {
         }
       });
     }
+
+    // If not found, try babysitters
     const babysitterQuery = `SELECT * FROM babysitters WHERE email = $1`;
     const babysitterResult = await db.query(babysitterQuery, [email]);
+
     if (babysitterResult.rows.length > 0) {
       const babysitter = babysitterResult.rows[0];
       const isMatch = await bcrypt.compare(password, babysitter.password);
       if (!isMatch) {
         return res.status(401).json({ error: 'Invalid email or password.' });
       }
+
       const token = jwt.sign(
         { id: babysitter.id, email: babysitter.email, role: 'babysitter' },
         process.env.JWT_SECRET,
         { expiresIn: '3h' }
       );
+
       return res.status(200).json({
         message: 'Login successful',
         token,
@@ -856,19 +929,190 @@ app.post('/api/login', async (req, res) => {
         }
       });
     }
+
+    // Not found in either table
     return res.status(401).json({ error: 'Invalid email or password.' });
+
   } catch (error) {
     console.error('Universal login error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Route: Change babysitter password (protected)
+app.put('/api/babysitters/change-password', authMiddleware, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current and new password are required.' });
+    }
+
+    // Fetch babysitter from DB
+    const query = `SELECT * FROM babysitters WHERE id = $1`;
+    const result = await db.query(query, [req.user.id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Babysitter not found.' });
+    }
+
+    const babysitter = result.rows[0];
+
+    // Check if current password is correct
+    const isMatch = await bcrypt.compare(currentPassword, babysitter.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password in DB
+    const updateQuery = `
+      UPDATE babysitters
+      SET password = $1
+      WHERE id = $2
+    `;
+    await db.query(updateQuery, [hashedPassword, req.user.id]);
+
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Change user password (protected)
+app.put('/api/users/change-password', authMiddleware, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Both current and new passwords are required.' });
+    }
+
+    // Get the user
+    const queryUser = `SELECT * FROM users WHERE id = $1`;
+    const resultUser = await db.query(queryUser, [req.user.id]);
+
+    if (resultUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = resultUser.rows[0];
+
+    // Compare current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    const queryUpdate = `
+      UPDATE users
+      SET password = $1
+      WHERE id = $2
+    `;
+    await db.query(queryUpdate, [hashedPassword, req.user.id]);
+
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Update user password (protected)
+app.put('/api/users/profile/password', authMiddleware, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  try {
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current and new password are required.' });
+    }
+
+    // Fetch user
+    const queryUser = `SELECT * FROM users WHERE id = $1`;
+    const resultUser = await db.query(queryUser, [req.user.id]);
+
+    if (resultUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = resultUser.rows[0];
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    const queryUpdate = `
+      UPDATE users
+      SET password = $1
+      WHERE id = $2
+      RETURNING id;
+    `;
+    await db.query(queryUpdate, [hashedPassword, req.user.id]);
+
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route: Update booking status (protected)
+app.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    // Valida status permitido
+    const validStatuses = ['pending', 'confirmed', 'rejected', 'cancelled'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status value.' });
+    }
+
+    // update database
+    const query = `
+      UPDATE bookings
+      SET status = $1
+      WHERE id = $2
+      RETURNING *;
+    `;
+    const values = [status, id];
+    const result = await db.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found.' });
+    }
+
+    res.status(200).json({
+      message: 'Booking status updated successfully.',
+      booking: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error updating booking status:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 /* -----------------------------------
    Bookings Routes
 ----------------------------------- */
 
-// Create Booking
+// Route: Create a new booking
 app.post('/api/bookings', async (req, res) => {
   const { user_id, babysitter_id, date, time_start, time_end } = req.body;
+
   try {
     const query = `
       INSERT INTO bookings (user_id, babysitter_id, date, time_start, time_end)
@@ -877,6 +1121,7 @@ app.post('/api/bookings', async (req, res) => {
     `;
     const values = [user_id, babysitter_id, date, time_start, time_end];
     const result = await db.query(query, values);
+
     res.status(201).json({
       message: 'Booking created successfully.',
       booking: result.rows[0]
@@ -887,9 +1132,10 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-// Get Bookings for User
+// Route: Get all bookings for a user
 app.get('/api/bookings/:user_id', async (req, res) => {
   const { user_id } = req.params;
+
   try {
     const query = `
       SELECT 
@@ -901,16 +1147,17 @@ app.get('/api/bookings/:user_id', async (req, res) => {
       ORDER BY b.date ASC;
     `;
     const result = await db.query(query, [user_id]);
+
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching bookings:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// Get Bookings for Babysitter
+// Route: Get all bookings for a babysitter
 app.get('/api/babysitters/:id/bookings', async (req, res) => {
   const babysitterId = req.params.id;
+
   try {
     const query = `
       SELECT 
@@ -925,41 +1172,13 @@ app.get('/api/babysitters/:id/bookings', async (req, res) => {
       WHERE b.babysitter_id = $1
       ORDER BY b.date ASC, b.time_start ASC;
     `;
+
     const result = await db.query(query, [babysitterId]);
+
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching babysitter bookings:', error);
     res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Update Booking Status (Generic)
-app.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  try {
-    const validStatuses = ['pending', 'confirmed', 'rejected', 'cancelled'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status value.' });
-    }
-    const query = `
-      UPDATE bookings
-      SET status = $1
-      WHERE id = $2
-      RETURNING *;
-    `;
-    const values = [status, id];
-    const result = await db.query(query, values);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Booking not found.' });
-    }
-    res.status(200).json({
-      message: 'Booking status updated successfully.',
-      booking: result.rows[0],
-    });
-  } catch (error) {
-    console.error('Error updating booking status:', error);
-    res.status(500).json({ error: 'Internal server error.' });
   }
 });
 

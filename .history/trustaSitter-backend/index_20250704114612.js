@@ -210,27 +210,18 @@ app.delete("/api/admin/bookings/:id", async (req, res) => {
 
 // Client Register
 app.post('/api/users/register', async (req, res) => {
-  console.log("BODY RECEBIDO NO REGISTRO:", req.body);
-  const { name, email, password, phone, region, address, children } = req.body;
+  const { name, email, password } = req.body;
   try {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = `
-      INSERT INTO users (name, email, password, phone, region, address, children_count)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, name, email, phone, region, address, children_count, created_at;
+      INSERT INTO users (name, email, password)
+      VALUES ($1, $2, $3)
+      RETURNING id, name, email, created_at;
     `;
-    const values = [
-      name,
-      email,
-      hashedPassword,
-      phone || null,
-      region || null,
-      address || null,
-      children === "" || children === undefined ? null : parseInt(children, 10)
-    ];
+    const values = [name, email, hashedPassword];
     const result = await db.query(query, values);
     const token = jwt.sign(
       { id: result.rows[0].id, email: result.rows[0].email, role: 'user' },
@@ -245,10 +236,6 @@ app.post('/api/users/register', async (req, res) => {
         id: result.rows[0].id,
         name: result.rows[0].name,
         email: result.rows[0].email,
-        phone: result.rows[0].phone,
-        region: result.rows[0].region,
-        address: result.rows[0].address,
-        children_count: result.rows[0].children_count,
         created_at: result.rows[0].created_at
       }
     });
@@ -257,7 +244,6 @@ app.post('/api/users/register', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 // -----------------------------------
 // Clients Routes
 // -----------------------------------
@@ -333,9 +319,7 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
       region: region || existingUser.region,
       address: address || existingUser.address,
       children_count:
-      children_count === "" || children_count === undefined
-        ? existingUser.children_count
-        : Number.isNaN(parseInt(children_count, 10))
+        children_count === "" || children_count === undefined
           ? existingUser.children_count
           : parseInt(children_count, 10)
     };

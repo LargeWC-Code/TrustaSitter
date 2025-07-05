@@ -73,7 +73,7 @@ const RegisterBabysitter = () => {
     }
 
     try {
-      // Create babysitter account
+      // Register babysitter
       await axios.post("http://localhost:3000/api/babysitters/register", {
         name: formData.name,
         email: formData.email,
@@ -87,7 +87,7 @@ const RegisterBabysitter = () => {
         rate: formData.rate,
       });
 
-      // Login babysitter after registration
+      // Login babysitter
       const loginResponse = await axios.post(
         "http://localhost:3000/api/babysitters/login",
         {
@@ -96,17 +96,14 @@ const RegisterBabysitter = () => {
         }
       );
 
-      // Save login in context (with role inside user)
+      // Save login in context and localStorage
       login({
         token: loginResponse.data.token,
-        user: {
-          ...loginResponse.data.user,
-          role: "babysitter",
-        },
+        user: loginResponse.data.babysitter,
         role: "babysitter",
       });
 
-
+      // Redirect to babysitter dashboard
       navigate("/home-babysitter");
     } catch (err) {
       console.error(err);

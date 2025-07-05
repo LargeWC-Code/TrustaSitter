@@ -229,7 +229,9 @@ app.post('/api/users/register', async (req, res) => {
       phone || null,
       region || null,
       address || null,
-      children === "" || children === undefined ? null : parseInt(children, 10)
+      children === "" || children === undefined ? null : Number.isNaN(parseInt(children_count, 10))
+        ? null
+        : parseInt(children_count, 10)
     ];
     const result = await db.query(query, values);
     const token = jwt.sign(

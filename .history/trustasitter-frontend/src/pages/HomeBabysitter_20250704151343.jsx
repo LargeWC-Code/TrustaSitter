@@ -26,7 +26,7 @@ const HomeBabysitter = () => {
     } catch (err) {
       console.error(err);
       if (err.response && err.response.status === 404) {
-        setBookings([]); 
+        setBookings([]); // Sem bookings, tudo bem
       } else {
         setError("Failed to load bookings.");
       }

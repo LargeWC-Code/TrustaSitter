@@ -39,7 +39,7 @@ const ProfileClient = () => {
           phone: res.data.phone || "",
           region: res.data.region || "",
           address: res.data.address || "",
-          children_count: res.data.children_count !== null && res.data.children_count !== undefined ? res.data.children_count.toString() : "",
+          children_count: res.data.children_count !== null && res.data.children_count !== undefined ? res.data.children_count.toString() : "",s
         }));
       } catch (error) {
         console.error("Error fetching profile:", error);

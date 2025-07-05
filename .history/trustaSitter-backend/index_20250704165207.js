@@ -210,8 +210,7 @@ app.delete("/api/admin/bookings/:id", async (req, res) => {
 
 // Client Register
 app.post('/api/users/register', async (req, res) => {
-  console.log("BODY RECEBIDO NO REGISTRO:", req.body);
-  const { name, email, password, phone, region, address, children } = req.body;
+  const { name, email, password, phone, region, address, children_count } = req.body;
   try {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
@@ -219,7 +218,7 @@ app.post('/api/users/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = `
       INSERT INTO users (name, email, password, phone, region, address, children_count)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 8$)
       RETURNING id, name, email, phone, region, address, children_count, created_at;
     `;
     const values = [
@@ -229,7 +228,7 @@ app.post('/api/users/register', async (req, res) => {
       phone || null,
       region || null,
       address || null,
-      children === "" || children === undefined ? null : parseInt(children, 10)
+      children_count === "" || children_count === undefined ? null : parseInt(children_count, 10)
     ];
     const result = await db.query(query, values);
     const token = jwt.sign(

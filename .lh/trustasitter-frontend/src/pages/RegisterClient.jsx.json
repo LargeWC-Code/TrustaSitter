@@ -3,7 +3,7 @@
     "activeCommit": 0,
     "commits": [
         {
-            "activePatchIndex": 18,
+            "activePatchIndex": 21,
             "patches": [
                 {
                     "date": 1750581361540,
@@ -80,6 +80,18 @@
                 {
                     "date": 1751287438657,
                     "content": "Index: \n===================================================================\n--- \n+++ \n@@ -56,9 +56,9 @@\n     }\r\n \r\n     try {\r\n       // Call API to register client\r\n-      await registerClient({\r\n+      const response = await registerClient({\r\n         name: formData.name,\r\n         email: formData.email,\r\n         password: formData.password,\r\n         phone: formData.phone,\r\n@@ -66,8 +66,17 @@\n         region: formData.region,\r\n         children: formData.children,\r\n       });\r\n \r\n+      if (response.token) {\r\n+        login({\r\n+          token: response.token,\r\n+          user: response.user,\r\n+          role: \"user\",\r\n+        });\r\n+        navigate(\"/homeclient\");\r\n+        return;\r\n+      }\r\n       setSuccess(\"Account created successfully! Redirecting to login...\");\r\n       setTimeout(() => navigate(\"/login\"), 2000);\r\n     } catch (err) {\r\n       console.error(err);\r\n"
+                },
+                {
+                    "date": 1751679807704,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -63,9 +63,9 @@\n         password: formData.password,\r\n         phone: formData.phone,\r\n         address: formData.address,\r\n         region: formData.region,\r\n-        children: formData.children,\r\n+        children: formData.children_count,\r\n       });\r\n \r\n       if (response.token) {\r\n         login({\r\n"
+                },
+                {
+                    "date": 1751679863697,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -156,10 +156,10 @@\n             <option value=\"South\">South</option>\r\n           </select>\r\n           <input\r\n             type=\"number\"\r\n-            name=\"children\"\r\n-            value={formData.children}\r\n+            name=\"children_count\"\r\n+            value={formData.children_count}\r\n             onChange={handleChange}\r\n             placeholder=\"Number of Children\"\r\n             className=\"w-full px-4 py-2 border rounded-md focus:outline-none\"\r\n           />\r\n"
+                },
+                {
+                    "date": 1751680558515,
+                    "content": "Index: \n===================================================================\n--- \n+++ \n@@ -16,9 +16,9 @@\n     email: \"\",\r\n     phone: \"\",\r\n     address: \"\",\r\n     region: \"\",\r\n-    children: \"\",\r\n+    children_count: \"\",\r\n     password: \"\",\r\n     confirmPassword: \"\",\r\n   });\r\n \r\n"
                 }
             ],
             "date": 1750581361540,

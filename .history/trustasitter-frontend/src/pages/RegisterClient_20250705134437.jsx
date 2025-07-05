@@ -17,7 +17,7 @@ const RegisterClient = () => {
     phone: "",
     address: "",
     region: "",
-    children_count: "",
+    children: "",
     password: "",
     confirmPassword: "",
   });

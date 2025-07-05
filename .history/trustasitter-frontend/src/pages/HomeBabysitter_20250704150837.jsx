@@ -15,26 +15,21 @@ const HomeBabysitter = () => {
     if (!user) return;
 
     const fetchBookings = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/api/babysitters/${user.id}/bookings`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setBookings(response.data);
-    } catch (err) {
-      console.error(err);
-      if (err.response && err.response.status === 404) {
-        setBookings([]); 
-      } else {
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/api/babysitters/${user.id}/bookings`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setBookings(response.data);
+      } catch (err) {
+        console.error(err);
         setError("Failed to load bookings.");
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    };
 
     fetchBookings();
   }, [token, user]);

@@ -100,12 +100,11 @@ const RegisterBabysitter = () => {
       login({
         token: loginResponse.data.token,
         user: {
-          ...loginResponse.data.user,
+          ...loginResponse.data.babysitter,
           role: "babysitter",
         },
         role: "babysitter",
       });
-
 
       navigate("/home-babysitter");
     } catch (err) {
