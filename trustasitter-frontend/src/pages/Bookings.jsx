@@ -3,7 +3,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { getUserBookings } from "../services/api";
-import axios from "axios";
+import { api } from "../services/api";
 
 const Bookings = () => {
   const { user, token } = useContext(AuthContext);

@@ -1,6 +1,6 @@
 // src/pages/Search.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 
 const Search = () => {
   const [babysitters, setBabysitters] = useState([]);

@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// Create an axios instance with dynamic baseURL
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL, // Base URL for the API
+// Create an Axios instance with the base URL from environment variables
+export const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL,
 });
 
 // Function to log in user
@@ -11,7 +11,7 @@ export const loginUser = async (email, password) => {
     email,
     password,
   });
-  return response.data; // contains { message, token, user }
+  return response.data;
 };
 
 // Function to log in babysitter
@@ -29,7 +29,7 @@ export const loginUniversal = async (email, password) => {
     email,
     password,
   });
-  return response.data; // contains { message, token, role, user }
+  return response.data;
 };
 
 // Function to change babysitter password

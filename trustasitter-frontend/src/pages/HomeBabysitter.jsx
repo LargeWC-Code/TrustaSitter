@@ -1,6 +1,7 @@
 // src/pages/HomeBabysitter.jsx
 import React, { useEffect, useState, useContext } from "react";
-import axios from "axios";
+import { api } from "../services/api";
+
 import { AuthContext } from "../context/AuthContext";
 
 const HomeBabysitter = () => {

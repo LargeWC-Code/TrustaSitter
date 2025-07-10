@@ -3,7 +3,8 @@ import { FaCheckCircle } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { updateClientProfile, deleteClientAccount } from "../services/api";
-import axios from "axios";
+import { api } from "../services/api";
+
 
 const ProfileClient = () => {
   const { token, logout } = useContext(AuthContext);

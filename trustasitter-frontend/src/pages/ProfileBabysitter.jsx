@@ -3,7 +3,8 @@ import React, { useEffect, useState, useContext } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { api } from "../services/api";
+
 import { changeBabysitterPassword } from "../services/api";
 
 const ProfileBabysitter = () => {
