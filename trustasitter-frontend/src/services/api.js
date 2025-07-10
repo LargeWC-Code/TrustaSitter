@@ -2,7 +2,6 @@ import axios from "axios";
 
 // Create an axios instance with default config
 const api = axios.create({
-  // baseURL: "http://localhost:3000/api", // Base URL for the API
   baseURL: "https://trustasitter-api.azurewebsites.net/api", // Base URL for the API
 });
 
@@ -23,6 +22,7 @@ export const loginBabysitter = async (email, password) => {
   });
   return response.data;
 };
+
 // Universal login for users and babysitters
 export const loginUniversal = async (email, password) => {
   const response = await api.post("/login", {
@@ -31,6 +31,7 @@ export const loginUniversal = async (email, password) => {
   });
   return response.data; // contains { message, token, role, user }
 };
+
 // Function to change babysitter password
 export const changeBabysitterPassword = async (token, currentPassword, newPassword) => {
   const response = await api.put(
@@ -44,7 +45,8 @@ export const changeBabysitterPassword = async (token, currentPassword, newPasswo
   );
   return response.data;
 };
-// Function to change user password
+
+// Function to update client profile
 export const updateClientProfile = async (data, token) => {
   const response = await api.put("/users/profile", data, {
     headers: { Authorization: `Bearer ${token}` },
@@ -52,6 +54,7 @@ export const updateClientProfile = async (data, token) => {
   return response.data;
 };
 
+// Function to delete client account
 export const deleteClientAccount = async (token) => {
   const response = await api.delete("/users/profile", {
     headers: { Authorization: `Bearer ${token}` },
@@ -59,14 +62,16 @@ export const deleteClientAccount = async (token) => {
   return response.data;
 };
 
+// Function to register client
 export const registerClient = async (data) => {
   const response = await api.post("/users/register", data);
   return response.data;
 };
+
 // Get bookings for a user
 export const getUserBookings = async (userId, token) => {
-  const res = await axios.get(`http://localhost:3000/api/bookings/${userId}`, {
-    headers: { Authorization: `Bearer ${token}` }
+  const response = await api.get(`/bookings/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-  return res.data;
+  return response.data;
 };
