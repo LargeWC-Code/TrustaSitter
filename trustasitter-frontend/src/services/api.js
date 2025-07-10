@@ -2,7 +2,8 @@ import axios from "axios";
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: "http://localhost:3000/api", // Base URL for the API
+  // baseURL: "http://localhost:3000/api", // Base URL for the API
+  baseURL: "https://trustasitter-api.azurewebsites.net/api", // Base URL for the API
 });
 
 // Function to log in user
