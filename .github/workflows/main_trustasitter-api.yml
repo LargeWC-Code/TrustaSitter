@@ -19,8 +19,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
+      
       - name: List files
-      run: ls -R
+        run: ls -R
+      
       - name: npm install, build, and test
         run: |
           cd trustaSitter-backend
