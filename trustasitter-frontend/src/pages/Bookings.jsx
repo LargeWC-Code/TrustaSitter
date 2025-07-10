@@ -32,8 +32,8 @@ const Bookings = () => {
   // Cancel booking handler
   const handleCancelBooking = async (bookingId) => {
   try {
-    await axios.put(
-      `http://localhost:3000/api/bookings/${bookingId}/status`,
+    await api.put(
+      `/bookings/${bookingId}/status`,
       { status: "cancelled" },
       {
         headers: {

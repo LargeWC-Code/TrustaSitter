@@ -74,7 +74,7 @@ const RegisterBabysitter = () => {
 
     try {
       // Create babysitter account
-      await axios.post("http://localhost:3000/api/babysitters/register", {
+      await api.post("/babysitters/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
@@ -88,8 +88,8 @@ const RegisterBabysitter = () => {
       });
 
       // Login babysitter after registration
-      const loginResponse = await axios.post(
-        "http://localhost:3000/api/babysitters/login",
+      const loginResponse = await api.post(
+        "/babysitters/login",
         {
           email: formData.email,
           password: formData.password,

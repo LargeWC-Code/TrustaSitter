@@ -26,7 +26,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/admin/summary", {
+        const response = await api.get("/admin/summary", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSummary(response.data);
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/admin/bookings", {
+        const response = await api.get("/admin/bookings", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setBookings(response.data);
@@ -56,7 +56,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/admin/users", {
+        const response = await api.get("/admin/users", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(response.data);
@@ -69,13 +69,13 @@ const AdminDashboard = () => {
 
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
-      await axios.put(
-        `http://localhost:3000/api/admin/bookings/${bookingId}/status`,
+      await api.put(
+        `/admin/bookings/${bookingId}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      const res = await axios.get("http://localhost:3000/api/admin/bookings", {
+      const res = await api.get("/admin/bookings", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookings(res.data);
@@ -86,11 +86,11 @@ const AdminDashboard = () => {
 
   const deleteBooking = async (bookingId) => {
     try {
-      await axios.delete(`http://localhost:3000/api/admin/bookings/${bookingId}`, {
+      await api.delete(`/admin/bookings/${bookingId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const res = await axios.get("http://localhost:3000/api/admin/bookings", {
+      const res = await api.get("/admin/bookings", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setBookings(res.data);
@@ -101,11 +101,11 @@ const AdminDashboard = () => {
 
   const deleteUser = async (role, id) => {
     try {
-      await axios.delete(`http://localhost:3000/api/admin/users/${role}/${id}`, {
+      await api.delete(`/admin/users/${role}/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const res = await axios.get("http://localhost:3000/api/admin/users", {
+      const res = await api.get("/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);

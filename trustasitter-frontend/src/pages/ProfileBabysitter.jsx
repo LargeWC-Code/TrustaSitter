@@ -35,7 +35,7 @@ const ProfileBabysitter = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/babysitters/profile", {
+        const res = await api.get("/babysitters/profile", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setFormData({
@@ -76,8 +76,8 @@ const ProfileBabysitter = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(
-        "http://localhost:3000/api/babysitters/profile",
+      await api.put(
+        "/babysitters/profile",
         {
           ...formData,
           available_days: formData.available_days
@@ -122,7 +122,7 @@ const ProfileBabysitter = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete("http://localhost:3000/api/babysitters/profile", {
+      await api.delete("/babysitters/profile", {
         headers: { Authorization: `Bearer ${token}` }
       });
       logout();

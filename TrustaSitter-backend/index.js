@@ -12,12 +12,24 @@ const cors = require('cors');
 
 // PostgreSQL client configuration
 const db = new Client({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'trustasitter',
-  password: 'Senha00!',
+  host: "db-trustasitter.postgres.database.azure.com",
   port: 5432,
+  user: "bruno",
+  password: "PanetoneAzul01!",
+  database: "postgres",
+  ssl: { rejectUnauthorized: false }
 });
+
+// Uncomment the following lines to connect to a local PostgreSQL instance
+// const db = new Client({
+//   user: 'postgres',
+//   host: 'localhost',
+//   database: 'trustasitter',
+//   password: 'Senha00!',
+//   port: 5432,
+// });
+
+
 
 // Connect to PostgreSQL
 db.connect()

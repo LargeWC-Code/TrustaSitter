@@ -16,8 +16,8 @@ const HomeBabysitter = () => {
 
     const fetchBookings = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:3000/api/babysitters/${user.id}/bookings`,
+      const response = await api.get(
+        `/babysitters/${user.id}/bookings`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -41,8 +41,8 @@ const HomeBabysitter = () => {
 
   const handleUpdateStatus = async (bookingId, newStatus) => {
     try {
-      await axios.put(
-        `http://localhost:3000/api/babysitters/bookings/${bookingId}/status`,
+      await api.put(
+        `/babysitters/bookings/${bookingId}/status`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

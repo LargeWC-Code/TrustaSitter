@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// Create an axios instance with default config
+// Create an axios instance with dynamic baseURL
 const api = axios.create({
-  baseURL: "https://trustasitter-api.azurewebsites.net/api", // Base URL for the API
+  baseURL: process.env.REACT_APP_API_URL, // Base URL for the API
 });
 
 // Function to log in user

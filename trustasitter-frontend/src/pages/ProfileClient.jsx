@@ -29,7 +29,7 @@ const ProfileClient = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/users/profile", {
+        const res = await api.get("/api/users/profile", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setFormData((prev) => ({
@@ -86,8 +86,8 @@ const ProfileClient = () => {
       await updateClientProfile(payload, token);
 
       if (formData.newPassword) {
-        await axios.put(
-          "http://localhost:3000/api/users/profile/password",
+        await api.put(
+          "/users/profile/password",
           {
             currentPassword: formData.currentPassword,
             newPassword: formData.newPassword

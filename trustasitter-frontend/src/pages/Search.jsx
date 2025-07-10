@@ -18,7 +18,7 @@ const Search = () => {
   useEffect(() => {
     const fetchBabysitters = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/api/babysitters");
+        const response = await api.get("/babysitters");
         setBabysitters(response.data);
       } catch (error) {
         console.error("Error fetching babysitters:", error);
@@ -239,8 +239,8 @@ const Search = () => {
                         status: "pending",
                       };
 
-                      await axios.post(
-                        "http://localhost:3000/api/bookings",
+                      await api.post(
+                        "/bookings",
                         bookingData
                       );
 

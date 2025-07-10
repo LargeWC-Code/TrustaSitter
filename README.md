@@ -5,7 +5,7 @@
 
 # TrustaSitter – Babysitter Booking System
 
-**TrustaSitter** is a full-stack babysitter booking platform developed as part of the **SOFT806 – Continuous Integration and Continuous Deployment** assignment at AIS.
+**TrustaSitter** is a full-stack babysitter booking platform developed to demonstrate modern web development practices, including secure authentication, role-based access, and cloud deployment readiness.
 
 This project demonstrates the application of:
 - ✅ Agile methodology using **Scrum**
@@ -37,14 +37,16 @@ Babysitters can:
 | Backend    | Node.js + Express|
 | Database   | PostgreSQL       |
 | CI/CD      | GitHub Actions   |
+| Cloud      | Azure, AWS       |
 | Dev Tools  | Trello, Git      |
 
 
-This repository is dedicated to the CI/CD assignment. It includes:
-- Git-based version control with meaningful commit history
-- Trello board for Sprint planning and tracking
-- CI/CD pipeline for automated testing and deployment
-- All implementation and evidence files as required by the assignment
+## 🚀 Deployment
+
+The system is designed for cloud hosting:
+- Backend: Azure App Service / AWS Elastic Beanstalk
+- Frontend: Azure Static Web Apps / S3 + CloudFront
+- Database: Azure PostgreSQL / AWS RDS
 
 ---
 
@@ -58,4 +60,4 @@ This repository is dedicated to the CI/CD assignment. It includes:
 
 Bruno Henrique da Silva – Student ID: 20232270  
 Auckland Institute of Studies (AIS)  
-SOFT806 – Trimester 2, 2025
+Trimester 2, 2025
