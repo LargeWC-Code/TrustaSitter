@@ -39,12 +39,20 @@ db.connect()
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: [
-    'https://victorious-smoke-0a54aa900.1.azurestaticapps.net',
-    'https://trustasitter.azurewebsites.net',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
+  origin: (origin, callback) => {
+    // Permite qualquer subdomínio do Azure Static Web Apps e localhost
+    if (
+      !origin ||
+      origin.match(/^https:\/\/victorious-smoke-0a54aa900\.\d+\.azurestaticapps\.net$/) ||
+      origin.match(/^https:\/\/trustasitter\.azurewebsites\.net$/) ||
+      origin.match(/^http:\/\/localhost:5173$/) ||
+      origin.match(/^http:\/\/localhost:3000$/)
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
