@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginUniversal } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import ConnectionTest from '../components/ConnectionTest';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ const Login = () => {
     setError("");
 
     try {
+      console.log('Attempting login with:', { email, password: '***' });
       const data = await loginUniversal(email, password);
 
       // Aqui vamos confiar no backend
@@ -34,7 +36,17 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError("Invalid email or password.");
+      if (err.response?.status === 401) {
+        setError("Invalid email or password.");
+      } else if (err.response?.status === 500) {
+        setError("Internal server error. Please try again.");
+      } else if (err.code === 'ECONNABORTED') {
+        setError("Connection timeout. Please check your internet connection.");
+      } else if (err.code === 'NETWORK_ERROR') {
+        setError("Network error. Please check your connection.");
+      } else {
+        setError("Login failed. Please try again.");
+      }
     }
   };
 
@@ -86,6 +98,9 @@ const Login = () => {
             </p>
           </div>
         </form>
+        <div className="mt-6">
+          <ConnectionTest />
+        </div>
       </div>
     </div>
   );

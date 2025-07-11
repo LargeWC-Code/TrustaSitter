@@ -38,7 +38,23 @@ db.connect()
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://victorious-smoke-0a54aa900.1.azurestaticapps.net',
+    'https://trustasitter.azurewebsites.net',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 /* -----------------------------------
    Admin Routes
@@ -972,6 +988,17 @@ app.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {
     console.error('Error updating booking status:', error);
     res.status(500).json({ error: 'Internal server error.' });
   }
+});
+
+/* -----------------------------------
+   Health Check Endpoint
+----------------------------------- */
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    message: 'TrustaSitter API is running'
+  });
 });
 
 /* -----------------------------------
