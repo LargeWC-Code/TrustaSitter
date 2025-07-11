@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { FaSearch, FaCalendarCheck } from "react-icons/fa";
 import { AuthContext } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const ClientDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -17,21 +18,21 @@ const ClientDashboard = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-6">
-          <a
-            href="/search"
+          <Link
+            to="/search"
             className="flex items-center gap-3 bg-white border border-gray-300 shadow-md hover:shadow-xl px-6 py-4 rounded-lg transition"
           >
             <FaSearch className="text-blue-600 text-xl" />
             <span className="text-lg font-medium text-gray-700">Find a Babysitter</span>
-          </a>
+          </Link>
 
-          <a
-            href="/bookings"
+          <Link
+            to="/bookings"
             className="flex items-center gap-3 bg-white border border-gray-300 shadow-md hover:shadow-xl px-6 py-4 rounded-lg transition"
           >
             <FaCalendarCheck className="text-green-600 text-xl" />
             <span className="text-lg font-medium text-gray-700">View My Bookings</span>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

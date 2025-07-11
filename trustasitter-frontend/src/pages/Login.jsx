@@ -98,9 +98,7 @@ const Login = () => {
             </p>
           </div>
         </form>
-        <div className="mt-6">
-          <ConnectionTest />
-        </div>
+        {/* ConnectionTest removed as requested */}
       </div>
     </div>
   );

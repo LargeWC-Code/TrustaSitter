@@ -26,7 +26,7 @@ const ProfileClient = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
 
-  // Fetch profile data on mount
+  // Fetch client profile data on mount using the token for authentication
   useEffect(() => {
     const fetchProfile = async () => {
       try {
