@@ -1,7 +1,7 @@
 // src/pages/HomeBabysitter.jsx
 import React, { useEffect, useState, useContext } from "react";
 import { api } from "../services/api";
-
+import { sendEmail } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 
 const HomeBabysitter = () => {
@@ -11,6 +11,12 @@ const HomeBabysitter = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [emailModal, setEmailModal] = useState({ 
+    isOpen: false, 
+    clientName: "", 
+    clientEmail: "",
+    message: "" 
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -61,6 +67,25 @@ const HomeBabysitter = () => {
     }
   };
 
+  // Send email handler
+  const handleSendEmail = async () => {
+    try {
+      await sendEmail({
+        to: emailModal.clientEmail,
+        subject: `Message about booking - ${emailModal.clientName}`,
+        message: emailModal.message,
+        fromName: user.name
+      }, token);
+
+      setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" });
+      setSuccessMessage("Email sent successfully.");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setError("Failed to send email.");
+    }
+  };
+
   if (isLoading || !user) {
     return (
       <main className="flex items-center justify-center min-h-screen">
@@ -71,6 +96,37 @@ const HomeBabysitter = () => {
 
   return (
     <main className="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen py-12 px-6 flex flex-col items-center">
+      {/* Email Modal */}
+      {emailModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              Send Email to {emailModal.clientName}
+            </h2>
+            <textarea
+              value={emailModal.message}
+              onChange={(e) => setEmailModal(prev => ({ ...prev, message: e.target.value }))}
+              placeholder="Write your message here..."
+              className="w-full h-32 p-3 border border-gray-300 rounded mb-4 resize-none"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" })}
+                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendEmail}
+                className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded transition"
+              >
+                Send Email
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold text-center mb-8">
         Welcome back,
         {user?.name && (
@@ -96,7 +152,7 @@ const HomeBabysitter = () => {
 
           {bookings.length === 0 ? (
             <div className="text-center text-gray-600">
-              <p>You don’t have any bookings yet.</p>
+              <p>You don't have any bookings yet.</p>
               <p>Once a parent books you, it will appear here.</p>
             </div>
           ) : (
@@ -144,28 +200,41 @@ const HomeBabysitter = () => {
                     </p>
                   </div>
 
-                  {(booking.status === "pending" || booking.status === "approved") && (
-                    <div className="flex gap-2 mt-3">
-                      {booking.status === "pending" && (
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => setEmailModal({
+                        isOpen: true,
+                        clientName: booking.parent_name || "Client",
+                        clientEmail: booking.client_email || "contact@trustasitter.com",
+                        message: ""
+                      })}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition"
+                    >
+                      Send Email
+                    </button>
+                    {(booking.status === "pending" || booking.status === "approved") && (
+                      <>
+                        {booking.status === "pending" && (
+                          <button
+                            onClick={() =>
+                              handleUpdateStatus(booking.id, "approved")
+                            }
+                            className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition"
+                          >
+                            Approve
+                          </button>
+                        )}
                         <button
                           onClick={() =>
-                            handleUpdateStatus(booking.id, "approved")
+                            handleUpdateStatus(booking.id, "cancelled")
                           }
-                          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition"
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
                         >
-                          Approve
+                          Cancel
                         </button>
-                      )}
-                      <button
-                        onClick={() =>
-                          handleUpdateStatus(booking.id, "cancelled")
-                        }
-                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { getUserBookings } from "../services/api";
+import { getUserBookings, sendEmail } from "../services/api";
 import { api } from "../services/api";
 
 const Bookings = () => {
@@ -10,6 +10,12 @@ const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({ message: "", type: "" });
+  const [emailModal, setEmailModal] = useState({ 
+    isOpen: false, 
+    babysitterName: "", 
+    babysitterEmail: "",
+    message: "" 
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,6 +67,29 @@ const Bookings = () => {
   }
 };
 
+  // Send email handler
+  const handleSendEmail = async () => {
+    try {
+      await sendEmail({
+        to: emailModal.babysitterEmail,
+        subject: `Message about booking - ${emailModal.babysitterName}`,
+        message: emailModal.message,
+        fromName: user.name
+      }, token);
+
+      setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" });
+      setModal({
+        message: "Email sent successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setModal({
+        message: "Failed to send email.",
+        type: "error",
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -72,7 +101,7 @@ const Bookings = () => {
 
   return (
     <main className="bg-gradient-to-br from-blue-50 to-purple-100 min-h-screen py-12 px-6 relative">
-      {/* Modal */}
+      {/* Success/Error Modal */}
       {modal.message && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl text-center">
@@ -90,6 +119,37 @@ const Bookings = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Email Modal */}
+      {emailModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              Send Email to {emailModal.babysitterName}
+            </h2>
+            <textarea
+              value={emailModal.message}
+              onChange={(e) => setEmailModal(prev => ({ ...prev, message: e.target.value }))}
+              placeholder="Write your message here..."
+              className="w-full h-32 p-3 border border-gray-300 rounded mb-4 resize-none"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" })}
+                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendEmail}
+                className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded transition"
+              >
+                Send Email
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -137,14 +197,29 @@ const Bookings = () => {
                   {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                 </p>
               </div>
-              {booking.status !== "cancelled" && (
-                <button
-                  onClick={() => handleCancelBooking(booking.id)}
-                  className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
-                >
-                  Cancel Booking
-                </button>
-              )}
+              <div className="flex gap-2 mt-4">
+                {booking.status !== "cancelled" && (
+                  <>
+                    <button
+                      onClick={() => setEmailModal({
+                        isOpen: true,
+                        babysitterName: booking.babysitter_name,
+                        babysitterEmail: booking.babysitter_email || "contact@trustasitter.com",
+                        message: ""
+                      })}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition"
+                    >
+                      Send Email
+                    </button>
+                    <button
+                      onClick={() => handleCancelBooking(booking.id)}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
+                    >
+                      Cancel Booking
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
