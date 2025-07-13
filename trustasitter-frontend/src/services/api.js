@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance with the base URL from environment variables
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://trustasitter-api-cwahftcwg4e5axah.australiaeast-01.azurewebsites.net/api",
+  baseURL: import.meta.env.VITE_API_URL || "trustasitter-api-cwahftcwg4e5axah.australiaeast-01.azurewebsites.net",
   timeout: 10000,
 });
 
@@ -96,6 +96,14 @@ export const registerClient = async (data) => {
 // Get bookings for a user
 export const getUserBookings = async (userId, token) => {
   const response = await api.get(`/bookings/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Function to send email
+export const sendEmail = async (emailData, token) => {
+  const response = await api.post("/send-email", emailData, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
