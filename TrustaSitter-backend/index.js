@@ -44,7 +44,7 @@ app.use(cors({
     // Permite qualquer subdomínio do Azure Static Web Apps e localhost
     if (
       !origin ||
-      origin.match(/^https:\/\/victorious-smoke-0a54aa900\.\d+\.azurestaticapps\.net$/) ||
+      origin.match(/^https:\/\/proud-field-07cdeb800\.2\.azurestaticapps\.net$/) ||
       origin.match(/^https:\/\/trustasitter\.azurewebsites\.net$/) ||
       origin.match(/^http:\/\/localhost:5173$/) ||
       origin.match(/^http:\/\/localhost:3000$/)
