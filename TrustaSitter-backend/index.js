@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const { Client } = require('pg');
 const authMiddleware = require('./middleware/authMiddleware');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 
 // PostgreSQL client configuration
 const db = new Client({
@@ -1022,4 +1023,33 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+// Email sending endpoint
+app.post('/api/send-email', authMiddleware, async (req, res) => {
+  const { to, subject, message, fromName } = req.body;
+
+  // Configure transporter (Gmail SMTP)
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: `TrustaSitter <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    text: `Message from ${fromName} via TrustaSitter:\n\n${message}`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.json({ message: 'Email sent successfully.' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ error: 'Failed to send email.' });
+  }
 });
