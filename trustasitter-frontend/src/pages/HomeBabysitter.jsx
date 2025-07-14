@@ -16,6 +16,8 @@ const HomeBabysitter = () => {
     clientEmail: "",
     message: "" 
   });
+  const [modal, setModal] = useState({ message: "", type: "" });
+  const [sendingCountdown, setSendingCountdown] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -66,20 +68,40 @@ const HomeBabysitter = () => {
 
   // Send email handler
   const handleSendEmail = async () => {
+    setSendingCountdown(5);
+    for (let i = 5; i > 0; i--) {
+      setSendingCountdown(i);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    setSendingCountdown(0);
+    
     try {
       await sendEmail({
         to: emailModal.clientEmail,
         subject: `Message about booking - ${emailModal.clientName}`,
         message: emailModal.message,
-        fromName: user.name
+        fromName: "TrustaSitter Bookings"
       }, token);
 
+      // Close email modal first
       setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" });
-      setSuccessMessage("Email sent successfully.");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      
+      // Show success message
+      setModal({
+        message: "Email sent successfully.",
+        type: "success",
+      });
     } catch (error) {
       console.error("Error sending email:", error);
-      setError("Failed to send email.");
+      
+      // Close email modal first
+      setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" });
+      
+      // Show error message
+      setModal({
+        message: `Failed to send email: ${error.response?.data?.error || error.message || 'Unknown error'}`,
+        type: "error",
+      });
     }
   };
 
@@ -93,6 +115,27 @@ const HomeBabysitter = () => {
 
   return (
     <main className="bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen py-12 px-6 flex flex-col items-center">
+      {/* Success/Error Modal */}
+      {modal.message && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl text-center">
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">
+              {modal.type === "success" ? "Success" : "Error"}
+            </h2>
+            <p className="text-gray-600 mb-4">{modal.message}</p>
+            <button
+              onClick={() => setModal({ message: "", type: "" })}
+              className={`px-4 py-2 rounded ${
+                modal.type === "success"
+                  ? "bg-purple-500 hover:bg-purple-600"
+                  : "bg-red-500 hover:bg-red-600"
+              } text-white transition`}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
       {/* Email Modal */}
       {emailModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -116,8 +159,9 @@ const HomeBabysitter = () => {
               <button
                 onClick={handleSendEmail}
                 className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded transition"
+                disabled={sendingCountdown > 0}
               >
-                Send Email
+                {sendingCountdown > 0 ? `Enviando... ${sendingCountdown}` : "Send Email"}
               </button>
             </div>
           </div>
@@ -137,12 +181,6 @@ const HomeBabysitter = () => {
         <p className="text-center text-red-500">{error}</p>
       ) : (
         <section className="w-full max-w-4xl mb-12">
-          {successMessage && (
-            <div className="mb-4 bg-green-100 text-green-700 p-3 rounded text-center">
-              {successMessage}
-            </div>
-          )}
-
           <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
             Your Bookings
           </h2>
@@ -173,10 +211,7 @@ const HomeBabysitter = () => {
                       Region: {booking.client_region || "Not specified"}
                     </p>
                     <p className="text-gray-600">
-                      Children:{" "}
-                      {booking.client_children !== null
-                        ? booking.client_children
-                        : "Not specified"}
+                      Children: {booking.client_children !== null ? booking.client_children : "Not specified"}
                     </p>
                     <p className="text-gray-600">
                       Date: {new Date(booking.date).toLocaleDateString()}
@@ -184,25 +219,22 @@ const HomeBabysitter = () => {
                     <p className="text-gray-600">
                       Time: {booking.time_start} - {booking.time_end}
                     </p>
-                    <p
-                      className={`mt-1 font-semibold ${
-                        booking.status === "approved"
-                          ? "text-green-600"
-                          : booking.status === "cancelled"
-                          ? "text-red-600"
-                          : "text-yellow-600"
-                      }`}
-                    >
+                    <p className={`mt-1 font-semibold ${
+                      booking.status === "approved"
+                        ? "text-green-600"
+                        : booking.status === "cancelled"
+                        ? "text-red-600"
+                        : "text-yellow-600"
+                    }`}>
                       {booking.status}
                     </p>
                   </div>
-
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={() => setEmailModal({
                         isOpen: true,
                         clientName: booking.parent_name || "Client",
-                        clientEmail: booking.client_email || "contact@trustasitter.com",
+                        clientEmail: booking.client_email || "trustasitter@gmail.com",
                         message: ""
                       })}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition"
@@ -213,18 +245,14 @@ const HomeBabysitter = () => {
                       <>
                         {booking.status === "pending" && (
                           <button
-                            onClick={() =>
-                              handleUpdateStatus(booking.id, "approved")
-                            }
+                            onClick={() => handleUpdateStatus(booking.id, "approved")}
                             className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded transition"
                           >
                             Approve
                           </button>
                         )}
                         <button
-                          onClick={() =>
-                            handleUpdateStatus(booking.id, "cancelled")
-                          }
+                          onClick={() => handleUpdateStatus(booking.id, "cancelled")}
                           className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
                         >
                           Cancel

@@ -18,7 +18,9 @@ const db = new Client({
   user: "bruno",
   password: "PanetoneAzul01!",
   database: "postgres",
-  ssl: { rejectUnauthorized: false }
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000
 });
 
 // Uncomment the following lines to connect to a local PostgreSQL instance
@@ -37,8 +39,31 @@ db.connect()
   .then(() => console.log('Connected to PostgreSQL'))
   .catch(err => console.error('Connection error', err.stack));
 
+// Test database connection and table structure
+const testDatabaseConnection = async () => {
+  try {
+    console.log('Testing database connection...');
+    const result = await db.query('SELECT NOW()');
+    console.log('Database connection test successful:', result.rows[0]);
+    
+    // Test if tables exist
+    const tablesResult = await db.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name IN ('users', 'babysitters', 'bookings', 'admins')
+    `);
+    console.log('Available tables:', tablesResult.rows.map(row => row.table_name));
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+  }
+};
+
+testDatabaseConnection();
+
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
   origin: (origin, callback) => {
     // Permite qualquer subdomínio do Azure Static Web Apps e localhost
@@ -62,6 +87,9 @@ app.use(cors({
 // Add request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  if (req.method === 'POST' && req.path === '/api/login') {
+    console.log('Login request body:', { ...req.body, password: '***' });
+  }
   next();
 });
 
@@ -838,10 +866,12 @@ app.put('/api/users/change-password', authMiddleware, async (req, res) => {
 // Universal Login (User or Babysitter)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log('Login attempt for email:', email);
   try {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
+    console.log('Checking users table...');
     const userQuery = `SELECT * FROM users WHERE email = $1`;
     const userResult = await db.query(userQuery, [email]);
     if (userResult.rows.length > 0) {
@@ -867,6 +897,7 @@ app.post('/api/login', async (req, res) => {
         }
       });
     }
+    console.log('User not found, checking babysitters table...');
     const babysitterQuery = `SELECT * FROM babysitters WHERE email = $1`;
     const babysitterResult = await db.query(babysitterQuery, [email]);
     if (babysitterResult.rows.length > 0) {
@@ -895,6 +926,7 @@ app.post('/api/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid email or password.' });
   } catch (error) {
     console.error('Universal login error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -1007,6 +1039,15 @@ app.get('/api/health', (req, res) => {
     status: 'OK', 
     timestamp: new Date().toISOString(),
     message: 'TrustaSitter API is running'
+  });
+});
+
+// Test login endpoint
+app.post('/api/test-login', (req, res) => {
+  console.log('Test login endpoint called');
+  res.json({ 
+    message: 'Test login endpoint working',
+    receivedData: { ...req.body, password: '***' }
   });
 });
 

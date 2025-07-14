@@ -16,6 +16,7 @@ const Bookings = () => {
     babysitterEmail: "",
     message: "" 
   });
+  const [sendingCountdown, setSendingCountdown] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,23 +70,38 @@ const Bookings = () => {
 
   // Send email handler
   const handleSendEmail = async () => {
+    setSendingCountdown(5);
+    for (let i = 5; i > 0; i--) {
+      setSendingCountdown(i);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    setSendingCountdown(0);
+    
     try {
       await sendEmail({
         to: emailModal.babysitterEmail,
         subject: `Message about booking - ${emailModal.babysitterName}`,
         message: emailModal.message,
-        fromName: user.name
+        fromName: "TrustaSitter Bookings"
       }, token);
 
+      // Close email modal first
       setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" });
+      
+      // Show success message
       setModal({
         message: "Email sent successfully.",
         type: "success",
       });
     } catch (error) {
       console.error("Error sending email:", error);
+      
+      // Close email modal first
+      setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" });
+      
+      // Show error message
       setModal({
-        message: "Failed to send email.",
+        message: `Failed to send email: ${error.response?.data?.error || error.message || 'Unknown error'}`,
         type: "error",
       });
     }
@@ -146,8 +162,9 @@ const Bookings = () => {
               <button
                 onClick={handleSendEmail}
                 className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded transition"
+                disabled={sendingCountdown > 0}
               >
-                Send Email
+                {sendingCountdown > 0 ? `Enviando... ${sendingCountdown}` : "Send Email"}
               </button>
             </div>
           </div>
@@ -204,7 +221,7 @@ const Bookings = () => {
                       onClick={() => setEmailModal({
                         isOpen: true,
                         babysitterName: booking.babysitter_name,
-                        babysitterEmail: booking.babysitter_email || "contact@trustasitter.com",
+                        babysitterEmail: booking.babysitter_email || "trustasitter@gmail.com",
                         message: ""
                       })}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition"

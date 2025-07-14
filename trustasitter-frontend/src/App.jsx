@@ -19,6 +19,7 @@ import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from './pages/AdminLogin';
+import EnvironmentDebug from './components/EnvironmentDebug';
 
 const App = () => {
   return (
@@ -94,6 +95,7 @@ const App = () => {
         </Routes>
       </div>
       <Footer />
+      <EnvironmentDebug />
     </Router>
   );
 };
