@@ -32,13 +32,28 @@ jobs:
 
       - name: npm install, build, and test
         run: |
+          echo "Current directory: $(pwd)"
+          echo "Listing contents:"
+          ls -la
+          echo "Changing to TrustaSitter-backend..."
           cd TrustaSitter-backend
+          echo "Inside TrustaSitter-backend: $(pwd)"
+          echo "Contents of TrustaSitter-backend:"
+          ls -la
+          echo "Running npm install..."
           npm install
+          echo "npm install completed"
 
       - name: Zip artifact for deployment
         run: |
+          echo "Creating zip from TrustaSitter-backend..."
           cd TrustaSitter-backend
+          echo "Current directory: $(pwd)"
+          echo "Files to zip:"
+          ls -la
           zip release.zip ./* -r
+          echo "Zip created successfully"
+          ls -la release.zip
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
