@@ -104,7 +104,7 @@ app.post("/api/admin/login", async (req, res) => {
     }
     const token = jwt.sign(
       { id: admin.id, email: admin.email, role: "admin" },
-      process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
       { expiresIn: "8h" }
     );
     res.json({
@@ -270,7 +270,7 @@ app.post('/api/users/register', async (req, res) => {
     const result = await db.query(query, values);
     const token = jwt.sign(
       { id: result.rows[0].id, email: result.rows[0].email, role: 'user' },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
       { expiresIn: '3h' }
     );
     res.status(201).json({
@@ -317,7 +317,7 @@ app.post('/api/users/login', async (req, res) => {
     }
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
       { expiresIn: '3h' }
     );
     res.status(200).json({
@@ -529,7 +529,7 @@ app.post('/api/babysitters/login', async (req, res) => {
     }
     const token = jwt.sign(
       { id: babysitter.id, email: babysitter.email },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
       { expiresIn: '3h' }
     );
     res.status(200).json({
@@ -852,7 +852,7 @@ app.post('/api/login', async (req, res) => {
       }
       const token = jwt.sign(
         { id: user.id, email: user.email, role: 'user' },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
         { expiresIn: '3h' }
       );
       return res.status(200).json({
@@ -877,7 +877,7 @@ app.post('/api/login', async (req, res) => {
       }
       const token = jwt.sign(
         { id: babysitter.id, email: babysitter.email, role: 'babysitter' },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
         { expiresIn: '3h' }
       );
       return res.status(200).json({

@@ -1,5 +1,20 @@
 {
-  "dependencies": {
-    "nodemailer": "^7.0.5"
-  }
+  "name": "trustasitter",
+  "version": "1.0.0",
+  "description": "TrustaSitter - Babysitter Booking System",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd trustasitter-backend && npm start",
+    "dev:frontend": "cd trustasitter-frontend && npm run dev",
+    "build": "cd trustasitter-frontend && npm run build",
+    "test:db": "cd trustasitter-backend && node test-db.js",
+    "start:backend": "cd trustasitter-backend && npm start",
+    "start:frontend": "cd trustasitter-frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["babysitter", "booking", "react", "nodejs", "postgresql"],
+  "author": "Bruno Henrique da Silva",
+  "license": "MIT"
 }

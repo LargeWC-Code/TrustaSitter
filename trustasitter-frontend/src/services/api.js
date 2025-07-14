@@ -1,8 +1,9 @@
 import axios from "axios";
+import { config } from "../config/environment.js";
 
-// Create an Axios instance with the base URL from environment variables
+// Create an Axios instance with the base URL from environment configuration
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://trustasitter-api-cwahftcwg4e5axah.australiaeast-01.azurewebsites.net/api",
+  baseURL: config.apiUrl,
   timeout: 10000,
 });
 
