@@ -22,8 +22,8 @@ jobs:
         run: |
           pwd
           ls -la
-          echo "Checking if TrustaSitter-backend exists:"
-          ls -la TrustaSitter-backend || echo "Directory not found"
+          echo "Checking if trustasitter-backend exists:"
+          ls -la trustasitter-backend || echo "Directory not found"
 
       - name: Set up Node.js version
         uses: actions/setup-node@v3
@@ -35,10 +35,10 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Listing contents:"
           ls -la
-          echo "Changing to TrustaSitter-backend..."
-          cd TrustaSitter-backend
-          echo "Inside TrustaSitter-backend: $(pwd)"
-          echo "Contents of TrustaSitter-backend:"
+          echo "Changing to trustasitter-backend..."
+          cd trustasitter-backend
+          echo "Inside trustasitter-backend: $(pwd)"
+          echo "Contents of trustasitter-backend:"
           ls -la
           echo "Running npm install..."
           npm install

@@ -1,7 +1,6 @@
 // src/pages/HomeBabysitter.jsx
 import React, { useEffect, useState, useContext } from "react";
-import { api } from "../services/api";
-import { sendEmail } from "../services/api";
+import { api, sendEmail } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 
 const HomeBabysitter = () => {
@@ -25,9 +24,7 @@ const HomeBabysitter = () => {
     try {
       const response = await api.get(
         `/babysitters/${user.id}/bookings`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setBookings(response.data);
     } catch (err) {

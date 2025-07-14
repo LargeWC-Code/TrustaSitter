@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an Axios instance with the base URL from environment variables
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "trustasitter-api-cwahftcwg4e5axah.australiaeast-01.azurewebsites.net",
+  baseURL: import.meta.env.VITE_API_URL || "https://trustasitter-api-cwahftcwg4e5axah.australiaeast-01.azurewebsites.net/api",
   timeout: 10000,
 });
 
