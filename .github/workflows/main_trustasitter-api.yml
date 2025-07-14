@@ -44,9 +44,9 @@ jobs:
           npm install
           echo "npm install completed"
           echo "Creating zip file..."
-          zip -r ../../backend.zip ./*
+          zip -r ../backend.zip ./*
           echo "Zip created successfully"
-          ls -la ../../backend.zip
+          ls -la ../backend.zip
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
