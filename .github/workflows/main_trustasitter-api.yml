@@ -51,15 +51,15 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Files to zip:"
           ls -la
-          zip release.zip ./* -r
+          zip ../release.zip ./* -r
           echo "Zip created successfully"
-          ls -la release.zip
+          ls -la ../release.zip
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: release.zip
+          path: ../release.zip
 
   deploy:
     runs-on: ubuntu-latest
