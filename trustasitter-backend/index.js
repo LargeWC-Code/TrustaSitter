@@ -12,54 +12,32 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 
 // PostgreSQL client configuration
-const db = new Client({
-  host: "trustasitter-db.postgres.database.azure.com",
-  port: 5432,
-  user: "bruno",
-  password: "PanetoneAzul01!",
-  database: "postgres",
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000
-});
+// const db = new Client({
+//   host: "trustasitter-db.postgres.database.azure.com",
+//   port: 5432,
+//   user: "bruno",
+//   password: "PanetoneAzul01!",
+//   database: "postgres",
+//   ssl: { rejectUnauthorized: false },
+//   connectionTimeoutMillis: 10000,
+//   idleTimeoutMillis: 30000
+// });
 
 // Uncomment the following lines to connect to a local PostgreSQL instance
-// const db = new Client({
-//   user: 'postgres',
-//   host: 'localhost',
-//   database: 'trustasitter',
-//   password: 'Senha00!',
-//   port: 5432,
-// });
+const db = new Client({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'trustasitter',
+  password: 'Senha00!',
+  port: 5432,
+});
 
 
 
 // Connect to PostgreSQL
 db.connect()
-  .then(() => console.log('Connected to PostgreSQL'))
-  .catch(err => console.error('Connection error', err.stack));
-
-// Test database connection and table structure
-const testDatabaseConnection = async () => {
-  try {
-    console.log('Testing database connection...');
-    const result = await db.query('SELECT NOW()');
-    console.log('Database connection test successful:', result.rows[0]);
-    
-    // Test if tables exist
-    const tablesResult = await db.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public' 
-      AND table_name IN ('users', 'babysitters', 'bookings', 'admins')
-    `);
-    console.log('Available tables:', tablesResult.rows.map(row => row.table_name));
-  } catch (error) {
-    console.error('Database connection test failed:', error);
-  }
-};
-
-testDatabaseConnection();
+  .then(() => console.log('✅ Connected to PostgreSQL'))
+  .catch(err => console.error('❌ Connection error', err.stack));
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
@@ -71,7 +49,9 @@ app.use(cors({
       !origin ||
       origin.match(/^https:\/\/proud-field-07cdeb800\.2\.azurestaticapps\.net$/) ||
       origin.match(/^https:\/\/trustasitter\.azurewebsites\.net$/) ||
+      origin.match(/^https:\/\/trustasitter-api-cwahftcwg4e5axah\.australiaeast-01\.azurewebsites\.net$/) ||
       origin.match(/^http:\/\/localhost:5173$/) ||
+      origin.match(/^http:\/\/localhost:5174$/) ||
       origin.match(/^http:\/\/localhost:3000$/)
     ) {
       callback(null, true);
@@ -84,14 +64,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Add request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  if (req.method === 'POST' && req.path === '/api/login') {
-    console.log('Login request body:', { ...req.body, password: '***' });
-  }
-  next();
-});
+// Add request logging middleware (commented out for cleaner logs)
+// app.use((req, res, next) => {
+//   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+//   if (req.method === 'POST' && req.path === '/api/login') {
+//     console.log('Login request body:', { ...req.body, password: '***' });
+//   }
+//   next();
+// });
 
 /* -----------------------------------
    Admin Routes
@@ -1070,6 +1050,21 @@ app.listen(PORT, () => {
 app.post('/api/send-email', authMiddleware, async (req, res) => {
   const { to, subject, message, fromName } = req.body;
 
+  // Log variáveis de ambiente
+  console.log('EMAIL_USER:', process.env.EMAIL_USER);
+  console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'MISSING');
+
+  // Check if email configuration exists
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('Email configuration missing:', {
+      EMAIL_USER: process.env.EMAIL_USER ? 'SET' : 'MISSING',
+      EMAIL_PASS: process.env.EMAIL_PASS ? 'SET' : 'MISSING'
+    });
+    return res.status(500).json({ error: 'Email service not configured.' });
+  }
+
+  console.log('Attempting to send email:', { to, subject, fromName });
+
   // Configure transporter (Gmail SMTP)
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -1087,10 +1082,20 @@ app.post('/api/send-email', authMiddleware, async (req, res) => {
   };
 
   try {
+    console.log('Sending email with options:', { ...mailOptions, pass: '***' });
     await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully to:', to);
     res.json({ message: 'Email sent successfully.' });
   } catch (error) {
     console.error('Error sending email:', error);
-    res.status(500).json({ error: 'Failed to send email.' });
+    console.error('Error details:', {
+      code: error.code,
+      command: error.command,
+      response: error.response
+    });
+    res.status(500).json({ 
+      error: 'Failed to send email.',
+      details: error.message 
+    });
   }
 });
