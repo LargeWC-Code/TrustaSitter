@@ -1081,6 +1081,26 @@ app.post('/api/reports', uploadReportPhoto.single('photo'), async (req, res) => 
   }
 });
 
+// GET /api/reports/:id - Get a specific report by ID
+app.get('/api/reports/:id', async (req, res) => {
+  try {
+    const reportId = req.params.id;
+    const query = `
+      SELECT * FROM reports
+      WHERE id = $1
+      LIMIT 1;
+    `;
+    const result = await db.query(query, [reportId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    res.status(200).json({ report: result.rows[0] });
+  } catch (error) {
+    console.error('Error fetching report:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 /* -----------------------------------
    Health Check Endpoint
 ----------------------------------- */
