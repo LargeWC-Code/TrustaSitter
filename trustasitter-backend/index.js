@@ -1026,6 +1026,23 @@ app.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/bookings/:bookingId/reports - List all reports for a booking
+app.get('/api/bookings/:bookingId/reports', async (req, res) => {
+  try {
+    const bookingId = req.params.bookingId;
+    const query = `
+      SELECT * FROM reports
+      WHERE booking_id = $1
+      ORDER BY created_at DESC;
+    `;
+    const result = await db.query(query, [bookingId]);
+    res.status(200).json({ reports: result.rows });
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /api/reports - Create a new babysitter report
 app.post('/api/reports', uploadReportPhoto.single('photo'), async (req, res) => {
   try {
