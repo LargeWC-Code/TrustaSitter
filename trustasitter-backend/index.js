@@ -10,6 +10,21 @@ const { Client } = require('pg');
 const authMiddleware = require('./middleware/authMiddleware');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
+
+// Multer config for babysitter reports
+const reportsStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../uploads/reports'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueSuffix + ext);
+  }
+});
+const uploadReportPhoto = multer({ storage: reportsStorage });
 
 // PostgreSQL client configuration
 // const db = new Client({
@@ -44,7 +59,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
   origin: (origin, callback) => {
-    // Permite qualquer subdomínio do Azure Static Web Apps e localhost
+    // Allow any Azure Static Web Apps subdomain and localhost
     if (
       !origin ||
       origin.match(/^https:\/\/proud-field-07cdeb800\.2\.azurestaticapps\.net$/) ||
@@ -1011,6 +1026,44 @@ app.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {
   }
 });
 
+// POST /api/reports - Create a new babysitter report
+app.post('/api/reports', uploadReportPhoto.single('photo'), async (req, res) => {
+  try {
+    const { booking_id, checklist, comment } = req.body;
+    const babysitter_id = req.body.babysitter_id; // Should come from token in the future
+    let checklistArray = [];
+    if (checklist) {
+      if (Array.isArray(checklist)) {
+        checklistArray = checklist;
+      } else if (typeof checklist === 'string') {
+        // Can come as a comma-separated string
+        checklistArray = checklist.split(',').map(item => item.trim());
+      }
+    }
+    let photo_url = null;
+    if (req.file) {
+      photo_url = `/uploads/reports/${req.file.filename}`;
+    }
+    const insertQuery = `
+      INSERT INTO reports (booking_id, babysitter_id, checklist, comment, photo_url)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+    `;
+    const values = [
+      booking_id,
+      babysitter_id,
+      checklistArray.length > 0 ? checklistArray : null,
+      comment || null,
+      photo_url
+    ];
+    const result = await db.query(insertQuery, values);
+    res.status(201).json({ message: 'Report created successfully', report: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating report:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 /* -----------------------------------
    Health Check Endpoint
 ----------------------------------- */
@@ -1050,7 +1103,7 @@ app.listen(PORT, () => {
 app.post('/api/send-email', authMiddleware, async (req, res) => {
   const { to, subject, message, fromName } = req.body;
 
-  // Log variáveis de ambiente
+  // Log environment variables
   console.log('EMAIL_USER:', process.env.EMAIL_USER);
   console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'MISSING');
 
