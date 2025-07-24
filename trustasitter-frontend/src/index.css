@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* Modern scrollbar for all scrollable elements */
+::-webkit-scrollbar {
+  width: 8px;
+  border-radius: 8px;
+  background: #f3e8ff;
+}
+::-webkit-scrollbar-thumb {
+  background: #a78bfa;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+/* Discreet scrollbar for modal only */
+.modal-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb; /* gray-200 */
+  border-radius: 8px;
+}
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1; /* gray-300 */
+}
+
+/* Discreet scrollbar for the whole page */
+body::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+body::-webkit-scrollbar-thumb {
+  background: #e5e7eb; /* gray-200 */
+  border-radius: 8px;
+}
+body::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1; /* gray-300 */
+}

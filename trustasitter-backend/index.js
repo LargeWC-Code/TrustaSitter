@@ -12,6 +12,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Multer config for babysitter reports
 const reportsStorage = multer.diskStorage({
@@ -21,8 +22,7 @@ const reportsStorage = multer.diskStorage({
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
+    cb(null, uniqueSuffix + ext); }
 });
 const uploadReportPhoto = multer({ storage: reportsStorage });
 

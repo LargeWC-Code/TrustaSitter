@@ -3,6 +3,14 @@ import React, { useEffect, useState, useContext } from "react";
 import { api, sendEmail } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 import BabysitterReportForm from '../components/BabysitterReportForm';
+import ReportList from '../components/ReportList';
+import { FiX } from 'react-icons/fi';
+
+function formatBookingTime(timeString) {
+  if (!timeString) return '';
+  const [hour, minute] = timeString.split(':');
+  return `${hour}:${minute}`;
+}
 
 const HomeBabysitter = () => {
   const { token, user, isLoading } = useContext(AuthContext);
@@ -19,6 +27,7 @@ const HomeBabysitter = () => {
   });
   const [modal, setModal] = useState({ message: "", type: "" });
   const [sendingCountdown, setSendingCountdown] = useState(0);
+  const [openReportModal, setOpenReportModal] = useState(null); // bookingId or null
 
   useEffect(() => {
     if (!user) return;
@@ -195,11 +204,11 @@ const HomeBabysitter = () => {
               <p>Once a parent books you, it will appear here.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="bg-white rounded shadow p-4 flex flex-col justify-between"
+                  className="bg-white rounded shadow p-4 flex flex-col"
                 >
                   <div>
                     <p className="text-gray-800 font-medium">
@@ -221,7 +230,7 @@ const HomeBabysitter = () => {
                       Date: {new Date(booking.date).toLocaleDateString()}
                     </p>
                     <p className="text-gray-600">
-                      Time: {booking.time_start} - {booking.time_end}
+                      Time: {formatBookingTime(booking.time_start)} - {formatBookingTime(booking.time_end)}
                     </p>
                     <p className={`mt-1 font-semibold ${
                       booking.status === "approved"
@@ -233,6 +242,7 @@ const HomeBabysitter = () => {
                       {booking.status}
                     </p>
                   </div>
+                  {/* Action buttons always directly below status */}
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={() => setEmailModal({
@@ -264,10 +274,39 @@ const HomeBabysitter = () => {
                       </>
                     )}
                   </div>
-                  {/* Babysitter report form */}
-                  <div className="mt-4">
-                    <BabysitterReportForm bookingId={booking.id} babysitterId={user.id} />
-                  </div>
+                  {booking.status === 'approved' && (
+                    <>
+                      <button
+                        className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition"
+                        onClick={() => setOpenReportModal(booking.id)}
+                      >
+                        Send Report
+                      </button>
+                      <ReportList bookingId={booking.id} />
+                    </>
+                  )}
+                  {/* Modal for Report Form */}
+                  {openReportModal === booking.id && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                      <div className="bg-white rounded-lg shadow-lg p-0 w-full max-w-lg relative max-h-[90vh] flex flex-col">
+                        <button
+                          className="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl z-10 border border-red-200 rounded-full p-1 transition"
+                          onClick={() => setOpenReportModal(null)}
+                          aria-label="Close"
+                          style={{ background: 'rgba(255,255,255,0.8)' }}
+                        >
+                          <FiX />
+                        </button>
+                        <div className="overflow-y-auto p-6 flex-1 modal-scrollbar">
+                          <BabysitterReportForm
+                            bookingId={booking.id}
+                            babysitterId={user.id}
+                            onReportSent={() => setOpenReportModal(null)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
