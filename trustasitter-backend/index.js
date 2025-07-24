@@ -11,17 +11,17 @@ const authMiddleware = require('./middleware/authMiddleware');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 
-// PostgreSQL client configuration
-const db = new Client({
-  host: "trustasitter-db.postgres.database.azure.com",
-  port: 5432,
-  user: "bruno",
-  password: "PanetoneAzul01!",
-  database: "postgres",
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000
-});
+// // PostgreSQL client configuration
+// const db = new Client({
+//   host: "trustasitter-db.postgres.database.azure.com",
+//   port: 5432,
+//   user: "bruno",
+//   password: "PanetoneAzul01!",
+//   database: "postgres",
+//   ssl: { rejectUnauthorized: false },
+//   connectionTimeoutMillis: 10000,
+//   idleTimeoutMillis: 30000
+// });
 
 // Uncomment the following lines to connect to a local PostgreSQL instance
 // const db = new Client({
@@ -32,6 +32,17 @@ const db = new Client({
 //   port: 5432,
 // });
 
+// PostgreSQL client configuration
+const db = new Client({
+  host: "20.40.73.193",
+  port: 5432,
+  user: "postgres",
+  password: "LargeWC<123456>!",
+  database: "postgres",
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000
+});
 
 
 // Connect to PostgreSQL
