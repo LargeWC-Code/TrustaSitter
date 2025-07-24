@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { api, sendEmail } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
+import BabysitterReportForm from '../components/BabysitterReportForm';
 
 const HomeBabysitter = () => {
   const { token, user, isLoading } = useContext(AuthContext);
@@ -68,6 +69,9 @@ const HomeBabysitter = () => {
 
   // Send email handler
   const handleSendEmail = async () => {
+    console.log('Token available:', !!token);
+    console.log('Token value:', token);
+    
     setSendingCountdown(5);
     for (let i = 5; i > 0; i--) {
       setSendingCountdown(i);
@@ -259,6 +263,10 @@ const HomeBabysitter = () => {
                         </button>
                       </>
                     )}
+                  </div>
+                  {/* Babysitter report form */}
+                  <div className="mt-4">
+                    <BabysitterReportForm bookingId={booking.id} babysitterId={user.id} />
                   </div>
                 </div>
               ))}

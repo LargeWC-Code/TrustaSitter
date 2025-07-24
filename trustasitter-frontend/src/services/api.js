@@ -11,6 +11,7 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
+    console.log('Authorization header:', config.headers?.Authorization ? 'Present' : 'Missing');
     return config;
   },
   (error) => {
@@ -104,6 +105,9 @@ export const getUserBookings = async (userId, token) => {
 
 // Function to send email
 export const sendEmail = async (emailData, token) => {
+  console.log('sendEmail called with token:', !!token);
+  console.log('Email data:', emailData);
+  
   const response = await api.post("/send-email", emailData, {
     headers: { Authorization: `Bearer ${token}` },
   });
