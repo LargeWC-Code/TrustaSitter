@@ -113,3 +113,43 @@ export const sendEmail = async (emailData, token) => {
   });
   return response.data;
 };
+
+// Notification management functions
+export const markNotificationAsRead = async (notificationType, notificationId, token) => {
+  const response = await api.post("/notifications/read", {
+    notification_type: notificationType,
+    notification_id: notificationId
+  }, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const markNotificationAsUnread = async (notificationType, notificationId, token) => {
+  const response = await api.post("/notifications/unread", {
+    notification_type: notificationType,
+    notification_id: notificationId
+  }, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const getNotificationStatus = async (notificationType, notificationIds, token) => {
+  const idsParam = Array.isArray(notificationIds) ? notificationIds.join(',') : notificationIds;
+  const response = await api.get(`/notifications/status?notification_type=${notificationType}&notification_ids=${idsParam}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const getReadNotifications = async (token, notificationType = null) => {
+  const url = notificationType 
+    ? `/notifications/read?notification_type=${notificationType}`
+    : '/notifications/read';
+  
+  const response = await api.get(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};

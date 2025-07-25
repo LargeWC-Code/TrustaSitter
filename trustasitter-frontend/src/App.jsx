@@ -20,6 +20,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from './pages/AdminLogin';
 import EnvironmentDebug from './components/EnvironmentDebug';
+import NotificationDemo from './pages/NotificationDemo';
 
 const App = () => {
   return (
@@ -47,6 +48,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/choose-role" element={<ChooseRole />} />
           <Route path="/register-babysitter" element={<RegisterBabysitter />} />
+          <Route path="/notification-demo" element={<NotificationDemo />} />
           <Route path="/register-client" element={<RegisterClient />} />
 
           {/* Protected Routes for Clients */}
