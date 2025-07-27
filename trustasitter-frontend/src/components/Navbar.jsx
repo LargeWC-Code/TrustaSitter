@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { FaComments } from "react-icons/fa";
 
 function Navbar() {
   const { user, role, logout } = useContext(AuthContext);
@@ -94,6 +95,17 @@ function Navbar() {
               </Link>
             )}
             {/* Admin does not have My Profile */}
+
+            {/* Chat link for users and babysitters */}
+            {(role === "user" || role === "babysitter") && (
+              <Link
+                to="/chat"
+                className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-2"
+              >
+                <FaComments />
+                Messages
+              </Link>
+            )}
 
             <button
               onClick={handleLogout}
