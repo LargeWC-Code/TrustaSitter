@@ -2,21 +2,15 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { getUserBookings, sendEmail } from "../services/api";
+import { getUserBookings } from "../services/api";
 import { api } from "../services/api";
+import { FaComments } from "react-icons/fa";
 
 const Bookings = () => {
   const { user, token } = useContext(AuthContext);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({ message: "", type: "" });
-  const [emailModal, setEmailModal] = useState({ 
-    isOpen: false, 
-    babysitterName: "", 
-    babysitterEmail: "",
-    message: "" 
-  });
-  const [sendingCountdown, setSendingCountdown] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,43 +62,9 @@ const Bookings = () => {
   }
 };
 
-  // Send email handler
-  const handleSendEmail = async () => {
-    setSendingCountdown(5);
-    for (let i = 5; i > 0; i--) {
-      setSendingCountdown(i);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    setSendingCountdown(0);
-    
-    try {
-      await sendEmail({
-        to: emailModal.babysitterEmail,
-        subject: `Message about booking - ${emailModal.babysitterName}`,
-        message: emailModal.message,
-        fromName: "TrustaSitter Bookings"
-      }, token);
-
-      // Close email modal first
-      setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" });
-      
-      // Show success message
-      setModal({
-        message: "Email sent successfully.",
-        type: "success",
-      });
-    } catch (error) {
-      console.error("Error sending email:", error);
-      
-      // Close email modal first
-      setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" });
-      
-      // Show error message
-      setModal({
-        message: `Failed to send email: ${error.response?.data?.error || error.message || 'Unknown error'}`,
-        type: "error",
-      });
-    }
+  // Navigate to chat with babysitter
+  const handleOpenChat = (babysitterId, babysitterName) => {
+    navigate('/chat');
   };
 
   if (loading) {
