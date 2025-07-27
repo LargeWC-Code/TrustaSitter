@@ -14,7 +14,16 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["babysitter", "booking", "react", "nodejs", "postgresql"],
+  "keywords": [
+    "babysitter",
+    "booking",
+    "react",
+    "nodejs",
+    "postgresql"
+  ],
   "author": "Bruno Henrique da Silva",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@react-google-maps/api": "^2.20.7"
+  }
 }

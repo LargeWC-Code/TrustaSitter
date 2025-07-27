@@ -14,7 +14,6 @@ const ProfileClient = () => {
     name: "",
     email: "",
     phone: "",
-    region: "",
     address: "",
     children_count: "",
     currentPassword: "",
@@ -38,7 +37,6 @@ const ProfileClient = () => {
           name: res.data.name || "",
           email: res.data.email || "",
           phone: res.data.phone || "",
-          region: res.data.region || "",
           address: res.data.address || "",
           children_count: res.data.children_count !== null && res.data.children_count !== undefined ? res.data.children_count.toString() : "",
         }));
@@ -79,7 +77,6 @@ const ProfileClient = () => {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        region: formData.region,
         address: formData.address,
         children_count:
           formData.children_count === "" ? null : parseInt(formData.children_count, 10)
@@ -142,19 +139,65 @@ const ProfileClient = () => {
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-center">{error}</div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input name="name" value={formData.name} onChange={handleChange} type="text" placeholder="Full Name" className="w-full px-4 py-2 border rounded" />
-          <input name="email" value={formData.email} onChange={handleChange} type="email" placeholder="Email Address" className="w-full px-4 py-2 border rounded" />
-          <input name="phone" value={formData.phone} onChange={handleChange} type="text" placeholder="Phone Number" className="w-full px-4 py-2 border rounded" />
-          <input name="address" value={formData.address} onChange={handleChange} type="text" placeholder="Address" className="w-full px-4 py-2 border rounded" />
-          <select name="region" value={formData.region} onChange={handleChange} className="w-full px-4 py-2 border rounded">
-            <option value="">Select Region</option>
-            <option value="Central">Central</option>
-            <option value="East">East</option>
-            <option value="West">West</option>
-            <option value="North">North</option>
-            <option value="South">South</option>
-          </select>
-          <input name="children_count" value={formData.children_count} onChange={handleChange} type="number" placeholder="Number of Children" className="w-full px-4 py-2 border rounded" />
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Full Name</label>
+            <input 
+              name="name" 
+              value={formData.name} 
+              onChange={handleChange} 
+              type="text" 
+              placeholder="Enter your full name" 
+              className="w-full px-4 py-2 border rounded" 
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Email Address</label>
+            <input 
+              name="email" 
+              value={formData.email} 
+              onChange={handleChange} 
+              type="email" 
+              placeholder="Enter your email address" 
+              className="w-full px-4 py-2 border rounded" 
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Phone Number</label>
+            <input 
+              name="phone" 
+              value={formData.phone} 
+              onChange={handleChange} 
+              type="text" 
+              placeholder="Enter your phone number" 
+              className="w-full px-4 py-2 border rounded" 
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Address</label>
+            <input 
+              name="address" 
+              value={formData.address} 
+              onChange={handleChange} 
+              type="text" 
+              placeholder="Enter your home address" 
+              className="w-full px-4 py-2 border rounded" 
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Number of Children</label>
+            <input 
+              name="children_count" 
+              value={formData.children_count} 
+              onChange={handleChange} 
+              type="number" 
+              placeholder="How many children do you have?" 
+              className="w-full px-4 py-2 border rounded" 
+            />
+          </div>
 
           <div className="border-t pt-4 mt-4">
             <h2 className="text-lg font-semibold mb-2">Change Password</h2>

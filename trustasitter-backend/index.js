@@ -37,9 +37,9 @@ const db = new Client({
   host: "20.40.73.193",
   port: 5432,
   user: "postgres",
-  password: "LargeWC<123456>!",
+  password: "LargeWC<123456>",
   database: "postgres",
-  ssl: { rejectUnauthorized: false },
+  // ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 30000
 });
@@ -286,23 +286,22 @@ app.delete("/api/admin/bookings/:id", async (req, res) => {
 
 // Client Register
 app.post('/api/users/register', async (req, res) => {
-  const { name, email, password, phone, region, address, children } = req.body;
+  const { name, email, password, phone, address, children } = req.body;
   try {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = `
-      INSERT INTO users (name, email, password, phone, region, address, children_count)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, name, email, phone, region, address, children_count, created_at;
+      INSERT INTO users (name, email, password, phone, address, children_count)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, name, email, phone, address, children_count, created_at;
     `;
     const values = [
       name,
       email,
       hashedPassword,
       phone || null,
-      region || null,
       address || null,
       children === "" || children === undefined ? null : parseInt(children, 10)
     ];
@@ -321,7 +320,6 @@ app.post('/api/users/register', async (req, res) => {
         name: result.rows[0].name,
         email: result.rows[0].email,
         phone: result.rows[0].phone,
-        region: result.rows[0].region,
         address: result.rows[0].address,
         children_count: result.rows[0].children_count,
         created_at: result.rows[0].created_at
@@ -379,7 +377,7 @@ app.post('/api/users/login', async (req, res) => {
 // Client Profile Get
 app.get('/api/users/profile', authMiddleware, async (req, res) => {
   try {
-    const query = `SELECT id, name, email, phone, region, address, children_count, created_at FROM users WHERE id = $1`;
+    const query = `SELECT id, name, email, phone, address, children_count, created_at FROM users WHERE id = $1`;
     const result = await db.query(query, [req.user.id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
@@ -393,7 +391,7 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
 
 // Client Profile Update
 app.put('/api/users/profile', authMiddleware, async (req, res) => {
-  const { name, email, password, phone, region, children_count, address } = req.body;
+  const { name, email, password, phone, children_count, address } = req.body;
   try {
     const queryUser = `SELECT * FROM users WHERE id = $1`;
     const resultUser = await db.query(queryUser, [req.user.id]);
@@ -405,7 +403,6 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
       name: name || existingUser.name,
       email: email || existingUser.email,
       phone: phone || existingUser.phone,
-      region: region || existingUser.region,
       address: address || existingUser.address,
       children_count:
       children_count === "" || children_count === undefined
@@ -425,18 +422,16 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
         email = $2,
         password = $3,
         phone = $4,
-        region = $5,
-        children_count = $6,
-        address = $7
-      WHERE id = $8
-      RETURNING id, name, email, phone, region, children_count, address, created_at;
+        children_count = $5,
+        address = $6
+      WHERE id = $7
+      RETURNING id, name, email, phone, children_count, address, created_at;
     `;
     const values = [
       updates.name,
       updates.email,
       hashedPassword,
       updates.phone,
-      updates.region,
       updates.children_count,
       updates.address,
       req.user.id
@@ -501,12 +496,14 @@ app.post('/api/babysitters/register', async (req, res) => {
     email,
     password,
     phone,
-    region,
     available_days,
     available_from,
     available_to,
     about,
-    rate
+    rate,
+    latitude,
+    longitude,
+    address
   } = req.body;
   let availableDaysArray = [];
   if (Array.isArray(available_days)) {
@@ -515,28 +512,30 @@ app.post('/api/babysitters/register', async (req, res) => {
     availableDaysArray = available_days.split(",").map(day => day.trim());
   }
   try {
-    if (!name || !email || !password || !region || !available_days || !available_from || !available_to || !rate) {
+    if (!name || !email || !password || !available_days || !available_from || !available_to || !rate) {
       return res.status(400).json({ error: 'All required fields must be filled.' });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = `
       INSERT INTO babysitters
-      (name, email, password, phone, region, available_days, available_from, available_to, about, rate)
+      (name, email, password, phone, available_days, available_from, available_to, about, rate, latitude, longitude, address)
       VALUES
-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING id, name, email, region, created_at;
+      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING id, name, email, latitude, longitude, address, created_at;
     `;
     const values = [
       name,
       email,
       hashedPassword,
       phone,
-      region,
       availableDaysArray,
       available_from,
       available_to,
       about,
-      rate
+      rate,
+      latitude,
+      longitude,
+      address
     ];
     const result = await db.query(query, values);
     res.status(201).json({
@@ -592,7 +591,7 @@ app.post('/api/babysitters/login', async (req, res) => {
 app.get('/api/babysitters/profile', authMiddleware, async (req, res) => {
   try {
     const query = `
-      SELECT id, name, email, region, phone, available_days, available_from, available_to, about, rate, created_at
+      SELECT id, name, email, phone, available_days, available_from, available_to, about, rate, latitude, longitude, address, created_at
       FROM babysitters
       WHERE id = $1
     `;
@@ -616,7 +615,6 @@ app.get("/api/babysitters/:id", async (req, res) => {
         id,
         name,
         email,
-        region,
         background_check_uploaded,
         created_at,
         available_days,
@@ -646,12 +644,14 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
     name,
     email,
     phone,
-    region,
     available_days,
     available_from,
     available_to,
     about,
-    rate
+    rate,
+    latitude,
+    longitude,
+    address
   } = req.body;
   try {
     const queryBabysitter = `SELECT * FROM babysitters WHERE id = $1`;
@@ -663,37 +663,43 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
       name: name || resultBabysitter.rows[0].name,
       email: email || resultBabysitter.rows[0].email,
       phone: phone || resultBabysitter.rows[0].phone,
-      region: region || resultBabysitter.rows[0].region,
       available_days: available_days || resultBabysitter.rows[0].available_days,
       available_from: available_from || resultBabysitter.rows[0].available_from,
       available_to: available_to || resultBabysitter.rows[0].available_to,
       about: about || resultBabysitter.rows[0].about,
-      rate: rate || resultBabysitter.rows[0].rate
+      rate: rate || resultBabysitter.rows[0].rate,
+      latitude: latitude !== undefined ? latitude : resultBabysitter.rows[0].latitude,
+      longitude: longitude !== undefined ? longitude : resultBabysitter.rows[0].longitude,
+      address: address || resultBabysitter.rows[0].address
     };
     const queryUpdate = `
       UPDATE babysitters
       SET name = $1,
           email = $2,
           phone = $3,
-          region = $4,
-          available_days = $5,
-          available_from = $6,
-          available_to = $7,
-          about = $8,
-          rate = $9
-      WHERE id = $10
-      RETURNING id, name, email, region, phone, available_days, available_from, available_to, about, rate, created_at;
+          available_days = $4,
+          available_from = $5,
+          available_to = $6,
+          about = $7,
+          rate = $8,
+          latitude = $9,
+          longitude = $10,
+          address = $11
+      WHERE id = $12
+      RETURNING id, name, email, phone, available_days, available_from, available_to, about, rate, latitude, longitude, address, created_at;
     `;
     const values = [
       updates.name,
       updates.email,
       updates.phone,
-      updates.region,
       updates.available_days,
       updates.available_from,
       updates.available_to,
       updates.about,
       updates.rate,
+      updates.latitude,
+      updates.longitude,
+      updates.address,
       req.user.id
     ];
     const result = await db.query(queryUpdate, values);
@@ -742,13 +748,15 @@ app.get('/api/babysitters', async (req, res) => {
         name,
         email,
         phone,
-        region,
         rate,
         about,
         available_days,
         available_from,
         available_to,
         profile_photo,
+        latitude,
+        longitude,
+        address,
         created_at
       FROM babysitters
       ORDER BY created_at DESC;
