@@ -5,7 +5,7 @@ import { FaComments } from "react-icons/fa";
 import { chatApi } from "../services/chatApi";
 
 function Navbar() {
-  const { user, role, logout } = useContext(AuthContext);
+  const { user, token, role, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
