@@ -1059,6 +1059,185 @@ app.get('/', (req, res) => {
 });
 
 /* -----------------------------------
+   Chat System Routes
+----------------------------------- */
+
+// Create a new conversation
+app.post('/api/chat/conversations', authMiddleware, async (req, res) => {
+  try {
+    const result = await db.query(
+      'INSERT INTO chat_conversations DEFAULT VALUES RETURNING *'
+    );
+    res.status(201).json({
+      message: 'Conversation created successfully',
+      conversation: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error creating conversation:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Add participant to conversation
+app.post('/api/chat/conversations/:conversationId/participants', authMiddleware, async (req, res) => {
+  const { conversationId } = req.params;
+  const { userId, userType } = req.body;
+  
+  try {
+    const result = await db.query(
+      'INSERT INTO chat_participants (conversation_id, user_id, user_type) VALUES ($1, $2, $3) RETURNING *',
+      [conversationId, userId, userType]
+    );
+    res.status(201).json({
+      message: 'Participant added successfully',
+      participant: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error adding participant:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get user's conversations
+app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT DISTINCT 
+        c.id,
+        c.created_at,
+        c.updated_at,
+        cp.user_type as current_user_type
+      FROM chat_conversations c
+      JOIN chat_participants cp ON c.id = cp.conversation_id
+      WHERE cp.user_id = $1
+      ORDER BY c.updated_at DESC
+    `, [req.user.id]);
+    
+    res.json({
+      conversations: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching conversations:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get conversation participants
+app.get('/api/chat/conversations/:conversationId/participants', authMiddleware, async (req, res) => {
+  const { conversationId } = req.params;
+  
+  try {
+    const result = await db.query(`
+      SELECT user_id, user_type
+      FROM chat_participants
+      WHERE conversation_id = $1
+    `, [conversationId]);
+    
+    res.json({
+      participants: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching participants:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Send a message
+app.post('/api/chat/conversations/:conversationId/messages', authMiddleware, async (req, res) => {
+  const { conversationId } = req.params;
+  const { message } = req.body;
+  
+  try {
+    // Update conversation timestamp
+    await db.query(
+      'UPDATE chat_conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+      [conversationId]
+    );
+    
+    // Insert message
+    const result = await db.query(`
+      INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `, [conversationId, req.user.id, req.user.role === 'user' ? 'client' : req.user.role, message]);
+    
+    res.status(201).json({
+      message: 'Message sent successfully',
+      chatMessage: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Error sending message:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get conversation messages
+app.get('/api/chat/conversations/:conversationId/messages', authMiddleware, async (req, res) => {
+  const { conversationId } = req.params;
+  
+  try {
+    const result = await db.query(`
+      SELECT 
+        id,
+        sender_id,
+        sender_type,
+        message,
+        created_at,
+        is_read
+      FROM chat_messages
+      WHERE conversation_id = $1
+      ORDER BY created_at ASC
+    `, [conversationId]);
+    
+    res.json({
+      messages: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Mark messages as read
+app.put('/api/chat/conversations/:conversationId/messages/read', authMiddleware, async (req, res) => {
+  const { conversationId } = req.params;
+  
+  try {
+    await db.query(`
+      UPDATE chat_messages 
+      SET is_read = true 
+      WHERE conversation_id = $1 AND sender_id != $2
+    `, [conversationId, req.user.id]);
+    
+    res.json({
+      message: 'Messages marked as read'
+    });
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get unread message count
+app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT COUNT(*) as unread_count
+      FROM chat_messages cm
+      JOIN chat_participants cp ON cm.conversation_id = cp.conversation_id
+      WHERE cp.user_id = $1 AND cm.sender_id != $1 AND cm.is_read = false
+    `, [req.user.id]);
+    
+    res.json({
+      unreadCount: parseInt(result.rows[0].unread_count)
+    });
+  } catch (error) {
+    console.error('Error fetching unread count:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/* -----------------------------------
    Server Initialization
 ----------------------------------- */
 const PORT = process.env.PORT || 3000;
