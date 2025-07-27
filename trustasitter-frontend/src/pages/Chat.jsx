@@ -110,7 +110,7 @@ const Chat = () => {
   };
 
   const isChatEnabled = (conversation) => {
-    return conversation.booking_status === 'confirmed';
+    return conversation.booking_status === 'approved';
   };
 
   const filteredConversations = conversations.filter(conv => 
@@ -186,17 +186,9 @@ const Chat = () => {
                         <h3 className="font-semibold text-gray-800">
                           {conversation.participant_name}
                         </h3>
-                        {getBookingStatusIcon(conversation.booking_status)}
                       </div>
                       
-                      <p className="text-sm text-gray-600 mb-1">
-                        Booking: {conversation.booking_date}
-                      </p>
-                      
                       <div className="flex items-center justify-between">
-                        <span className={`text-xs font-medium ${getBookingStatusColor(conversation.booking_status)}`}>
-                          {conversation.booking_status}
-                        </span>
                         
                         {!isChatEnabled(conversation) && (
                           <FaLock className="text-gray-400 text-xs" />
@@ -231,16 +223,6 @@ const Chat = () => {
                         <h3 className="font-semibold text-gray-800">
                           {selectedConversation.participant_name}
                         </h3>
-                        <p className="text-sm text-gray-600">
-                          Booking: {selectedConversation.booking_date}
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <span className={`text-sm font-medium ${getBookingStatusColor(selectedConversation.booking_status)}`}>
-                          {selectedConversation.booking_status}
-                        </span>
-                        {getBookingStatusIcon(selectedConversation.booking_status)}
                       </div>
                     </div>
                   </div>
