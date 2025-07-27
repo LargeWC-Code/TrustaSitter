@@ -5,7 +5,7 @@ import { chatApi } from '../services/chatApi';
 import { FaPaperPlane, FaComments, FaLock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 const Chat = () => {
-  const { user, role } = useContext(AuthContext);
+  const { user, token, role } = useContext(AuthContext);
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
   
