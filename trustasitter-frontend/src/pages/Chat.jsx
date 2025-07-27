@@ -128,9 +128,9 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 pt-8">
       <div className="max-w-6xl mx-auto p-4">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg shadow-lg overflow-hidden border border-blue-100">
           <div className="flex h-[600px]">
             {/* Conversations List */}
             <div className="w-1/3 border-r border-gray-200 bg-gray-50">

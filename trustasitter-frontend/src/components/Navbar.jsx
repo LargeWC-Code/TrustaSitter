@@ -1,16 +1,39 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { FaComments } from "react-icons/fa";
+import { chatApi } from "../services/chatApi";
 
 function Navbar() {
   const { user, role, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
+
+  // Check for unread messages
+  useEffect(() => {
+    const checkUnreadMessages = async () => {
+      if (user && (role === "user" || role === "babysitter")) {
+        try {
+          const response = await chatApi.getUnreadCount();
+          setHasUnreadMessages(response.unread_count > 0);
+        } catch (error) {
+          console.error("Error checking unread messages:", error);
+        }
+      }
+    };
+
+    checkUnreadMessages();
+    
+    // Check every 30 seconds
+    const interval = setInterval(checkUnreadMessages, 30000);
+    
+    return () => clearInterval(interval);
+  }, [user, role]);
 
   return (
     <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
@@ -100,10 +123,13 @@ function Navbar() {
             {(role === "user" || role === "babysitter") && (
               <Link
                 to="/chat"
-                className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-2"
+                className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-2 relative"
               >
                 <FaComments />
                 Messages
+                {hasUnreadMessages && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                )}
               </Link>
             )}
 
