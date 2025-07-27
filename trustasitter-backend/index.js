@@ -13,12 +13,12 @@ const nodemailer = require('nodemailer');
 
 // PostgreSQL client configuration
 const db = new Client({
-  host: "trustasitter-db.postgres.database.azure.com",
+  host: "20.40.73.193",
   port: 5432,
-  user: "bruno",
-  password: "PanetoneAzul01!",
+  user: "postgres",
+  password: "LargeWC<123456>",
   database: "postgres",
-  ssl: { rejectUnauthorized: false },
+  // ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 30000
 });
