@@ -62,8 +62,22 @@ const HomeBabysitter = () => {
   };
 
   // Navigate to chat with client
-  const handleOpenChat = (clientId, clientName) => {
-    navigate('/chat');
+  const handleOpenChat = async (bookingId, clientId, clientName) => {
+    try {
+      // Create conversation for this booking
+      await api.post(`/chat/bookings/${bookingId}/conversation`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      // Navigate to chat
+      navigate('/chat');
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      // Still navigate to chat even if conversation creation fails
+      navigate('/chat');
+    }
   };
 
   if (isLoading || !user) {
@@ -192,7 +206,7 @@ const HomeBabysitter = () => {
                   </div>
                   <div className="flex gap-2 mt-3">
                     <button
-                      onClick={() => handleOpenChat(booking.client_id, booking.parent_name)}
+                      onClick={() => handleOpenChat(booking.id, booking.client_id, booking.parent_name)}
                       className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition flex items-center justify-center gap-2"
                     >
                       <FaComments />

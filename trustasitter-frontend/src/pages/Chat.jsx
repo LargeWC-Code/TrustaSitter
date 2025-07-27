@@ -28,8 +28,10 @@ const Chat = () => {
 
   // Load conversations on component mount
   useEffect(() => {
-    loadConversations();
-  }, []);
+    if (user && token) {
+      loadConversations();
+    }
+  }, [user, token]);
 
   // Load messages when conversation is selected
   useEffect(() => {
@@ -115,6 +117,24 @@ const Chat = () => {
     conv.participant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.booking_date?.includes(searchTerm)
   );
+
+  // Redirect if not logged in
+  if (!user || !token) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Login Required</h2>
+          <p className="text-gray-600 mb-4">Please log in to access the chat.</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded transition"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

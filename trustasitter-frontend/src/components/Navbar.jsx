@@ -17,7 +17,7 @@ function Navbar() {
   // Check for unread messages
   useEffect(() => {
     const checkUnreadMessages = async () => {
-      if (user && (role === "user" || role === "babysitter")) {
+      if (user && token && (role === "user" || role === "babysitter")) {
         try {
           const response = await chatApi.getUnreadCount();
           setHasUnreadMessages(response.unread_count > 0);
@@ -29,11 +29,12 @@ function Navbar() {
 
     checkUnreadMessages();
     
-    // Check every 30 seconds
-    const interval = setInterval(checkUnreadMessages, 30000);
-    
-    return () => clearInterval(interval);
-  }, [user, role]);
+    // Check every 30 seconds only if user is logged in
+    if (user && token) {
+      const interval = setInterval(checkUnreadMessages, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, token, role]);
 
   return (
     <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">

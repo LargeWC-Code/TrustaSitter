@@ -1078,6 +1078,76 @@ app.post('/api/chat/conversations', authMiddleware, async (req, res) => {
   }
 });
 
+// Create conversation for booking
+app.post('/api/chat/bookings/:bookingId/conversation', authMiddleware, async (req, res) => {
+  const { bookingId } = req.params;
+  
+  try {
+    // Get booking details
+    const bookingResult = await db.query(`
+      SELECT user_id, babysitter_id, status
+      FROM bookings
+      WHERE id = $1
+    `, [bookingId]);
+    
+    if (bookingResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    
+    const booking = bookingResult.rows[0];
+    
+    // Check if user is authorized to access this booking
+    if (req.user.role === 'user' && booking.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    if (req.user.role === 'babysitter' && booking.babysitter_id !== req.user.id) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+    
+    // Check if conversation already exists
+    const existingConversation = await db.query(`
+      SELECT c.id
+      FROM chat_conversations c
+      JOIN chat_participants cp1 ON c.id = cp1.conversation_id
+      JOIN chat_participants cp2 ON c.id = cp2.conversation_id
+      WHERE cp1.user_id = $1 AND cp2.user_id = $2
+    `, [booking.user_id, booking.babysitter_id]);
+    
+    if (existingConversation.rows.length > 0) {
+      return res.status(200).json({
+        message: 'Conversation already exists',
+        conversation_id: existingConversation.rows[0].id
+      });
+    }
+    
+    // Create new conversation
+    const conversationResult = await db.query(
+      'INSERT INTO chat_conversations DEFAULT VALUES RETURNING *'
+    );
+    
+    const conversationId = conversationResult.rows[0].id;
+    
+    // Add both participants
+    await db.query(
+      'INSERT INTO chat_participants (conversation_id, user_id, user_type) VALUES ($1, $2, $3)',
+      [conversationId, booking.user_id, 'client']
+    );
+    
+    await db.query(
+      'INSERT INTO chat_participants (conversation_id, user_id, user_type) VALUES ($1, $2, $3)',
+      [conversationId, booking.babysitter_id, 'babysitter']
+    );
+    
+    res.status(201).json({
+      message: 'Conversation created successfully',
+      conversation_id: conversationId
+    });
+  } catch (error) {
+    console.error('Error creating conversation for booking:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Add participant to conversation
 app.post('/api/chat/conversations/:conversationId/participants', authMiddleware, async (req, res) => {
   const { conversationId } = req.params;
@@ -1098,20 +1168,71 @@ app.post('/api/chat/conversations/:conversationId/participants', authMiddleware,
   }
 });
 
-// Get user's conversations
+// Get user's conversations with booking info
 app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT DISTINCT 
-        c.id,
-        c.created_at,
-        c.updated_at,
-        cp.user_type as current_user_type
-      FROM chat_conversations c
-      JOIN chat_participants cp ON c.id = cp.conversation_id
-      WHERE cp.user_id = $1
-      ORDER BY c.updated_at DESC
-    `, [req.user.id]);
+    let query;
+    let params;
+    
+    if (req.user.role === 'user') {
+      // For clients: get conversations with babysitters
+      query = `
+        SELECT DISTINCT 
+          c.id,
+          c.created_at,
+          c.updated_at,
+          b.id as booking_id,
+          b.date as booking_date,
+          b.status as booking_status,
+          bs.name as participant_name,
+          bs.id as participant_id,
+          (SELECT COUNT(*) FROM chat_messages cm 
+           WHERE cm.conversation_id = c.id 
+           AND cm.sender_id != $1 
+           AND cm.is_read = false) as unread_count,
+          (SELECT cm.message FROM chat_messages cm 
+           WHERE cm.conversation_id = c.id 
+           ORDER BY cm.created_at DESC 
+           LIMIT 1) as last_message
+        FROM chat_conversations c
+        JOIN chat_participants cp ON c.id = cp.conversation_id
+        JOIN bookings b ON (b.user_id = $1 AND b.babysitter_id = cp.user_id)
+        JOIN babysitters bs ON cp.user_id = bs.id
+        WHERE cp.user_id != $1
+        ORDER BY c.updated_at DESC
+      `;
+      params = [req.user.id];
+    } else {
+      // For babysitters: get conversations with clients
+      query = `
+        SELECT DISTINCT 
+          c.id,
+          c.created_at,
+          c.updated_at,
+          b.id as booking_id,
+          b.date as booking_date,
+          b.status as booking_status,
+          u.name as participant_name,
+          u.id as participant_id,
+          (SELECT COUNT(*) FROM chat_messages cm 
+           WHERE cm.conversation_id = c.id 
+           AND cm.sender_id != $1 
+           AND cm.is_read = false) as unread_count,
+          (SELECT cm.message FROM chat_messages cm 
+           WHERE cm.conversation_id = c.id 
+           ORDER BY cm.created_at DESC 
+           LIMIT 1) as last_message
+        FROM chat_conversations c
+        JOIN chat_participants cp ON c.id = cp.conversation_id
+        JOIN bookings b ON (b.babysitter_id = $1 AND b.user_id = cp.user_id)
+        JOIN users u ON cp.user_id = u.id
+        WHERE cp.user_id != $1
+        ORDER BY c.updated_at DESC
+      `;
+      params = [req.user.id];
+    }
+    
+    const result = await db.query(query, params);
     
     res.json({
       conversations: result.rows
@@ -1214,6 +1335,27 @@ app.put('/api/chat/conversations/:conversationId/messages/read', authMiddleware,
     });
   } catch (error) {
     console.error('Error marking messages as read:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get unread message count
+app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT COUNT(*) as unread_count
+      FROM chat_messages cm
+      JOIN chat_participants cp ON cm.conversation_id = cp.conversation_id
+      WHERE cp.user_id = $1 
+      AND cm.sender_id != $1 
+      AND cm.is_read = false
+    `, [req.user.id]);
+    
+    res.json({
+      unread_count: parseInt(result.rows[0].unread_count)
+    });
+  } catch (error) {
+    console.error('Error getting unread count:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
