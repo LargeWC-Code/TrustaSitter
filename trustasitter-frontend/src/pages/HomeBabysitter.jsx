@@ -13,6 +13,7 @@ const HomeBabysitter = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [modal, setModal] = useState({ message: "", type: "" });
 
   useEffect(() => {
     if (!user) return;
@@ -80,6 +81,8 @@ const HomeBabysitter = () => {
     }
   };
 
+
+
   if (isLoading || !user) {
     return (
       <main className="flex items-center justify-center min-h-screen">
@@ -111,37 +114,7 @@ const HomeBabysitter = () => {
           </div>
         </div>
       )}
-      {/* Email Modal */}
-      {emailModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              Send Email to {emailModal.clientName}
-            </h2>
-            <textarea
-              value={emailModal.message}
-              onChange={(e) => setEmailModal(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Write your message here..."
-              className="w-full h-32 p-3 border border-gray-300 rounded mb-4 resize-none"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" })}
-                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendEmail}
-                className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded transition"
-                disabled={sendingCountdown > 0}
-              >
-                {sendingCountdown > 0 ? `Enviando... ${sendingCountdown}` : "Send Email"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <h1 className="text-3xl font-bold text-center mb-8">
         Welcome back,
@@ -212,6 +185,7 @@ const HomeBabysitter = () => {
                       <FaComments />
                       Message
                     </button>
+
                     {(booking.status === "pending" || booking.status === "approved") && (
                       <>
                         {booking.status === "pending" && (

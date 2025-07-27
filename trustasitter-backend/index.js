@@ -1171,6 +1171,53 @@ app.post('/api/chat/conversations/:conversationId/participants', authMiddleware,
 // Get user's conversations with booking info
 app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
   try {
+    // First, check if chat tables exist
+    const tableCheck = await db.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public' 
+      AND table_name IN ('chat_conversations', 'chat_participants', 'chat_messages')
+    `);
+    
+    console.log('Available chat tables:', tableCheck.rows.map(r => r.table_name));
+    
+    if (tableCheck.rows.length < 3) {
+      console.log('❌ Chat tables missing. Creating them...');
+      
+      // Create tables if they don't exist
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS chat_conversations (
+          id SERIAL PRIMARY KEY,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS chat_participants (
+          id SERIAL PRIMARY KEY,
+          conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,
+          user_id INTEGER NOT NULL,
+          user_type VARCHAR(20) NOT NULL CHECK (user_type IN ('client', 'babysitter')),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(conversation_id, user_id)
+        )
+      `);
+      
+      await db.query(`
+        CREATE TABLE IF NOT EXISTS chat_messages (
+          id SERIAL PRIMARY KEY,
+          conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,
+          sender_id INTEGER NOT NULL,
+          message TEXT NOT NULL,
+          is_read BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      
+      console.log('✅ Chat tables created successfully!');
+    }
+    
     let query;
     let params;
     
