@@ -153,3 +153,74 @@ export const getReadNotifications = async (token, notificationType = null) => {
   });
   return response.data;
 };
+
+// Get all notifications for a user (for notification bell)
+export const getNotifications = async (token, limit = 10) => {
+  const response = await api.get(`/notifications?limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Get unread count for a user
+export const getUnreadCount = async (token) => {
+  const response = await api.get('/notifications/unread-count', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data.count;
+};
+
+// Save notification
+export const saveNotification = async (token, notificationType, notificationId) => {
+  const response = await api.post('/notifications/save', {
+    notification_type: notificationType,
+    notification_id: notificationId
+  }, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Unsave notification
+export const unsaveNotification = async (token, notificationType, notificationId) => {
+  const response = await api.delete('/notifications/save', {
+    data: {
+      notification_type: notificationType,
+      notification_id: notificationId
+    },
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Get saved notifications
+export const getSavedNotifications = async (token, limit = 50) => {
+  const response = await api.get(`/notifications/saved?limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Get saved count
+export const getSavedCount = async (token) => {
+  const response = await api.get('/notifications/saved-count', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data.count;
+};
+
+// Check if notification is saved
+export const getSavedStatus = async (token, notificationType, notificationId) => {
+  const response = await api.get(`/notifications/saved-status?notification_type=${notificationType}&notification_id=${notificationId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data.isSaved;
+};
+
+// Delete notification for a user
+export const deleteNotification = async (token, notificationType, notificationId) => {
+  const response = await api.delete(`/notifications/${notificationType}/${notificationId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};

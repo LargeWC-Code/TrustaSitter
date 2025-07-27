@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 function Navbar() {
   const { user, role, logout } = useContext(AuthContext);
@@ -94,6 +95,9 @@ function Navbar() {
               </Link>
             )}
             {/* Admin does not have My Profile */}
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             <button
               onClick={handleLogout}

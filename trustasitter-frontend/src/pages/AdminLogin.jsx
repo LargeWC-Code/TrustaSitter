@@ -37,7 +37,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-100">
+    <main className="flex items-center justify-center min-h-[80vh] bg-gradient-to-br from-pink-50 via-white to-pink-100">
       <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-2xl border border-pink-100">
         <h2 className="text-3xl font-extrabold text-center mb-6 text-pink-600">
           Admin Access

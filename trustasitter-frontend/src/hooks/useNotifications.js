@@ -1,10 +1,18 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext, useCallback } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { 
   markNotificationAsRead, 
   markNotificationAsUnread, 
-  getNotificationStatus,
-  getReadNotifications 
+  getNotificationStatus, 
+  getReadNotifications,
+  getNotifications,
+  getUnreadCount,
+  saveNotification,
+  unsaveNotification,
+  getSavedNotifications,
+  getSavedCount,
+  getSavedStatus,
+  deleteNotification
 } from '../services/api';
 
 export const useNotifications = () => {
@@ -14,7 +22,7 @@ export const useNotifications = () => {
   const [error, setError] = useState(null);
 
   // Mark notification as read
-  const markAsRead = async (notificationType, notificationId) => {
+  const markAsRead = useCallback(async (notificationType, notificationId) => {
     if (!token) {
       console.warn('No token available for marking notification as read');
       return false;
@@ -40,10 +48,10 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   // Mark notification as unread
-  const markAsUnread = async (notificationType, notificationId) => {
+  const markAsUnread = useCallback(async (notificationType, notificationId) => {
     if (!token) {
       console.warn('No token available for marking notification as unread');
       return false;
@@ -69,10 +77,10 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   // Get status for multiple notifications
-  const getStatus = async (notificationType, notificationIds) => {
+  const getStatus = useCallback(async (notificationType, notificationIds) => {
     if (!token || !notificationIds || notificationIds.length === 0) {
       return {};
     }
@@ -97,10 +105,10 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   // Get all read notifications
-  const getRead = async (notificationType = null) => {
+  const getRead = useCallback(async (notificationType = null) => {
     if (!token) {
       return [];
     }
@@ -118,7 +126,155 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  // Get all notifications for notification bell
+  const getAllNotifications = useCallback(async (limit = 10) => {
+    if (!token) {
+      return [];
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const notifications = await getNotifications(token, limit);
+      return notifications;
+    } catch (err) {
+      console.error('Error getting notifications:', err);
+      setError(err.message || 'Failed to get notifications');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Get unread count
+  const getUnreadNotificationsCount = useCallback(async () => {
+    if (!token) {
+      return 0;
+    }
+
+    try {
+      const count = await getUnreadCount(token);
+      return count;
+    } catch (err) {
+      console.error('Error getting unread count:', err);
+      setError(err.message || 'Failed to get unread count');
+      return 0;
+    }
+  }, [token]);
+
+  // Save notification
+  const saveNotificationById = useCallback(async (notificationType, notificationId) => {
+    if (!token) {
+      return false;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await saveNotification(token, notificationType, notificationId);
+      return true;
+    } catch (err) {
+      console.error('Error saving notification:', err);
+      setError(err.message || 'Failed to save notification');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Unsave notification
+  const unsaveNotificationById = useCallback(async (notificationType, notificationId) => {
+    if (!token) {
+      return false;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await unsaveNotification(token, notificationType, notificationId);
+      return true;
+    } catch (err) {
+      console.error('Error unsaving notification:', err);
+      setError(err.message || 'Failed to unsave notification');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Get saved notifications
+  const getSavedNotificationsList = useCallback(async (limit = 50) => {
+    if (!token) {
+      return [];
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const notifications = await getSavedNotifications(token, limit);
+      return notifications;
+    } catch (err) {
+      console.error('Error getting saved notifications:', err);
+      setError(err.message || 'Failed to get saved notifications');
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Get saved count
+  const getSavedNotificationsCount = useCallback(async () => {
+    if (!token) {
+      return 0;
+    }
+
+    try {
+      const count = await getSavedCount(token);
+      return count;
+    } catch (err) {
+      console.error('Error getting saved count:', err);
+      setError(err.message || 'Failed to get saved count');
+      return 0;
+    }
+  }, [token]);
+
+  // Check if notification is saved
+  const isNotificationSaved = useCallback(async (notificationType, notificationId) => {
+    if (!token) {
+      return false;
+    }
+
+    try {
+      const isSaved = await getSavedStatus(token, notificationType, notificationId);
+      return isSaved;
+    } catch (err) {
+      console.error('Error checking saved status:', err);
+      return false;
+    }
+  }, [token]);
+
+  // Delete notification
+  const deleteNotificationById = useCallback(async (notificationType, notificationId) => {
+    if (!token) return false;
+    try {
+      setLoading(true);
+      setError(null);
+      await deleteNotification(token, notificationType, notificationId);
+      return true;
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+      setError(err.message || 'Failed to delete notification');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   // Check if a specific notification is read
   const isRead = (notificationId) => {
@@ -146,8 +302,16 @@ export const useNotifications = () => {
     markAsUnread,
     getStatus,
     getRead,
+    getAllNotifications,
+    getUnreadNotificationsCount,
+    saveNotificationById,
+    unsaveNotificationById,
+    getSavedNotificationsList,
+    getSavedNotificationsCount,
+    isNotificationSaved,
     isRead,
     getReadAt,
-    clearError
+    clearError,
+    deleteNotificationById
   };
 }; 
