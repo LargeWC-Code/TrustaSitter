@@ -23,15 +23,6 @@ const nodemailer = require('nodemailer');
 //   idleTimeoutMillis: 30000
 // });
 
-// Uncomment the following lines to connect to a local PostgreSQL instance
-// const db = new Client({
-//   user: 'postgres',
-//   host: 'localhost',
-//   database: 'trustasitter',
-//   password: 'Senha00!',
-//   port: 5432,
-// });
-
 // PostgreSQL client configuration
 const db = new Client({
   host: "20.40.73.193",
@@ -43,6 +34,16 @@ const db = new Client({
   connectionTimeoutMillis: 10000,
   idleTimeoutMillis: 30000
 });
+
+// Uncomment the following lines to connect to a local PostgreSQL instance
+// const db = new Client({
+//   user: 'postgres',
+//   host: 'localhost',
+//   database: 'trustasitter',
+//   password: 'Senha00!',
+//   port: 5432,
+// });
+
 
 
 // Connect to PostgreSQL
