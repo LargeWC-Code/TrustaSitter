@@ -40,5 +40,7 @@ export const chatApi = {
       participant_id: participantId
     });
     return response.data;
-  }
+  },
+
+
 }; 

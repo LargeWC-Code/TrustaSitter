@@ -1,40 +1,18 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { FaComments } from "react-icons/fa";
-import { chatApi } from "../services/chatApi";
+import { useNotifications } from "../context/NotificationContext";
 
 function Navbar() {
   const { user, token, role, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  const { hasUnreadMessages } = useNotifications();
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
-
-  // Check for unread messages
-  useEffect(() => {
-    const checkUnreadMessages = async () => {
-      if (user && token && (role === "user" || role === "babysitter")) {
-        try {
-          const response = await chatApi.getUnreadCount();
-          setHasUnreadMessages(response.unread_count > 0);
-        } catch (error) {
-          console.error("Error checking unread messages:", error);
-        }
-      }
-    };
-
-    checkUnreadMessages();
-    
-    // Check every 30 seconds only if user is logged in
-    if (user && token) {
-      const interval = setInterval(checkUnreadMessages, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [user, token, role]);
 
   return (
     <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">

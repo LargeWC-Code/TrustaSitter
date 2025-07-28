@@ -10,6 +10,19 @@ const { Client } = require('pg');
 const authMiddleware = require('./middleware/authMiddleware');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+
+// Create HTTP server
+const server = createServer(app);
+
+// Create Socket.IO server
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    methods: ["GET", "POST"]
+  }
+});
 
 // PostgreSQL client configuration
 const db = new Client({
@@ -44,7 +57,7 @@ const testDatabaseConnection = async () => {
   try {
     console.log('Testing database connection...');
     const result = await db.query('SELECT NOW()');
-    console.log('Database connection test successful:', result.rows[0]);
+
     
     // Test if tables exist
     const tablesResult = await db.query(`
@@ -53,7 +66,7 @@ const testDatabaseConnection = async () => {
       WHERE table_schema = 'public' 
       AND table_name IN ('users', 'babysitters', 'bookings', 'admins')
     `);
-    console.log('Available tables:', tablesResult.rows.map(row => row.table_name));
+
   } catch (error) {
     console.error('Database connection test failed:', error);
   }
@@ -84,9 +97,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Add request logging middleware
+// Add request logging middleware (only for errors)
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   if (req.method === 'POST' && req.path === '/api/login') {
     console.log('Login request body:', { ...req.body, password: '***' });
   }
@@ -1179,43 +1191,53 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
       AND table_name IN ('chat_conversations', 'chat_participants', 'chat_messages')
     `);
     
-    console.log('Available chat tables:', tableCheck.rows.map(r => r.table_name));
+
     
-    if (tableCheck.rows.length < 3) {
-      console.log('❌ Chat tables missing. Creating them...');
-      
-      // Create tables if they don't exist
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS chat_conversations (
-          id SERIAL PRIMARY KEY,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS chat_participants (
-          id SERIAL PRIMARY KEY,
-          conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,
-          user_id INTEGER NOT NULL,
-          user_type VARCHAR(20) NOT NULL CHECK (user_type IN ('client', 'babysitter')),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          UNIQUE(conversation_id, user_id)
-        )
-      `);
-      
-      await db.query(`
-        CREATE TABLE IF NOT EXISTS chat_messages (
-          id SERIAL PRIMARY KEY,
-          conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,
-          sender_id INTEGER NOT NULL,
-          message TEXT NOT NULL,
-          is_read BOOLEAN DEFAULT FALSE,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      
-      console.log('✅ Chat tables created successfully!');
+    // Check if sender_type column exists in chat_messages table
+
+    
+    // Create tables if they don't exist
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS chat_conversations (
+        id SERIAL PRIMARY KEY,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS chat_participants (
+        id SERIAL PRIMARY KEY,
+        conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,
+        user_id INTEGER NOT NULL,
+        user_type VARCHAR(20) NOT NULL CHECK (user_type IN ('client', 'babysitter')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(conversation_id, user_id)
+      )
+    `);
+    
+    // Create chat_messages table if it doesn't exist
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id SERIAL PRIMARY KEY,
+        conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,
+        sender_id INTEGER NOT NULL,
+        sender_type VARCHAR(20) NOT NULL,
+        message TEXT NOT NULL,
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Check if sender_type column exists, if not add it
+    const columnCheck = await db.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'chat_messages' AND column_name = 'sender_type'
+    `);
+    
+    if (columnCheck.rows.length === 0) {
+      await db.query(`ALTER TABLE chat_messages ADD COLUMN sender_type VARCHAR(20) NOT NULL DEFAULT 'client'`);
     }
     
     let query;
@@ -1281,8 +1303,14 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
     
     const result = await db.query(query, params);
     
+    // Convert unread_count to number for each conversation
+    const conversations = result.rows.map(row => ({
+      ...row,
+      unread_count: parseInt(row.unread_count) || 0
+    }));
+    
     res.json({
-      conversations: result.rows
+      conversations
     });
   } catch (error) {
     console.error('Error fetching conversations:', error);
@@ -1327,7 +1355,7 @@ app.post('/api/chat/conversations/:conversationId/messages', authMiddleware, asy
       INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message)
       VALUES ($1, $2, $3, $4)
       RETURNING *
-    `, [conversationId, req.user.id, req.user.role === 'user' ? 'client' : req.user.role, message]);
+    `, [conversationId, req.user.id, req.user.role === 'user' ? 'client' : 'babysitter', message]);
     
     res.status(201).json({
       message: 'Message sent successfully',
@@ -1371,7 +1399,7 @@ app.put('/api/chat/conversations/:conversationId/messages/read', authMiddleware,
   const { conversationId } = req.params;
   
   try {
-    await db.query(`
+    const result = await db.query(`
       UPDATE chat_messages 
       SET is_read = true 
       WHERE conversation_id = $1 AND sender_id != $2
@@ -1386,6 +1414,8 @@ app.put('/api/chat/conversations/:conversationId/messages/read', authMiddleware,
   }
 });
 
+
+
 // Get unread message count
 app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
   try {
@@ -1398,8 +1428,10 @@ app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
       AND cm.is_read = false
     `, [req.user.id]);
     
+    const unreadCount = parseInt(result.rows[0].unread_count);
+    
     res.json({
-      unread_count: parseInt(result.rows[0].unread_count)
+      unread_count: unreadCount
     });
   } catch (error) {
     console.error('Error getting unread count:', error);
@@ -1407,31 +1439,96 @@ app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
   }
 });
 
-// Get unread message count
-app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT COUNT(*) as unread_count
-      FROM chat_messages cm
-      JOIN chat_participants cp ON cm.conversation_id = cp.conversation_id
-      WHERE cp.user_id = $1 AND cm.sender_id != $1 AND cm.is_read = false
-    `, [req.user.id]);
-    
-    res.json({
-      unreadCount: parseInt(result.rows[0].unread_count)
+/* -----------------------------------
+   WebSocket Implementation
+----------------------------------- */
+
+// Store connected users
+const connectedUsers = new Map();
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+
+  // Authenticate user and join their room
+  socket.on('authenticate', async (token) => {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.id;
+      
+      // Store user connection
+      connectedUsers.set(userId, socket.id);
+      socket.userId = userId;
+      
+      // Join user's personal room
+      socket.join(`user_${userId}`);
+      
+      socket.emit('authenticated', { userId });
+    } catch (error) {
+      console.error('Socket authentication failed:', error);
+      socket.emit('auth_error', { message: 'Authentication failed' });
+    }
+  });
+
+  // Join conversation room
+  socket.on('join_conversation', (conversationId) => {
+    socket.join(`conversation_${conversationId}`);
+  });
+
+  // Handle new message
+  socket.on('send_message', async (data) => {
+    try {
+      const { conversationId, message, senderType } = data;
+      
+      // Save message to database
+      const result = await db.query(`
+        INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+      `, [conversationId, socket.userId, senderType, message]);
+      
+      const savedMessage = result.rows[0];
+      
+      // Emit message to all users in conversation
+      io.to(`conversation_${conversationId}`).emit('new_message', {
+        conversationId,
+        message: savedMessage
+      });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      socket.emit('message_error', { message: 'Failed to send message' });
+    }
+  });
+
+  // Handle typing indicator
+  socket.on('typing_start', (conversationId) => {
+    socket.to(`conversation_${conversationId}`).emit('user_typing', {
+      conversationId,
+      userId: socket.userId
     });
-  } catch (error) {
-    console.error('Error fetching unread count:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
+
+  socket.on('typing_stop', (conversationId) => {
+    socket.to(`conversation_${conversationId}`).emit('user_stopped_typing', {
+      conversationId,
+      userId: socket.userId
+    });
+  });
+
+  // Handle disconnect
+  socket.on('disconnect', () => {
+    if (socket.userId) {
+      connectedUsers.delete(socket.userId);
+    }
+  });
 });
 
 /* -----------------------------------
    Server Initialization
 ----------------------------------- */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`WebSocket server is ready`);
 });
 
 // Email sending endpoint

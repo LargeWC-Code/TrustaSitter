@@ -2,12 +2,16 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { chatApi } from '../services/chatApi';
+import { useNotifications } from '../context/NotificationContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import { FaPaperPlane, FaComments, FaLock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 const Chat = () => {
   const { user, token, role } = useContext(AuthContext);
+  const { markAsRead: markAsReadNotification, checkUnreadMessages } = useNotifications();
+  const { socket, isConnected, joinConversation, sendMessage: sendWebSocketMessage } = useWebSocket();
   const navigate = useNavigate();
-  const messagesEndRef = useRef(null);
+
   
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -17,14 +21,16 @@ const Chat = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Auto-scroll to bottom when new messages arrive
+  // Simple scroll to bottom function
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const messagesContainer = document.querySelector('.messages-container');
+    if (messagesContainer) {
+      // Use requestAnimationFrame for smooth scrolling
+      requestAnimationFrame(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      });
+    }
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Load conversations on component mount
   useEffect(() => {
@@ -36,10 +42,100 @@ const Chat = () => {
   // Load messages when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
-      loadMessages(selectedConversation.id);
-      markAsRead(selectedConversation.id);
+      try {
+        loadMessages(selectedConversation.id);
+        // Mark as read immediately when conversation is selected
+        markAsRead(selectedConversation.id);
+        // Join WebSocket room for this conversation
+        joinConversation(selectedConversation.id);
+        // Reload conversations to get updated unread counts
+        loadConversations();
+      } catch (error) {
+        console.error('Error in conversation selection:', error);
+      }
     }
   }, [selectedConversation]);
+
+  // Auto-scroll when conversation is selected
+  useEffect(() => {
+    if (selectedConversation && messages.length > 0) {
+      // Multiple timeouts to ensure DOM is ready
+      setTimeout(() => scrollToBottom(), 100);
+      setTimeout(() => scrollToBottom(), 300);
+      setTimeout(() => scrollToBottom(), 500);
+      setTimeout(() => scrollToBottom(), 1000);
+    }
+  }, [selectedConversation, messages]);
+
+
+
+
+
+  // WebSocket event listeners
+  useEffect(() => {
+    if (!socket) return;
+
+    // Listen for new messages
+    const handleNewMessage = (data) => {
+      try {
+        console.log('📨 Frontend received new_message:', data);
+        
+        // Add message to current conversation if it matches
+        if (data.conversationId === selectedConversation?.id) {
+          console.log('✅ Adding message to current conversation');
+          setMessages(prev => [...prev, data.message]);
+          // Auto-scroll to bottom
+          setTimeout(() => {
+            const messagesContainer = document.querySelector('.messages-container');
+            if (messagesContainer) {
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+          }, 100);
+        } else {
+          console.log('❌ Message not for current conversation');
+        }
+        
+        // Update conversations list without full refresh
+        setConversations(prev => {
+          return prev.map(conv => {
+            if (conv.id === data.conversationId) {
+              // Only increment unread count if message is from other user
+              const shouldIncrement = data.message.sender_id !== user?.id;
+              const currentUnreadCount = parseInt(conv.unread_count) || 0;
+              return {
+                ...conv,
+                last_message: data.message.message,
+                last_message_time: data.message.created_at,
+                unread_count: shouldIncrement ? currentUnreadCount + 1 : currentUnreadCount
+              };
+            }
+            return conv;
+          });
+        });
+
+        // Notification will be updated automatically by NotificationContext
+      } catch (error) {
+        console.error('Error handling new message:', error);
+      }
+    };
+
+    socket.on('new_message', handleNewMessage);
+
+    return () => {
+      socket.off('new_message', handleNewMessage);
+    };
+  }, [socket, selectedConversation]);
+
+  // Auto-scroll when messages change or conversation is selected
+  useEffect(() => {
+    if (messages.length > 0 && selectedConversation) {
+      // Auto-scroll to bottom when messages are loaded or new message is added
+      // Use multiple timeouts to ensure DOM is ready
+      setTimeout(() => scrollToBottom(), 100);
+      setTimeout(() => scrollToBottom(), 300);
+      setTimeout(() => scrollToBottom(), 500);
+    }
+  }, [messages, selectedConversation]);
 
   const loadConversations = async () => {
     try {
@@ -58,6 +154,12 @@ const Chat = () => {
     try {
       const data = await chatApi.getMessages(conversationId);
       setMessages(data.messages || []);
+      
+      // Auto-scroll to bottom after messages are loaded
+      // Multiple timeouts to ensure DOM is ready
+      setTimeout(() => scrollToBottom(), 100);
+      setTimeout(() => scrollToBottom(), 300);
+      setTimeout(() => scrollToBottom(), 500);
     } catch (err) {
       setError('Failed to load messages');
       console.error('Error loading messages:', err);
@@ -67,8 +169,25 @@ const Chat = () => {
   const markAsRead = async (conversationId) => {
     try {
       await chatApi.markAsRead(conversationId);
-      // Update conversation list to reflect read status
-      loadConversations();
+      
+      // Reset unread count for this conversation
+      setConversations(prev => {
+        return prev.map(conv => {
+          if (conv.id === conversationId) {
+            return {
+              ...conv,
+              unread_count: 0
+            };
+          }
+          return conv;
+        });
+      });
+      
+      // Update notification status immediately
+      await markAsReadNotification(conversationId);
+      // Force check unread messages to update the red dot
+      await checkUnreadMessages();
+      
     } catch (err) {
       console.error('Error marking as read:', err);
     }
@@ -79,12 +198,17 @@ const Chat = () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
     try {
-      const data = await chatApi.sendMessage(selectedConversation.id, newMessage.trim());
-      setMessages(prev => [...prev, data.chatMessage]);
-      setNewMessage('');
-      
-      // Update conversation list to show latest message
-      loadConversations();
+      if (isConnected) {
+        // Use WebSocket for real-time messaging
+        const senderType = role === 'user' ? 'client' : 'babysitter';
+        sendWebSocketMessage(selectedConversation.id, newMessage.trim(), senderType);
+        setNewMessage('');
+      } else {
+        // Fallback to HTTP API if WebSocket not connected
+        const data = await chatApi.sendMessage(selectedConversation.id, newMessage.trim());
+        setMessages(prev => [...prev, data.chatMessage]);
+        setNewMessage('');
+      }
     } catch (err) {
       setError('Failed to send message');
       console.error('Error sending message:', err);
@@ -148,7 +272,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 pt-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 pt-8 overflow-y-auto">
       <div className="max-w-6xl mx-auto p-4">
         <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg shadow-lg overflow-hidden border border-blue-100">
           <div className="flex h-[600px]">
@@ -228,7 +352,7 @@ const Chat = () => {
                   </div>
 
                   {/* Messages Area */}
-                  <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+                  <div className="flex-1 overflow-y-auto p-4 bg-gray-50 messages-container">
                     {!isChatEnabled(selectedConversation) ? (
                       <div className="text-center py-8">
                         <FaLock className="mx-auto text-4xl text-gray-400 mb-4" />
@@ -275,7 +399,6 @@ const Chat = () => {
                                 </div>
                               </div>
                             ))}
-                            <div ref={messagesEndRef} />
                           </div>
                         )}
                       </>
