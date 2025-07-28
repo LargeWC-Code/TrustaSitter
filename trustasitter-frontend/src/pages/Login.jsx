@@ -16,7 +16,7 @@ const Login = () => {
     setError("");
 
     try {
-      console.log('Attempting login with:', { email, password: '***' });
+  
       const data = await loginUniversal(email, password);
 
       // Aqui vamos confiar no backend

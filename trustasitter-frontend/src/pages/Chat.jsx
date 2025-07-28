@@ -4,7 +4,8 @@ import { AuthContext } from '../context/AuthContext';
 import { chatApi } from '../services/chatApi';
 import { useNotifications } from '../context/NotificationContext';
 import { useWebSocket } from '../context/WebSocketContext';
-import { FaPaperPlane, FaComments, FaLock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaPaperPlane, FaComments, FaLock, FaCheckCircle, FaTimesCircle, FaTrash } from 'react-icons/fa';
+import ConfirmModal from '../components/ConfirmModal';
 
 const Chat = () => {
   const { user, token, role } = useContext(AuthContext);
@@ -20,6 +21,8 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingConversation, setDeletingConversation] = useState(null);
 
   // Simple scroll to bottom function
   const scrollToBottom = () => {
@@ -78,11 +81,11 @@ const Chat = () => {
     // Listen for new messages
     const handleNewMessage = (data) => {
       try {
-        console.log('📨 Frontend received new_message:', data);
+  
         
         // Add message to current conversation if it matches
         if (data.conversationId === selectedConversation?.id) {
-          console.log('✅ Adding message to current conversation');
+          
           setMessages(prev => [...prev, data.message]);
           // Auto-scroll to bottom
           setTimeout(() => {
@@ -92,7 +95,7 @@ const Chat = () => {
             }
           }, 100);
         } else {
-          console.log('❌ Message not for current conversation');
+
         }
         
         // Update conversations list without full refresh
@@ -237,6 +240,33 @@ const Chat = () => {
     return conversation.booking_status === 'approved';
   };
 
+  const handleDeleteConversation = async () => {
+    if (!deletingConversation) return;
+    
+    try {
+      await chatApi.deleteConversation(deletingConversation.id);
+      
+      // Remove from conversations list
+      setConversations(prev => prev.filter(conv => conv.id !== deletingConversation.id));
+      
+      // If this was the selected conversation, clear it
+      if (selectedConversation?.id === deletingConversation.id) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+      
+      // Close modal
+      setShowDeleteModal(false);
+      setDeletingConversation(null);
+      
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      setError('Failed to delete conversation');
+    }
+  };
+
+
+
   const filteredConversations = conversations.filter(conv => 
     conv.participant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.booking_date?.includes(searchTerm)
@@ -273,13 +303,16 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 pt-8 overflow-y-auto">
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="max-w-4xl mx-auto p-4">
         <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg shadow-lg overflow-hidden border border-blue-100">
-          <div className="flex h-[600px]">
+          <div className="flex h-[500px]">
             {/* Conversations List */}
             <div className="w-1/3 border-r border-gray-200 bg-gray-50">
               <div className="p-4 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Messages</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800">Messages</h2>
+
+                </div>
                 <div className="relative">
                   <input
                     type="text"
@@ -348,6 +381,16 @@ const Chat = () => {
                           {selectedConversation.participant_name}
                         </h3>
                       </div>
+                      <button
+                        onClick={() => {
+                          setDeletingConversation(selectedConversation);
+                          setShowDeleteModal(true);
+                        }}
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete conversation"
+                      >
+                        <FaTrash />
+                      </button>
                     </div>
                   </div>
 
@@ -441,6 +484,20 @@ const Chat = () => {
           </div>
         </div>
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingConversation(null);
+        }}
+        onConfirm={handleDeleteConversation}
+        title="Delete Conversation"
+        message={`Are you sure you want to delete the conversation with ${deletingConversation?.participant_name}? This action cannot be undone and will remove all messages.`}
+        confirmText="Delete Conversation"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

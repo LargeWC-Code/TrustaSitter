@@ -16,7 +16,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-    console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
+  
     return config;
   },
   (error) => {
@@ -28,7 +28,7 @@ api.interceptors.request.use(
 // Add response interceptor for debugging
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.data);
+
     return response;
   },
   (error) => {

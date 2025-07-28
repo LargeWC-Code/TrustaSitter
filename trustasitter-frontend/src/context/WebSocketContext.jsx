@@ -28,23 +28,23 @@ export const WebSocketProvider = ({ children }) => {
     }
 
     // Create socket connection
-    console.log('Creating WebSocket connection...');
+
     const newSocket = io('http://localhost:3000', {
       transports: ['websocket', 'polling']
     });
 
     // Connection events
     newSocket.on('connect', () => {
-      console.log('WebSocket connected');
+      
       setIsConnected(true);
       
       // Authenticate with token
-      console.log('Authenticating WebSocket with token...');
+      
       newSocket.emit('authenticate', token);
     });
 
     newSocket.on('authenticated', (data) => {
-      console.log('WebSocket authenticated:', data);
+      
     });
 
     newSocket.on('auth_error', (error) => {
@@ -52,7 +52,7 @@ export const WebSocketProvider = ({ children }) => {
     });
 
     newSocket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+      
       setIsConnected(false);
     });
 

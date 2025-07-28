@@ -49,13 +49,13 @@ const db = new Client({
 
 // Connect to PostgreSQL
 db.connect()
-  .then(() => console.log('Connected to PostgreSQL'))
+  .then(() => console.log('✅ Database connected'))
   .catch(err => console.error('Connection error', err.stack));
 
 // Test database connection and table structure
 const testDatabaseConnection = async () => {
   try {
-    console.log('Testing database connection...');
+  
     const result = await db.query('SELECT NOW()');
 
     
@@ -100,7 +100,7 @@ app.use(cors({
 // Add request logging middleware (only for errors)
 app.use((req, res, next) => {
   if (req.method === 'POST' && req.path === '/api/login') {
-    console.log('Login request body:', { ...req.body, password: '***' });
+
   }
   next();
 });
@@ -878,12 +878,12 @@ app.put('/api/users/change-password', authMiddleware, async (req, res) => {
 // Universal Login (User or Babysitter)
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('Login attempt for email:', email);
+  
   try {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
-    console.log('Checking users table...');
+    
     const userQuery = `SELECT * FROM users WHERE email = $1`;
     const userResult = await db.query(userQuery, [email]);
     if (userResult.rows.length > 0) {
@@ -909,7 +909,7 @@ app.post('/api/login', async (req, res) => {
         }
       });
     }
-    console.log('User not found, checking babysitters table...');
+    
     const babysitterQuery = `SELECT * FROM babysitters WHERE email = $1`;
     const babysitterResult = await db.query(babysitterQuery, [email]);
     if (babysitterResult.rows.length > 0) {
@@ -1056,7 +1056,7 @@ app.get('/api/health', (req, res) => {
 
 // Test login endpoint
 app.post('/api/test-login', (req, res) => {
-  console.log('Test login endpoint called');
+  
   res.json({ 
     message: 'Test login endpoint working',
     receivedData: { ...req.body, password: '***' }
@@ -1410,6 +1410,42 @@ app.put('/api/chat/conversations/:conversationId/messages/read', authMiddleware,
     });
   } catch (error) {
     console.error('Error marking messages as read:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+// Delete conversation
+app.delete('/api/chat/conversations/:conversationId', authMiddleware, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    
+    // Check if user is participant in this conversation
+    const participantCheck = await db.query(`
+      SELECT * FROM chat_participants 
+      WHERE conversation_id = $1 AND user_id = $2
+    `, [conversationId, req.user.id]);
+    
+    if (participantCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to delete this conversation' });
+    }
+    
+    // Delete conversation (cascade will delete participants and messages)
+    const result = await db.query(`
+      DELETE FROM chat_conversations 
+      WHERE id = $1
+    `, [conversationId]);
+    
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+    
+    res.json({
+      message: 'Conversation deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting conversation:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
