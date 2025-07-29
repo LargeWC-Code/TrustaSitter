@@ -184,7 +184,7 @@ const RegisterBabysitter = () => {
   };
 
   return (
-    <div className="flex items-start justify-center min-h-screen bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
+    <div className="flex items-start justify-center min-h-[80vh] bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
         <div className="flex flex-col items-center mb-6">
           <FaUserNurse className="text-purple-600 text-4xl mb-2" />

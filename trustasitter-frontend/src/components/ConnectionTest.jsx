@@ -12,7 +12,7 @@ const ConnectionTest = () => {
     try {
       const response = await api.get('/health');
       setStatus(`✅ Connection OK! Status: ${response.data.status}`);
-      console.log('Health check response:', response.data);
+
     } catch (error) {
       console.error('Connection test error:', error);
       setStatus(`❌ Connection error: ${error.message}`);

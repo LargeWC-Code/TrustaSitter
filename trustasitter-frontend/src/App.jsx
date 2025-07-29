@@ -21,6 +21,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from './pages/AdminLogin';
 import EnvironmentDebug from './components/EnvironmentDebug';
+import Chat from './pages/Chat';
+import Notifications from './pages/Notifications';
 
 const App = () => {
   const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
@@ -52,6 +54,7 @@ const App = () => {
           <Route path="/choose-role" element={<ChooseRole />} />
           <Route path="/register-babysitter" element={<RegisterBabysitter />} />
           <Route path="/register-client" element={<RegisterClient />} />
+          <Route path="/notifications" element={<Notifications />} />
 
           {/* Protected Routes for Clients */}
           <Route
@@ -75,6 +78,16 @@ const App = () => {
             element={
               <ProtectedRoute allowedRoles={["user"]}>
                 <ProfileClient />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Chat Route - Available for both users and babysitters */}
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute allowedRoles={["user", "babysitter"]}>
+                <Chat />
               </ProtectedRoute>
             }
           />

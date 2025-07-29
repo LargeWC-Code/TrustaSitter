@@ -1,23 +1,30 @@
 // src/pages/HomeBabysitter.jsx
 import React, { useEffect, useState, useContext } from "react";
-import { api, sendEmail } from "../services/api";
+import { api } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { FaComments } from "react-icons/fa";
+import BabysitterReportForm from '../components/BabysitterReportForm';
+import ReportList from '../components/ReportList';
+import { FiX } from 'react-icons/fi';
+
+function formatBookingTime(timeString) {
+  if (!timeString) return '';
+  const [hour, minute] = timeString.split(':');
+  return `${hour}:${minute}`;
+}
 
 const HomeBabysitter = () => {
   const { token, user, isLoading } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [emailModal, setEmailModal] = useState({ 
-    isOpen: false, 
-    clientName: "", 
-    clientEmail: "",
-    message: "" 
-  });
   const [modal, setModal] = useState({ message: "", type: "" });
   const [sendingCountdown, setSendingCountdown] = useState(0);
+  const [openReportModal, setOpenReportModal] = useState(null); // bookingId or null
 
   useEffect(() => {
     if (!user) return;
@@ -66,44 +73,26 @@ const HomeBabysitter = () => {
     }
   };
 
-  // Send email handler
-  const handleSendEmail = async () => {
-    setSendingCountdown(5);
-    for (let i = 5; i > 0; i--) {
-      setSendingCountdown(i);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    setSendingCountdown(0);
-    
+  // Navigate to chat with client
+  const handleOpenChat = async (bookingId, clientId, clientName) => {
     try {
-      await sendEmail({
-        to: emailModal.clientEmail,
-        subject: `Message about booking - ${emailModal.clientName}`,
-        message: emailModal.message,
-        fromName: "TrustaSitter Bookings"
-      }, token);
-
-      // Close email modal first
-      setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" });
-      
-      // Show success message
-      setModal({
-        message: "Email sent successfully.",
-        type: "success",
+      // Create conversation for this booking
+      await api.post(`/chat/bookings/${bookingId}/conversation`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+      
+      // Navigate to chat
+      navigate('/chat');
     } catch (error) {
-      console.error("Error sending email:", error);
-      
-      // Close email modal first
-      setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" });
-      
-      // Show error message
-      setModal({
-        message: `Failed to send email: ${error.response?.data?.error || error.message || 'Unknown error'}`,
-        type: "error",
-      });
+      console.error('Error creating conversation:', error);
+      // Still navigate to chat even if conversation creation fails
+      navigate('/chat');
     }
   };
+
+
 
   if (isLoading || !user) {
     return (
@@ -136,37 +125,7 @@ const HomeBabysitter = () => {
           </div>
         </div>
       )}
-      {/* Email Modal */}
-      {emailModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              Send Email to {emailModal.clientName}
-            </h2>
-            <textarea
-              value={emailModal.message}
-              onChange={(e) => setEmailModal(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Write your message here..."
-              className="w-full h-32 p-3 border border-gray-300 rounded mb-4 resize-none"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => setEmailModal({ isOpen: false, clientName: "", clientEmail: "", message: "" })}
-                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendEmail}
-                className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded transition"
-                disabled={sendingCountdown > 0}
-              >
-                {sendingCountdown > 0 ? `Enviando... ${sendingCountdown}` : "Send Email"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <h1 className="text-3xl font-bold text-center mb-8">
         Welcome back,
@@ -191,11 +150,11 @@ const HomeBabysitter = () => {
               <p>Once a parent books you, it will appear here.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="bg-white rounded shadow p-4 flex flex-col justify-between"
+                  className="bg-white rounded shadow p-4 flex flex-col"
                 >
                   <div>
                     <p className="text-gray-800 font-medium">
@@ -217,7 +176,7 @@ const HomeBabysitter = () => {
                       Date: {new Date(booking.date).toLocaleDateString()}
                     </p>
                     <p className="text-gray-600">
-                      Time: {booking.time_start} - {booking.time_end}
+                      Time: {formatBookingTime(booking.time_start)} - {formatBookingTime(booking.time_end)}
                     </p>
                     <p className={`mt-1 font-semibold ${
                       booking.status === "approved"
@@ -229,18 +188,16 @@ const HomeBabysitter = () => {
                       {booking.status}
                     </p>
                   </div>
+                  {/* Action buttons always directly below status */}
                   <div className="flex gap-2 mt-3">
                     <button
-                      onClick={() => setEmailModal({
-                        isOpen: true,
-                        clientName: booking.parent_name || "Client",
-                        clientEmail: booking.client_email || "trustasitter@gmail.com",
-                        message: ""
-                      })}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition"
+                      onClick={() => handleOpenChat(booking.id, booking.client_id, booking.parent_name)}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition flex items-center justify-center gap-2"
                     >
-                      Send Email
+                      <FaComments />
+                      Message
                     </button>
+
                     {(booking.status === "pending" || booking.status === "approved") && (
                       <>
                         {booking.status === "pending" && (
@@ -260,6 +217,39 @@ const HomeBabysitter = () => {
                       </>
                     )}
                   </div>
+                  {booking.status === 'approved' && (
+                    <>
+                      <button
+                        className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition"
+                        onClick={() => setOpenReportModal(booking.id)}
+                      >
+                        Send Report
+                      </button>
+                      <ReportList bookingId={booking.id} />
+                    </>
+                  )}
+                  {/* Modal for Report Form */}
+                  {openReportModal === booking.id && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                      <div className="bg-white rounded-lg shadow-lg p-0 w-full max-w-lg relative max-h-[90vh] flex flex-col">
+                        <button
+                          className="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl z-10 border border-red-200 rounded-full p-1 transition"
+                          onClick={() => setOpenReportModal(null)}
+                          aria-label="Close"
+                          style={{ background: 'rgba(255,255,255,0.8)' }}
+                        >
+                          <FiX />
+                        </button>
+                        <div className="overflow-y-auto p-6 flex-1 modal-scrollbar">
+                          <BabysitterReportForm
+                            bookingId={booking.id}
+                            babysitterId={user.id}
+                            onReportSent={() => setOpenReportModal(null)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

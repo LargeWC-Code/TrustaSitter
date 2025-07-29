@@ -2,21 +2,16 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { getUserBookings, sendEmail } from "../services/api";
+import { getUserBookings } from "../services/api";
 import { api } from "../services/api";
+import { FaComments } from "react-icons/fa";
+import ReportList from '../components/ReportList';
 
 const Bookings = () => {
   const { user, token } = useContext(AuthContext);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({ message: "", type: "" });
-  const [emailModal, setEmailModal] = useState({ 
-    isOpen: false, 
-    babysitterName: "", 
-    babysitterEmail: "",
-    message: "" 
-  });
-  const [sendingCountdown, setSendingCountdown] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,42 +63,22 @@ const Bookings = () => {
   }
 };
 
-  // Send email handler
-  const handleSendEmail = async () => {
-    setSendingCountdown(5);
-    for (let i = 5; i > 0; i--) {
-      setSendingCountdown(i);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    setSendingCountdown(0);
-    
+  // Navigate to chat with babysitter
+  const handleOpenChat = async (bookingId, babysitterId, babysitterName) => {
     try {
-      await sendEmail({
-        to: emailModal.babysitterEmail,
-        subject: `Message about booking - ${emailModal.babysitterName}`,
-        message: emailModal.message,
-        fromName: "TrustaSitter Bookings"
-      }, token);
-
-      // Close email modal first
-      setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" });
-      
-      // Show success message
-      setModal({
-        message: "Email sent successfully.",
-        type: "success",
+      // Create conversation for this booking
+      await api.post(`/chat/bookings/${bookingId}/conversation`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+      
+      // Navigate to chat
+      navigate('/chat');
     } catch (error) {
-      console.error("Error sending email:", error);
-      
-      // Close email modal first
-      setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" });
-      
-      // Show error message
-      setModal({
-        message: `Failed to send email: ${error.response?.data?.error || error.message || 'Unknown error'}`,
-        type: "error",
-      });
+      console.error('Error creating conversation:', error);
+      // Still navigate to chat even if conversation creation fails
+      navigate('/chat');
     }
   };
 
@@ -139,37 +114,7 @@ const Bookings = () => {
         </div>
       )}
 
-      {/* Email Modal */}
-      {emailModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
-              Send Email to {emailModal.babysitterName}
-            </h2>
-            <textarea
-              value={emailModal.message}
-              onChange={(e) => setEmailModal(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Write your message here..."
-              className="w-full h-32 p-3 border border-gray-300 rounded mb-4 resize-none"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => setEmailModal({ isOpen: false, babysitterName: "", babysitterEmail: "", message: "" })}
-                className="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendEmail}
-                className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded transition"
-                disabled={sendingCountdown > 0}
-              >
-                {sendingCountdown > 0 ? `Enviando... ${sendingCountdown}` : "Send Email"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <h1 className="text-4xl font-bold text-center mb-10">
         <span className="text-blue-600">My</span>{" "}
@@ -218,15 +163,11 @@ const Bookings = () => {
                 {booking.status !== "cancelled" && (
                   <>
                     <button
-                      onClick={() => setEmailModal({
-                        isOpen: true,
-                        babysitterName: booking.babysitter_name,
-                        babysitterEmail: booking.babysitter_email || "trustasitter@gmail.com",
-                        message: ""
-                      })}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition"
+                      onClick={() => handleOpenChat(booking.id, booking.babysitter_id, booking.babysitter_name)}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition flex items-center justify-center gap-2"
                     >
-                      Send Email
+                      <FaComments />
+                      Message
                     </button>
                     <button
                       onClick={() => handleCancelBooking(booking.id)}
@@ -237,6 +178,9 @@ const Bookings = () => {
                   </>
                 )}
               </div>
+              {booking.status === 'approved' && (
+                <ReportList bookingId={booking.id} />
+              )}
             </div>
           ))}
         </div>

@@ -1,0 +1,5 @@
+[33m178a9a7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mgoogle-map[m[33m, [m[1;31morigin/google-map[m[33m)[m *Added bat startup files for backend and frontend *Added Google Maps functionality. *The registration interface has added location capability and supports selection on the map *The search interface has added the ability to display nearby Baby Sitters *Support Baby Sitter sorting by distance
+[33m3481552[m Changed the PostgreSQL URL
+[33ma54ff56[m feat: increase email sending countdown from 3 to 5 seconds
+[33mf85ea82[m feat: add email sending countdown
+[33m998c251[m fix: add fallback JWT_SECRET to resolve authentication issues

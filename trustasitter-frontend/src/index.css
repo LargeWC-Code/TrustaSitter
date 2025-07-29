@@ -1,3 +1,112 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+/* Universal Modal Button Styles */
+@layer components {
+  .modal-btn {
+    flex: 1;
+    padding: 0.125rem 0.75rem; /* py-0.5 px-3 */
+    border-radius: 0.5rem;
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  
+  .modal-btn-gray {
+    background-color: rgb(243 244 246);
+    color: rgb(55 65 81);
+  }
+  
+  .modal-btn-gray:hover {
+    background-color: rgb(229 231 235);
+  }
+  
+  .modal-btn-yellow {
+    background-color: rgb(234 179 8);
+    color: white;
+  }
+  
+  .modal-btn-yellow:hover {
+    background-color: rgb(202 138 4);
+  }
+  
+  .modal-btn-yellow-saved {
+    background-color: rgb(202 138 4);
+    color: white;
+  }
+  
+  .modal-btn-yellow-saved:hover {
+    background-color: rgb(161 98 7);
+  }
+  
+  .modal-btn-red {
+    background-color: rgb(239 68 68);
+    color: white;
+  }
+  
+  .modal-btn-red:hover {
+    background-color: rgb(220 38 38);
+  }
+  
+  .modal-btn-with-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem; /* gap-1.5 */
+  }
+}
+
+/* Bell Modal Specific Styles */
+.bell-modal .modal-btn {
+  padding: 8px 10px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  min-height: 20px !important;
+}
+
+/* Modern scrollbar for all scrollable elements */
+::-webkit-scrollbar {
+  width: 8px;
+  border-radius: 8px;
+  background: #f3e8ff;
+}
+::-webkit-scrollbar-thumb {
+  background: #a78bfa;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+/* Discreet scrollbar for modal only */
+.modal-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb; /* gray-200 */
+  border-radius: 8px;
+}
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1; /* gray-300 */
+}
+
+/* Discreet scrollbar for the whole page */
+body::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+body::-webkit-scrollbar-thumb {
+  background: #e5e7eb; /* gray-200 */
+  border-radius: 8px;
+}
+body::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1; /* gray-300 */
+}

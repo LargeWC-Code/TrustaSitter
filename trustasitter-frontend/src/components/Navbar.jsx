@@ -1,10 +1,14 @@
 import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { FaComments } from "react-icons/fa";
+import { useNotifications } from "../context/NotificationContext";
+import NotificationBell from "./NotificationBell";
 
 function Navbar() {
-  const { user, role, logout } = useContext(AuthContext);
+  const { user, token, role, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { hasUnreadMessages } = useNotifications();
 
   const handleLogout = () => {
     logout();
@@ -94,6 +98,23 @@ function Navbar() {
               </Link>
             )}
             {/* Admin does not have My Profile */}
+
+            {/* Chat link for users and babysitters */}
+            {(role === "user" || role === "babysitter") && (
+              <Link
+                to="/chat"
+                className="text-gray-700 font-semibold px-3 py-2 rounded hover:bg-purple-50 hover:text-purple-600 transition flex items-center gap-2 relative"
+              >
+                <FaComments />
+                Messages
+                {hasUnreadMessages && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+                )}
+              </Link>
+            )}
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             <button
               onClick={handleLogout}
