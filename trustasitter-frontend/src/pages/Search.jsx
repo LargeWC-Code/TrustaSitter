@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
+import { FaMapMarkerAlt, FaSearch, FaFilter, FaTimes, FaSync } from "react-icons/fa";
 
 
 
@@ -23,11 +24,9 @@ const Search = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [mapCenter, setMapCenter] = useState({ lat: -36.8485, lng: 174.7633 }); // 默认奥克兰
   const [selectedLocation, setSelectedLocation] = useState(null); // 用户点击的位置
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false); // 控制更新动画
 
-  // Debug: Log whenever userLocation changes
-  useEffect(() => {
-    console.log("📍 userLocation changed:", userLocation);
-  }, [userLocation]);
+
 
   // 计算两点间距离的函数（Haversine公式）
   const calculateDistance = (lat1, lng1, lat2, lng2) => {
@@ -61,36 +60,25 @@ const Search = () => {
   // 获取用户位置
   useEffect(() => {
     const getUserLocation = async () => {
-      console.log("🔍 Starting getUserLocation...");
-      
       // First, try to get user's saved location from profile
       try {
         const user = JSON.parse(localStorage.getItem("user"));
-        console.log("👤 User from localStorage:", user);
         
         if (user && user.id) {
-          console.log("🔑 User is logged in, fetching profile...");
           const response = await api.get("/users/profile", {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
           });
-          
-          console.log("📊 Profile response:", response.data);
           
           if (response.data.latitude && response.data.longitude) {
             const userLat = parseFloat(response.data.latitude);
             const userLng = parseFloat(response.data.longitude);
             setUserLocation({ lat: userLat, lng: userLng });
             setMapCenter({ lat: userLat, lng: userLng });
-            console.log("✅ User location from profile:", { lat: userLat, lng: userLng });
             return;
-          } else {
-            console.log("❌ No coordinates in profile - using geolocation fallback");
           }
-        } else {
-          console.log("❌ No user found in localStorage");
         }
       } catch (error) {
-        console.log("❌ Could not get user profile location:", error);
+        // Handle error silently
       }
 
       // Fallback to geolocation if no saved location
@@ -101,10 +89,8 @@ const Search = () => {
             const userLng = position.coords.longitude;
             setUserLocation({ lat: userLat, lng: userLng });
             setMapCenter({ lat: userLat, lng: userLng });
-            console.log("User location from geolocation:", { lat: userLat, lng: userLng });
           },
           (error) => {
-            console.log("Location access denied or failed:", error);
             // Fallback to a default location if geolocation fails
             setUserLocation({ lat: -36.8485, lng: 174.7633 });
             setMapCenter({ lat: -36.8485, lng: 174.7633 });
@@ -116,7 +102,6 @@ const Search = () => {
           }
         );
       } else {
-        console.log("Geolocation not supported");
         // Fallback to a default location
         setUserLocation({ lat: -36.8485, lng: 174.7633 });
         setMapCenter({ lat: -36.8485, lng: 174.7633 });
@@ -133,7 +118,7 @@ const Search = () => {
         const response = await api.get("/babysitters");
         setBabysitters(response.data);
       } catch (error) {
-        console.error("Error fetching babysitters:", error);
+        // Handle error silently
       } finally {
         setLoading(false);
       }
@@ -277,107 +262,7 @@ const Search = () => {
 
 
 
-      {/* Location and Filters */}
-      <div className="max-w-4xl mx-auto mb-6">
-        <div className="bg-white rounded-lg p-4 shadow-sm mb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">Your Location</h3>
-              {userLocation ? (
-                <p className="text-sm text-gray-600">
-                  📍 Current location detected
-                  {selectedLocation && (
-                    <span className="ml-2 text-blue-600">
-                      • Selected: {selectedLocation.lat.toFixed(4)}, {selectedLocation.lng.toFixed(4)}
-                    </span>
-                  )}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-500">📍 Getting your location...</p>
-              )}
-            </div>
-            <button
-              onClick={async (event) => {
-                console.log("🔄 Update Location button clicked");
-                
-                // Add rotation animation
-                const button = event.target;
-                button.style.transform = 'rotate(360deg)';
-                button.style.transition = 'transform 0.5s ease';
-                
-                try {
-                  // First, try to get user's saved location from profile
-                  const user = JSON.parse(localStorage.getItem("user"));
-                  console.log("👤 User from localStorage (button):", user);
-                  
-                  if (user && user.id) {
-                    console.log("🔑 User is logged in, fetching profile (button)...");
-                    const response = await api.get("/users/profile", {
-                      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-                    });
-                    
-                    console.log("📊 Profile response (button):", response.data);
-                    
-                    if (response.data.latitude && response.data.longitude) {
-                      const userLat = parseFloat(response.data.latitude);
-                      const userLng = parseFloat(response.data.longitude);
-                      setUserLocation({ lat: userLat, lng: userLng });
-                      setMapCenter({ lat: userLat, lng: userLng });
-                      setSelectedLocation(null); // Clear selected location
-                      console.log("✅ Updated user location from profile:", { lat: userLat, lng: userLng });
-                      
-                      // Reset animation after completion
-                      setTimeout(() => {
-                        button.style.transform = 'rotate(0deg)';
-                      }, 500);
-                      return;
-                    } else {
-                      console.log("❌ No coordinates in profile (button)");
-                    }
-                  } else {
-                    console.log("❌ No user found in localStorage (button)");
-                  }
-                } catch (error) {
-                  console.log("❌ Could not get user profile location (button):", error);
-                }
 
-                // Fallback to geolocation
-                if (navigator.geolocation) {
-                  navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                      const userLat = position.coords.latitude;
-                      const userLng = position.coords.longitude;
-                      setUserLocation({ lat: userLat, lng: userLng });
-                      setMapCenter({ lat: userLat, lng: userLng });
-                      setSelectedLocation(null); // Clear selected location
-                      
-                      // Reset animation after completion
-                      setTimeout(() => {
-                        button.style.transform = 'rotate(0deg)';
-                      }, 500);
-                    },
-                    (error) => {
-                      console.log("Location access denied or failed:", error);
-                      // Reset animation even on error
-                      setTimeout(() => {
-                        button.style.transform = 'rotate(0deg)';
-                      }, 500);
-                    },
-                    {
-                      enableHighAccuracy: true,
-                      timeout: 10000,
-                      maximumAge: 300000
-                    }
-                  );
-                }
-              }}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition flex items-center gap-2"
-            >
-              Update Location
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Filters */}
       <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
@@ -463,6 +348,64 @@ const Search = () => {
               </InfoWindow>
                           )}
             </GoogleMap>
+            
+            {/* Update Location Button - Below Map */}
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={async () => {
+                  setIsUpdatingLocation(true);
+                  try {
+                    // First, try to get user's saved location from profile
+                    const user = JSON.parse(localStorage.getItem("user"));
+                    
+                    if (user && user.id) {
+                      const response = await api.get("/users/profile", {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+                      });
+                      
+                      if (response.data.latitude && response.data.longitude) {
+                        const userLat = parseFloat(response.data.latitude);
+                        const userLng = parseFloat(response.data.longitude);
+                        setUserLocation({ lat: userLat, lng: userLng });
+                        setMapCenter({ lat: userLat, lng: userLng });
+                        setSelectedLocation(null); // Clear selected location
+                        setTimeout(() => setIsUpdatingLocation(false), 500);
+                        return;
+                      }
+                    }
+                  } catch (error) {
+                    // Handle error silently
+                  }
+
+                  // Fallback to geolocation
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+                        setUserLocation({ lat: userLat, lng: userLng });
+                        setMapCenter({ lat: userLat, lng: userLng });
+                        setSelectedLocation(null); // Clear selected location
+                        setTimeout(() => setIsUpdatingLocation(false), 500);
+                      },
+                      (error) => {
+                        setTimeout(() => setIsUpdatingLocation(false), 500);
+                      },
+                      {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000
+                      }
+                    );
+                  }
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition flex items-center gap-2"
+              >
+                Update Location
+                <FaSync className={`${isUpdatingLocation ? 'animate-spin' : ''} transition-transform duration-500`} />
+              </button>
+            </div>
+            
             {loading && (
               <div className="text-center text-gray-600 mt-2">
                 Loading babysitters...

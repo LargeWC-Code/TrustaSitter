@@ -28,7 +28,7 @@ export const WebSocketProvider = ({ children }) => {
     }
 
     // Create socket connection
-
+    console.log('🔌 Creating WebSocket connection...');
     const newSocket = io('http://localhost:3000', {
       transports: ['websocket', 'polling']
     });
@@ -46,6 +46,20 @@ export const WebSocketProvider = ({ children }) => {
     newSocket.on('authenticated', (data) => {
       
     });
+
+    // Listen for new messages to update notifications
+    newSocket.on('new_message', (data) => {
+      console.log('📨 New message received:', data);
+      // Trigger notification update
+      if (window.notificationContext) {
+        console.log('🔄 Triggering notification update...');
+        window.notificationContext.checkUnreadMessages();
+      } else {
+        console.log('❌ notificationContext not available');
+      }
+    });
+
+
 
     newSocket.on('auth_error', (error) => {
       console.error('WebSocket authentication error:', error);

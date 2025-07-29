@@ -866,6 +866,7 @@ app.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {
         
         // Emit WebSocket event for parent
         if (global.io) {
+          console.log('📤 Sending notification to user:', booking.user_id);
           global.io.to(`user_${booking.user_id}`).emit('notification', {
             userId: booking.user_id,
             type: notificationType,
@@ -874,6 +875,7 @@ app.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {
             message: getNotificationMessage(notificationType, booking.id),
             createdAt: new Date().toISOString()
           });
+          console.log('✅ Notification sent successfully');
         }
       } catch (notifyErr) {
         console.error('Error creating notification for parent:', notifyErr);
@@ -2232,10 +2234,12 @@ io.on('connection', (socket) => {
       const savedMessage = result.rows[0];
       
       // Emit message to all users in conversation
+      console.log('📤 Emitting new_message to conversation:', conversationId);
       io.to(`conversation_${conversationId}`).emit('new_message', {
         conversationId,
         message: savedMessage
       });
+      console.log('✅ Message emitted successfully');
     } catch (error) {
       console.error('Error sending message:', error);
       socket.emit('message_error', { message: 'Failed to send message' });

@@ -95,7 +95,8 @@ const Chat = () => {
             }
           }, 100);
         } else {
-
+          // Message received for a different conversation - update notifications
+          checkUnreadMessages();
         }
         
         // Update conversations list without full refresh
@@ -212,6 +213,11 @@ const Chat = () => {
         setMessages(prev => [...prev, data.chatMessage]);
         setNewMessage('');
       }
+      
+      // Update notifications immediately after sending message
+      setTimeout(() => {
+        checkUnreadMessages();
+      }, 500);
     } catch (err) {
       setError('Failed to send message');
       console.error('Error sending message:', err);
