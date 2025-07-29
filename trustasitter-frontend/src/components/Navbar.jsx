@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { FaComments } from "react-icons/fa";
 import { useNotifications } from "../context/NotificationContext";
+import NotificationBell from "./NotificationBell";
 
 function Navbar() {
   const { user, token, role, logout } = useContext(AuthContext);
@@ -111,6 +112,9 @@ function Navbar() {
                 )}
               </Link>
             )}
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             <button
               onClick={handleLogout}

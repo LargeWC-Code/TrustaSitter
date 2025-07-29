@@ -51,7 +51,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-100">
+    <div className="flex items-center justify-center min-h-[80vh] bg-gradient-to-br from-purple-100 via-white to-purple-100">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">User Login</h2>
         {error && (

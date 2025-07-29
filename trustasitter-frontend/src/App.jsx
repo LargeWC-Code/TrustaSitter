@@ -21,6 +21,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from './pages/AdminLogin';
 import EnvironmentDebug from './components/EnvironmentDebug';
 import Chat from './pages/Chat';
+import Notifications from './pages/Notifications';
 
 const App = () => {
   return (
@@ -49,6 +50,7 @@ const App = () => {
           <Route path="/choose-role" element={<ChooseRole />} />
           <Route path="/register-babysitter" element={<RegisterBabysitter />} />
           <Route path="/register-client" element={<RegisterClient />} />
+          <Route path="/notifications" element={<Notifications />} />
 
           {/* Protected Routes for Clients */}
           <Route

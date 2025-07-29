@@ -2,8 +2,20 @@
 import React, { useEffect, useState, useContext } from "react";
 import { api } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
+<<<<<<< HEAD
 import { useNavigate } from "react-router-dom";
 import { FaComments } from "react-icons/fa";
+=======
+import BabysitterReportForm from '../components/BabysitterReportForm';
+import ReportList from '../components/ReportList';
+import { FiX } from 'react-icons/fi';
+
+function formatBookingTime(timeString) {
+  if (!timeString) return '';
+  const [hour, minute] = timeString.split(':');
+  return `${hour}:${minute}`;
+}
+>>>>>>> feature/babysitter-report
 
 const HomeBabysitter = () => {
   const { token, user, isLoading } = useContext(AuthContext);
@@ -14,6 +26,11 @@ const HomeBabysitter = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [modal, setModal] = useState({ message: "", type: "" });
+<<<<<<< HEAD
+=======
+  const [sendingCountdown, setSendingCountdown] = useState(0);
+  const [openReportModal, setOpenReportModal] = useState(null); // bookingId or null
+>>>>>>> feature/babysitter-report
 
   useEffect(() => {
     if (!user) return;
@@ -62,8 +79,23 @@ const HomeBabysitter = () => {
     }
   };
 
+<<<<<<< HEAD
   // Navigate to chat with client
   const handleOpenChat = async (bookingId, clientId, clientName) => {
+=======
+  // Send email handler
+  const handleSendEmail = async () => {
+    console.log('Token available:', !!token);
+    console.log('Token value:', token);
+    
+    setSendingCountdown(5);
+    for (let i = 5; i > 0; i--) {
+      setSendingCountdown(i);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    setSendingCountdown(0);
+    
+>>>>>>> feature/babysitter-report
     try {
       // Create conversation for this booking
       await api.post(`/chat/bookings/${bookingId}/conversation`, {}, {
@@ -139,11 +171,11 @@ const HomeBabysitter = () => {
               <p>Once a parent books you, it will appear here.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {bookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="bg-white rounded shadow p-4 flex flex-col justify-between"
+                  className="bg-white rounded shadow p-4 flex flex-col"
                 >
                   <div>
                     <p className="text-gray-800 font-medium">
@@ -165,7 +197,7 @@ const HomeBabysitter = () => {
                       Date: {new Date(booking.date).toLocaleDateString()}
                     </p>
                     <p className="text-gray-600">
-                      Time: {booking.time_start} - {booking.time_end}
+                      Time: {formatBookingTime(booking.time_start)} - {formatBookingTime(booking.time_end)}
                     </p>
                     <p className={`mt-1 font-semibold ${
                       booking.status === "approved"
@@ -177,6 +209,7 @@ const HomeBabysitter = () => {
                       {booking.status}
                     </p>
                   </div>
+                  {/* Action buttons always directly below status */}
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={() => handleOpenChat(booking.id, booking.client_id, booking.parent_name)}
@@ -205,6 +238,39 @@ const HomeBabysitter = () => {
                       </>
                     )}
                   </div>
+                  {booking.status === 'approved' && (
+                    <>
+                      <button
+                        className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition"
+                        onClick={() => setOpenReportModal(booking.id)}
+                      >
+                        Send Report
+                      </button>
+                      <ReportList bookingId={booking.id} />
+                    </>
+                  )}
+                  {/* Modal for Report Form */}
+                  {openReportModal === booking.id && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                      <div className="bg-white rounded-lg shadow-lg p-0 w-full max-w-lg relative max-h-[90vh] flex flex-col">
+                        <button
+                          className="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl z-10 border border-red-200 rounded-full p-1 transition"
+                          onClick={() => setOpenReportModal(null)}
+                          aria-label="Close"
+                          style={{ background: 'rgba(255,255,255,0.8)' }}
+                        >
+                          <FiX />
+                        </button>
+                        <div className="overflow-y-auto p-6 flex-1 modal-scrollbar">
+                          <BabysitterReportForm
+                            bookingId={booking.id}
+                            babysitterId={user.id}
+                            onReportSent={() => setOpenReportModal(null)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

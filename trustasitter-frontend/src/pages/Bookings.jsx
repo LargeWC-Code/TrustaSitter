@@ -4,7 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { getUserBookings } from "../services/api";
 import { api } from "../services/api";
+<<<<<<< HEAD
 import { FaComments } from "react-icons/fa";
+=======
+import ReportList from '../components/ReportList';
+>>>>>>> feature/babysitter-report
 
 const Bookings = () => {
   const { user, token } = useContext(AuthContext);
@@ -177,6 +181,9 @@ const Bookings = () => {
                   </>
                 )}
               </div>
+              {booking.status === 'approved' && (
+                <ReportList bookingId={booking.id} />
+              )}
             </div>
           ))}
         </div>
