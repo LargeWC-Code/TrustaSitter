@@ -10,18 +10,15 @@ export const api = axios.create({
 // Add request interceptor for debugging and authentication
 api.interceptors.request.use(
   (config) => {
-<<<<<<< HEAD
     // Add authorization header if token exists
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     
-  
-=======
     console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
     console.log('Authorization header:', config.headers?.Authorization ? 'Present' : 'Missing');
->>>>>>> feature/babysitter-report
+    
     return config;
   },
   (error) => {

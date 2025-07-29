@@ -1,0 +1,2085 @@
+[1mdiff --git a/DEVELOPMENT.md b/DEVELOPMENT.md[m
+[1mnew file mode 100644[m
+[1mindex 0000000..e283aef[m
+[1m--- /dev/null[m
+[1m+++ b/DEVELOPMENT.md[m
+[36m@@ -0,0 +1,160 @@[m
+[32m+[m[32m# Guia de Desenvolvimento - TrustaSitter[m
+[32m+[m
+[32m+[m[32m## 🚀 Configuração do Ambiente[m
+[32m+[m
+[32m+[m[32m### Pré-requisitos[m
+[32m+[m[32m- Node.js 18+[m
+[32m+[m[32m- PostgreSQL[m
+[32m+[m[32m- Git[m
+[32m+[m
+[32m+[m[32m### Instalação[m
+[32m+[m
+[32m+[m[32m1. **Clone o repositório**[m
+[32m+[m[32m```bash[m
+[32m+[m[32mgit clone <repository-url>[m
+[32m+[m[32mcd TrustaSitter[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m2. **Instale as dependências**[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# Instalar dependências do projeto principal[m
+[32m+[m[32mnpm install[m
+[32m+[m
+[32m+[m[32m# Instalar dependências do backend[m
+[32m+[m[32mcd trustasitter-backend[m
+[32m+[m[32mnpm install[m
+[32m+[m
+[32m+[m[32m# Instalar dependências do frontend[m
+[32m+[m[32mcd ../trustasitter-frontend[m
+[32m+[m[32mnpm install[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## 🔧 Desenvolvimento Local[m
+[32m+[m
+[32m+[m[32m### Opção 1: Executar tudo de uma vez[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# Na raiz do projeto[m
+[32m+[m[32mnpm run dev[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### Opção 2: Executar separadamente[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# Terminal 1 - Backend[m
+[32m+[m[32mnpm run dev:backend[m
+[32m+[m
+[32m+[m[32m# Terminal 2 - Frontend[m
+[32m+[m[32mnpm run dev:frontend[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### URLs de Desenvolvimento[m
+[32m+[m[32m- **Frontend**: http://localhost:5173[m
+[32m+[m[32m- **Backend**: http://localhost:3000[m
+[32m+[m[32m- **API Health Check**: http://localhost:3000/api/health[m
+[32m+[m
+[32m+[m[32m## 🌐 Ambiente de Produção[m
+[32m+[m
+[32m+[m[32mO sistema detecta automaticamente o ambiente:[m
+[32m+[m[32m- **Localhost**: Usa API local (http://localhost:3000/api)[m
+[32m+[m[32m- **Produção**: Usa API da Azure (https://trustasitter-api-cwahftcwg4e5axah.australiaeast-01.azurewebsites.net/api)[m
+[32m+[m
+[32m+[m[32m### Indicador Visual[m
+[32m+[m[32m- Em desenvolvimento: Mostra um badge amarelo no canto inferior direito[m
+[32m+[m[32m- Em produção: Não mostra o badge[m
+[32m+[m
+[32m+[m[32m## 🧪 Testes[m
+[32m+[m
+[32m+[m[32m### Testar Conexão com Banco[m
+[32m+[m[32m```bash[m
+[32m+[m[32mnpm run test:db[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### Testar API Local[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# Health check[m
+[32m+[m[32mcurl http://localhost:3000/api/health[m
+[32m+[m
+[32m+[m[32m# Login test[m
+[32m+[m[32mcurl -X POST http://localhost:3000/api/login \[m
+[32m+[m[32m  -H "Content-Type: application/json" \[m
+[32m+[m[32m  -d '{"email":"bruno.silva@test.com","password":"senha123"}'[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## 📦 Deploy[m
+[32m+[m
+[32m+[m[32m### 1. Teste Localmente[m
+[32m+[m[32m```bash[m
+[32m+[m[32m# Certifique-se de que tudo funciona localmente[m
+[32m+[m[32mnpm run dev[m
+[32m+[m[32m# Teste o login e outras funcionalidades[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### 2. Build para Produção[m
+[32m+[m[32m```bash[m
+[32m+[m[32mnpm run build[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### 3. Commit e Push[m
+[32m+[m[32m```bash[m
+[32m+[m[32mgit add .[m
+[32m+[m[32mgit commit -m "feat: description of changes"[m
+[32m+[m[32mgit push origin main[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m### 4. Deploy Automático[m
+[32m+[m[32mO GitHub Actions irá automaticamente:[m
+[32m+[m[32m- Fazer build do frontend[m
+[32m+[m[32m- Deploy para Azure Static Web Apps[m
+[32m+[m[32m- Deploy do backend para Azure App Service[m
+[32m+[m
+[32m+[m[32m## 🔍 Debug[m
+[32m+[m
+[32m+[m[32m### Logs do Backend[m
+[32m+[m[32m- Local: Veja o terminal onde o backend está rodando[m
+[32m+[m[32m- Azure: Portal Azure > App Service > Log Stream[m
+[32m+[m
+[32m+[m[32m### Logs do Frontend[m
+[32m+[m[32m- Abra o DevTools do navegador (F12)[m
+[32m+[m[32m- Veja a aba Console para logs de ambiente e API[m
+[32m+[m
+[32m+[m[32m### Problemas Comuns[m
+[32m+[m
+[32m+[m[32m1. **Erro 500 no Login**[m
+[32m+[m[32m   - Verifique se o backend está rodando[m
+[32m+[m[32m   - Confirme se as variáveis de ambiente estão configuradas[m
+[32m+[m[32m   - Teste a conexão com o banco: `npm run test:db`[m
+[32m+[m
+[32m+[m[32m2. **CORS Error**[m
+[32m+[m[32m   - O CORS está configurado para aceitar localhost e domínios da Azure[m
+[32m+[m[32m   - Se estiver usando outro domínio, adicione no backend[m
+[32m+[m
+[32m+[m[32m3. **Banco de Dados**[m
+[32m+[m[32m   - Verifique se o PostgreSQL está rodando[m
+[32m+[m[32m   - Confirme se as credenciais estão corretas[m
+[32m+[m[32m   - Teste com: `npm run test:db`[m
+[32m+[m
+[32m+[m[32m## 📝 Estrutura do Projeto[m
+[32m+[m
+[32m+[m[32m```[m
+[32m+[m[32mTrustaSitter/[m
+[32m+[m[32m├── trustasitter-backend/     # API Node.js + Express[m
+[32m+[m[32m├── trustasitter-frontend/    # React App[m
+[32m+[m[32m├── package.json             # Scripts de desenvolvimento[m
+[32m+[m[32m├── DEVELOPMENT.md           # Este arquivo[m
+[32m+[m[32m└── README.md               # Documentação principal[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m## 🎯 Workflow Recomendado[m
+[32m+[m
+[32m+[m[32m1. **Desenvolvimento**: Use `npm run dev` para desenvolvimento local[m
+[32m+[m[32m2. **Teste**: Teste todas as funcionalidades localmente[m
+[32m+[m[32m3. **Commit**: Faça commit apenas quando tudo estiver funcionando[m
+[32m+[m[32m4. **Deploy**: Push para main dispara deploy automático[m
+[32m+[m[32m5. **Verificação**: Teste na produção após deploy[m
+[32m+[m
+[32m+[m[32m## 🆘 Suporte[m
+[32m+[m
+[32m+[m[32mSe encontrar problemas:[m
+[32m+[m[32m1. Verifique os logs do backend[m
+[32m+[m[32m2. Teste a conexão com o banco[m
+[32m+[m[32m3. Confirme se as variáveis de ambiente estão corretas[m
+[32m+[m[32m4. Verifique se o CORS está configurado adequadamente[m[41m [m
+\ No newline at end of file[m
+[1mdiff --git a/auth-test.md b/auth-test.md[m
+[1mdeleted file mode 100644[m
+[1mindex 0edaca1..0000000[m
+Binary files a/auth-test.md and /dev/null differ
+[1mdiff --git a/package-lock.json b/package-lock.json[m
+[1mindex 8b2d186..e416e3d 100644[m
+[1m--- a/package-lock.json[m
+[1m+++ b/package-lock.json[m
+[36m@@ -8,6 +8,9 @@[m
+       "name": "trustasitter",[m
+       "version": "1.0.0",[m
+       "license": "MIT",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "@react-google-maps/api": "^2.20.7"[m
+[32m+[m[32m      },[m
+       "devDependencies": {[m
+         "concurrently": "^8.2.2"[m
+       }[m
+[36m@@ -22,6 +25,58 @@[m
+         "node": ">=6.9.0"[m
+       }[m
+     },[m
+[32m+[m[32m    "node_modules/@googlemaps/js-api-loader": {[m
+[32m+[m[32m      "version": "1.16.8",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@googlemaps/js-api-loader/-/js-api-loader-1.16.8.tgz",[m
+[32m+[m[32m      "integrity": "sha512-CROqqwfKotdO6EBjZO/gQGVTbeDps5V7Mt9+8+5Q+jTg5CRMi3Ii/L9PmV3USROrt2uWxtGzJHORmByxyo9pSQ==",[m
+[32m+[m[32m      "license": "Apache-2.0"[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@googlemaps/markerclusterer": {[m
+[32m+[m[32m      "version": "2.5.3",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@googlemaps/markerclusterer/-/markerclusterer-2.5.3.tgz",[m
+[32m+[m[32m      "integrity": "sha512-x7lX0R5yYOoiNectr10wLgCBasNcXFHiADIBdmn7jQllF2B5ENQw5XtZK+hIw4xnV0Df0xhN4LN98XqA5jaiOw==",[m
+[32m+[m[32m      "license": "Apache-2.0",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "fast-deep-equal": "^3.1.3",[m
+[32m+[m[32m        "supercluster": "^8.0.1"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@react-google-maps/api": {[m
+[32m+[m[32m      "version": "2.20.7",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@react-google-maps/api/-/api-2.20.7.tgz",[m
+[32m+[m[32m      "integrity": "sha512-ys7uri3V6gjhYZUI43srHzSKDC6/jiKTwHNlwXFTvjeaJE3M3OaYBt9FZKvJs8qnOhL6i6nD1BKJoi1KrnkCkg==",[m
+[32m+[m[32m      "license": "MIT",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "@googlemaps/js-api-loader": "1.16.8",[m
+[32m+[m[32m        "@googlemaps/markerclusterer": "2.5.3",[m
+[32m+[m[32m        "@react-google-maps/infobox": "2.20.0",[m
+[32m+[m[32m        "@react-google-maps/marker-clusterer": "2.20.0",[m
+[32m+[m[32m        "@types/google.maps": "3.58.1",[m
+[32m+[m[32m        "invariant": "2.2.4"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "peerDependencies": {[m
+[32m+[m[32m        "react": "^16.8 || ^17 || ^18 || ^19",[m
+[32m+[m[32m        "react-dom": "^16.8 || ^17 || ^18 || ^19"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@react-google-maps/infobox": {[m
+[32m+[m[32m      "version": "2.20.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@react-google-maps/infobox/-/infobox-2.20.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-03PJHjohhaVLkX6+NHhlr8CIlvUxWaXhryqDjyaZ8iIqqix/nV8GFdz9O3m5OsjtxtNho09F/15j14yV0nuyLQ==",[m
+[32m+[m[32m      "license": "MIT"[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@react-google-maps/marker-clusterer": {[m
+[32m+[m[32m      "version": "2.20.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@react-google-maps/marker-clusterer/-/marker-clusterer-2.20.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-tieX9Va5w1yP88vMgfH1pHTacDQ9TgDTjox3tLlisKDXRQWdjw+QeVVghhf5XqqIxXHgPdcGwBvKY6UP+SIvLw==",[m
+[32m+[m[32m      "license": "MIT"[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/@types/google.maps": {[m
+[32m+[m[32m      "version": "3.58.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/@types/google.maps/-/google.maps-3.58.1.tgz",[m
+[32m+[m[32m      "integrity": "sha512-X9QTSvGJ0nCfMzYOnaVs/k6/4L+7F5uCS+4iUmkLEls6J9S/Phv+m/i3mDeyc49ZBgwab3EFO1HEoBY7k98EGQ==",[m
+[32m+[m[32m      "license": "MIT"[m
+[32m+[m[32m    },[m
+     "node_modules/ansi-regex": {[m
+       "version": "5.0.1",[m
+       "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz",[m
+[36m@@ -175,6 +230,12 @@[m
+         "node": ">=6"[m
+       }[m
+     },[m
+[32m+[m[32m    "node_modules/fast-deep-equal": {[m
+[32m+[m[32m      "version": "3.1.3",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz",[m
+[32m+[m[32m      "integrity": "sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==",[m
+[32m+[m[32m      "license": "MIT"[m
+[32m+[m[32m    },[m
+     "node_modules/get-caller-file": {[m
+       "version": "2.0.5",[m
+       "resolved": "https://registry.npmjs.org/get-caller-file/-/get-caller-file-2.0.5.tgz",[m
+[36m@@ -195,6 +256,15 @@[m
+         "node": ">=8"[m
+       }[m
+     },[m
+[32m+[m[32m    "node_modules/invariant": {[m
+[32m+[m[32m      "version": "2.2.4",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/invariant/-/invariant-2.2.4.tgz",[m
+[32m+[m[32m      "integrity": "sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==",[m
+[32m+[m[32m      "license": "MIT",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "loose-envify": "^1.0.0"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+     "node_modules/is-fullwidth-code-point": {[m
+       "version": "3.0.0",[m
+       "resolved": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz",[m
+[36m@@ -205,6 +275,18 @@[m
+         "node": ">=8"[m
+       }[m
+     },[m
+[32m+[m[32m    "node_modules/js-tokens": {[m
+[32m+[m[32m      "version": "4.0.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/js-tokens/-/js-tokens-4.0.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==",[m
+[32m+[m[32m      "license": "MIT"[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/kdbush": {[m
+[32m+[m[32m      "version": "4.0.2",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/kdbush/-/kdbush-4.0.2.tgz",[m
+[32m+[m[32m      "integrity": "sha512-WbCVYJ27Sz8zi9Q7Q0xHC+05iwkm3Znipc2XTlrnJbsHMYktW4hPhXUE8Ys1engBrvffoSCqbil1JQAa7clRpA==",[m
+[32m+[m[32m      "license": "ISC"[m
+[32m+[m[32m    },[m
+     "node_modules/lodash": {[m
+       "version": "4.17.21",[m
+       "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz",[m
+[36m@@ -212,6 +294,41 @@[m
+       "dev": true,[m
+       "license": "MIT"[m
+     },[m
+[32m+[m[32m    "node_modules/loose-envify": {[m
+[32m+[m[32m      "version": "1.4.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==",[m
+[32m+[m[32m      "license": "MIT",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "js-tokens": "^3.0.0 || ^4.0.0"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "bin": {[m
+[32m+[m[32m        "loose-envify": "cli.js"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/react": {[m
+[32m+[m[32m      "version": "19.1.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/react/-/react-19.1.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==",[m
+[32m+[m[32m      "license": "MIT",[m
+[32m+[m[32m      "peer": true,[m
+[32m+[m[32m      "engines": {[m
+[32m+[m[32m        "node": ">=0.10.0"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+[32m+[m[32m    "node_modules/react-dom": {[m
+[32m+[m[32m      "version": "19.1.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-19.1.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-Xs1hdnE+DyKgeHJeJznQmYMIBG3TKIHJJT95Q58nHLSrElKlGQqDTR2HQ9fx5CN/Gk6Vh/kupBTDLU11/nDk/g==",[m
+[32m+[m[32m      "license": "MIT",[m
+[32m+[m[32m      "peer": true,[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "scheduler": "^0.26.0"[m
+[32m+[m[32m      },[m
+[32m+[m[32m      "peerDependencies": {[m
+[32m+[m[32m        "react": "^19.1.0"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+     "node_modules/require-directory": {[m
+       "version": "2.1.1",[m
+       "resolved": "https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz",[m
+[36m@@ -232,6 +349,13 @@[m
+         "tslib": "^2.1.0"[m
+       }[m
+     },[m
+[32m+[m[32m    "node_modules/scheduler": {[m
+[32m+[m[32m      "version": "0.26.0",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/scheduler/-/scheduler-0.26.0.tgz",[m
+[32m+[m[32m      "integrity": "sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==",[m
+[32m+[m[32m      "license": "MIT",[m
+[32m+[m[32m      "peer": true[m
+[32m+[m[32m    },[m
+     "node_modules/shell-quote": {[m
+       "version": "1.8.3",[m
+       "resolved": "https://registry.npmjs.org/shell-quote/-/shell-quote-1.8.3.tgz",[m
+[36m@@ -279,6 +403,15 @@[m
+         "node": ">=8"[m
+       }[m
+     },[m
+[32m+[m[32m    "node_modules/supercluster": {[m
+[32m+[m[32m      "version": "8.0.1",[m
+[32m+[m[32m      "resolved": "https://registry.npmjs.org/supercluster/-/supercluster-8.0.1.tgz",[m
+[32m+[m[32m      "integrity": "sha512-IiOea5kJ9iqzD2t7QJq/cREyLHTtSmUT6gQsweojg9WH2sYJqZK9SswTu6jrscO6D1G5v5vYZ9ru/eq85lXeZQ==",[m
+[32m+[m[32m      "license": "ISC",[m
+[32m+[m[32m      "dependencies": {[m
+[32m+[m[32m        "kdbush": "^4.0.2"[m
+[32m+[m[32m      }[m
+[32m+[m[32m    },[m
+     "node_modules/supports-color": {[m
+       "version": "8.1.1",[m
+       "resolved": "https://registry.npmjs.org/supports-color/-/supports-color-8.1.1.tgz",[m
+[1mdiff --git a/package.json b/package.json[m
+[1mindex 10d285f..aa24210 100644[m
+[1m--- a/package.json[m
+[1m+++ b/package.json[m
+[36m@@ -14,7 +14,16 @@[m
+   "devDependencies": {[m
+     "concurrently": "^8.2.2"[m
+   },[m
+[31m-  "keywords": ["babysitter", "booking", "react", "nodejs", "postgresql"],[m
+[32m+[m[32m  "keywords": [[m
+[32m+[m[32m    "babysitter",[m
+[32m+[m[32m    "booking",[m
+[32m+[m[32m    "react",[m
+[32m+[m[32m    "nodejs",[m
+[32m+[m[32m    "postgresql"[m
+[32m+[m[32m  ],[m
+   "author": "Bruno Henrique da Silva",[m
+[31m-  "license": "MIT"[m
+[32m+[m[32m  "license": "MIT",[m
+[32m+[m[32m  "dependencies": {[m
+[32m+[m[32m    "@react-google-maps/api": "^2.20.7"[m
+[32m+[m[32m  }[m
+ }[m
+[1mdiff --git a/trustasitter-backend/create-chat-tables.sql b/trustasitter-backend/create-chat-tables.sql[m
+[1mdeleted file mode 100644[m
+[1mindex 4c65e2f..0000000[m
+[1m--- a/trustasitter-backend/create-chat-tables.sql[m
+[1m+++ /dev/null[m
+[36m@@ -1,40 +0,0 @@[m
+[31m--- Chat System Tables[m
+[31m--- This script creates the necessary tables for the chat functionality[m
+[31m-[m
+[31m--- Table for chat rooms/conversations[m
+[31m-CREATE TABLE IF NOT EXISTS chat_rooms ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-    client_id INTEGER NOT NULL,[m
+[31m-    babysitter_id INTEGER NOT NULL,[m
+[31m-    booking_id INTEGER,[m
+[31m-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,[m
+[31m-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,[m
+[31m-    is_active BOOLEAN DEFAULT true,[m
+[31m-    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,[m
+[31m-    FOREIGN KEY (babysitter_id) REFERENCES babysitters(id) ON DELETE CASCADE,[m
+[31m-    FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE SET NULL[m
+[31m-);[m
+[31m-[m
+[31m--- Table for chat messages[m
+[31m-CREATE TABLE IF NOT EXISTS chat_messages ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-    room_id INTEGER NOT NULL,[m
+[31m-    sender_id INTEGER NOT NULL,[m
+[31m-    sender_type VARCHAR(20) NOT NULL CHECK (sender_type IN ('client', 'babysitter')),[m
+[31m-    message TEXT NOT NULL,[m
+[31m-    message_type VARCHAR(20) DEFAULT 'text' CHECK (message_type IN ('text', 'image', 'file')),[m
+[31m-    is_read BOOLEAN DEFAULT false,[m
+[31m-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,[m
+[31m-    FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE[m
+[31m-);[m
+[31m-[m
+[31m--- Index for better performance[m
+[31m-CREATE INDEX IF NOT EXISTS idx_chat_messages_room_id ON chat_messages(room_id);[m
+[31m-CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at ON chat_messages(created_at);[m
+[31m-CREATE INDEX IF NOT EXISTS idx_chat_rooms_client_babysitter ON chat_rooms(client_id, babysitter_id);[m
+[31m-[m
+[31m--- Add comments for documentation[m
+[31m-COMMENT ON TABLE chat_rooms IS 'Stores chat conversations between clients and babysitters';[m
+[31m-COMMENT ON TABLE chat_messages IS 'Stores individual messages within chat rooms';[m
+[31m-COMMENT ON COLUMN chat_messages.sender_type IS 'Type of sender: client or babysitter';[m
+[31m-COMMENT ON COLUMN chat_messages.message_type IS 'Type of message: text, image, or file'; [m
+\ No newline at end of file[m
+[1mdiff --git a/trustasitter-backend/index.js b/trustasitter-backend/index.js[m
+[1mindex 6081225..e0dfd8b 100644[m
+[1m--- a/trustasitter-backend/index.js[m
+[1m+++ b/trustasitter-backend/index.js[m
+[36m@@ -7,52 +7,30 @@[m [mrequire('dotenv').config();[m
+ const bcrypt = require('bcrypt');[m
+ const jwt = require('jsonwebtoken');[m
+ const { Client } = require('pg');[m
+[31m-const authMiddleware = (req, res, next) => {[m
+[31m-  const authHeader = req.headers.authorization;[m
+[31m-  if (!authHeader || !authHeader.startsWith('Bearer ')) {[m
+[31m-    return res.status(401).json({ error: 'Access token required.' });[m
+[31m-  }[m
+[31m-  const token = authHeader.substring(7);[m
+[31m-  try {[m
+[31m-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024');[m
+[31m-    req.user = decoded;[m
+[31m-    next();[m
+[31m-  } catch (error) {[m
+[31m-    return res.status(401).json({ error: 'Invalid token.' });[m
+[31m-  }[m
+[31m-};[m
+[32m+[m[32mconst authMiddleware = require('./middleware/authMiddleware');[m
+ const cors = require('cors');[m
+ const nodemailer = require('nodemailer');[m
+[31m-const { createServer } = require('http');[m
+[31m-const { Server } = require('socket.io');[m
+[31m-const multer = require('multer');[m
+[31m-const path = require('path');[m
+[31m-[m
+[31m-// Create HTTP server[m
+[31m-const server = createServer(app);[m
+[31m-[m
+[31m-// Create Socket.IO server[m
+[31m-const io = new Server(server, {[m
+[31m-  cors: {[m
+[31m-    origin: ["http://localhost:5173", "http://localhost:3000"],[m
+[31m-    methods: ["GET", "POST"][m
+[31m-  }[m
+[31m-});[m
+ [m
+[31m-// Static files for uploads[m
+[31m-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));[m
+[32m+[m[32m// // PostgreSQL client configuration[m
+[32m+[m[32m// const db = new Client({[m
+[32m+[m[32m//   host: "trustasitter-db.postgres.database.azure.com",[m
+[32m+[m[32m//   port: 5432,[m
+[32m+[m[32m//   user: "bruno",[m
+[32m+[m[32m//   password: "PanetoneAzul01!",[m
+[32m+[m[32m//   database: "postgres",[m
+[32m+[m[32m//   ssl: { rejectUnauthorized: false },[m
+[32m+[m[32m//   connectionTimeoutMillis: 10000,[m
+[32m+[m[32m//   idleTimeoutMillis: 30000[m
+[32m+[m[32m// });[m
+ [m
+[31m-// Multer config for babysitter reports[m
+[31m-const reportsStorage = multer.diskStorage({[m
+[31m-  destination: function (req, file, cb) {[m
+[31m-    cb(null, path.join(__dirname, '../uploads/reports'));[m
+[31m-  },[m
+[31m-  filename: function (req, file, cb) {[m
+[31m-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);[m
+[31m-    const ext = path.extname(file.originalname);[m
+[31m-    cb(null, uniqueSuffix + ext); }[m
+[31m-});[m
+[31m-const uploadReportPhoto = multer({ storage: reportsStorage });[m
+[32m+[m[32m// Uncomment the following lines to connect to a local PostgreSQL instance[m
+[32m+[m[32m// const db = new Client({[m
+[32m+[m[32m//   user: 'postgres',[m
+[32m+[m[32m//   host: 'localhost',[m
+[32m+[m[32m//   database: 'trustasitter',[m
+[32m+[m[32m//   password: 'Senha00!',[m
+[32m+[m[32m//   port: 5432,[m
+[32m+[m[32m// });[m
+ [m
+ // PostgreSQL client configuration[m
+ const db = new Client({[m
+[36m@@ -66,26 +44,18 @@[m [mconst db = new Client({[m
+   idleTimeoutMillis: 30000[m
+ });[m
+ [m
+[31m-// // Uncomment the following lines to connect to a local PostgreSQL instance[m
+[31m-// const db = new Client({[m
+[31m-//   user: 'postgres',[m
+[31m-//   host: 'localhost',[m
+[31m-//   database: 'trustasitter',[m
+[31m-//   password: 'Senha00!',[m
+[31m-//   port: 5432,[m
+[31m-// });[m
+[31m-[m
+[31m-[m
+ [m
+ // Connect to PostgreSQL[m
+ db.connect()[m
+[31m-  .then(() => console.log('✅ Database connected'))[m
+[32m+[m[32m  .then(() => console.log('Connected to PostgreSQL'))[m
+   .catch(err => console.error('Connection error', err.stack));[m
+ [m
+ // Test database connection and table structure[m
+ const testDatabaseConnection = async () => {[m
+   try {[m
+[32m+[m[32m    console.log('Testing database connection...');[m
+     const result = await db.query('SELECT NOW()');[m
+[32m+[m[32m    console.log('Database connection test successful:', result.rows[0]);[m
+     [m
+     // Test if tables exist[m
+     const tablesResult = await db.query(`[m
+[36m@@ -94,6 +64,7 @@[m [mconst testDatabaseConnection = async () => {[m
+       WHERE table_schema = 'public' [m
+       AND table_name IN ('users', 'babysitters', 'bookings', 'admins')[m
+     `);[m
+[32m+[m[32m    console.log('Available tables:', tablesResult.rows.map(row => row.table_name));[m
+   } catch (error) {[m
+     console.error('Database connection test failed:', error);[m
+   }[m
+[36m@@ -106,14 +77,12 @@[m [mapp.use(express.json({ limit: '10mb' }));[m
+ app.use(express.urlencoded({ extended: true, limit: '10mb' }));[m
+ app.use(cors({[m
+   origin: (origin, callback) => {[m
+[31m-    // Allow any Azure Static Web Apps subdomain and localhost[m
+[32m+[m[32m    // Permite qualquer subdomínio do Azure Static Web Apps e localhost[m
+     if ([m
+       !origin ||[m
+       origin.match(/^https:\/\/proud-field-07cdeb800\.2\.azurestaticapps\.net$/) ||[m
+       origin.match(/^https:\/\/trustasitter\.azurewebsites\.net$/) ||[m
+[31m-      origin.match(/^https:\/\/trustasitter-api-cwahftcwg4e5axah\.australiaeast-01\.azurewebsites\.net$/) ||[m
+       origin.match(/^http:\/\/localhost:5173$/) ||[m
+[31m-      origin.match(/^http:\/\/localhost:5174$/) ||[m
+       origin.match(/^http:\/\/localhost:3000$/)[m
+     ) {[m
+       callback(null, true);[m
+[36m@@ -126,10 +95,11 @@[m [mapp.use(cors({[m
+   allowedHeaders: ['Content-Type', 'Authorization'][m
+ }));[m
+ [m
+[31m-// Add request logging middleware (only for errors)[m
+[32m+[m[32m// Add request logging middleware[m
+ app.use((req, res, next) => {[m
+[32m+[m[32m  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);[m
+   if (req.method === 'POST' && req.path === '/api/login') {[m
+[31m-[m
+[32m+[m[32m    console.log('Login request body:', { ...req.body, password: '***' });[m
+   }[m
+   next();[m
+ });[m
+[36m@@ -316,23 +286,22 @@[m [mapp.delete("/api/admin/bookings/:id", async (req, res) => {[m
+ [m
+ // Client Register[m
+ app.post('/api/users/register', async (req, res) => {[m
+[31m-  const { name, email, password, phone, region, address, children } = req.body;[m
+[32m+[m[32m  const { name, email, password, phone, address, children } = req.body;[m
+   try {[m
+     if (!name || !email || !password) {[m
+       return res.status(400).json({ error: 'Name, email, and password are required.' });[m
+     }[m
+     const hashedPassword = await bcrypt.hash(password, 10);[m
+     const query = `[m
+[31m-      INSERT INTO users (name, email, password, phone, region, address, children_count)[m
+[31m-      VALUES ($1, $2, $3, $4, $5, $6, $7)[m
+[31m-      RETURNING id, name, email, phone, region, address, children_count, created_at;[m
+[32m+[m[32m      INSERT INTO users (name, email, password, phone, address, children_count)[m
+[32m+[m[32m      VALUES ($1, $2, $3, $4, $5, $6)[m
+[32m+[m[32m      RETURNING id, name, email, phone, address, children_count, created_at;[m
+     `;[m
+     const values = [[m
+       name,[m
+       email,[m
+       hashedPassword,[m
+       phone || null,[m
+[31m-      region || null,[m
+       address || null,[m
+       children === "" || children === undefined ? null : parseInt(children, 10)[m
+     ];[m
+[36m@@ -351,7 +320,6 @@[m [mapp.post('/api/users/register', async (req, res) => {[m
+         name: result.rows[0].name,[m
+         email: result.rows[0].email,[m
+         phone: result.rows[0].phone,[m
+[31m-        region: result.rows[0].region,[m
+         address: result.rows[0].address,[m
+         children_count: result.rows[0].children_count,[m
+         created_at: result.rows[0].created_at[m
+[36m@@ -409,7 +377,7 @@[m [mapp.post('/api/users/login', async (req, res) => {[m
+ // Client Profile Get[m
+ app.get('/api/users/profile', authMiddleware, async (req, res) => {[m
+   try {[m
+[31m-    const query = `SELECT id, name, email, phone, region, address, children_count, created_at FROM users WHERE id = $1`;[m
+[32m+[m[32m    const query = `SELECT id, name, email, phone, address, children_count, created_at FROM users WHERE id = $1`;[m
+     const result = await db.query(query, [req.user.id]);[m
+     if (result.rows.length === 0) {[m
+       return res.status(404).json({ error: 'User not found.' });[m
+[36m@@ -423,7 +391,7 @@[m [mapp.get('/api/users/profile', authMiddleware, async (req, res) => {[m
+ [m
+ // Client Profile Update[m
+ app.put('/api/users/profile', authMiddleware, async (req, res) => {[m
+[31m-  const { name, email, password, phone, region, children_count, address } = req.body;[m
+[32m+[m[32m  const { name, email, password, phone, children_count, address } = req.body;[m
+   try {[m
+     const queryUser = `SELECT * FROM users WHERE id = $1`;[m
+     const resultUser = await db.query(queryUser, [req.user.id]);[m
+[36m@@ -435,7 +403,6 @@[m [mapp.put('/api/users/profile', authMiddleware, async (req, res) => {[m
+       name: name || existingUser.name,[m
+       email: email || existingUser.email,[m
+       phone: phone || existingUser.phone,[m
+[31m-      region: region || existingUser.region,[m
+       address: address || existingUser.address,[m
+       children_count:[m
+       children_count === "" || children_count === undefined[m
+[36m@@ -455,18 +422,16 @@[m [mapp.put('/api/users/profile', authMiddleware, async (req, res) => {[m
+         email = $2,[m
+         password = $3,[m
+         phone = $4,[m
+[31m-        region = $5,[m
+[31m-        children_count = $6,[m
+[31m-        address = $7[m
+[31m-      WHERE id = $8[m
+[31m-      RETURNING id, name, email, phone, region, children_count, address, created_at;[m
+[32m+[m[32m        children_count = $5,[m
+[32m+[m[32m        address = $6[m
+[32m+[m[32m      WHERE id = $7[m
+[32m+[m[32m      RETURNING id, name, email, phone, children_count, address, created_at;[m
+     `;[m
+     const values = [[m
+       updates.name,[m
+       updates.email,[m
+       hashedPassword,[m
+       updates.phone,[m
+[31m-      updates.region,[m
+       updates.children_count,[m
+       updates.address,[m
+       req.user.id[m
+[36m@@ -531,12 +496,14 @@[m [mapp.post('/api/babysitters/register', async (req, res) => {[m
+     email,[m
+     password,[m
+     phone,[m
+[31m-    region,[m
+     available_days,[m
+     available_from,[m
+     available_to,[m
+     about,[m
+[31m-    rate[m
+[32m+[m[32m    rate,[m
+[32m+[m[32m    latitude,[m
+[32m+[m[32m    longitude,[m
+[32m+[m[32m    address[m
+   } = req.body;[m
+   let availableDaysArray = [];[m
+   if (Array.isArray(available_days)) {[m
+[36m@@ -545,28 +512,30 @@[m [mapp.post('/api/babysitters/register', async (req, res) => {[m
+     availableDaysArray = available_days.split(",").map(day => day.trim());[m
+   }[m
+   try {[m
+[31m-    if (!name || !email || !password || !region || !available_days || !available_from || !available_to || !rate) {[m
+[32m+[m[32m    if (!name || !email || !password || !available_days || !available_from || !available_to || !rate) {[m
+       return res.status(400).json({ error: 'All required fields must be filled.' });[m
+     }[m
+     const hashedPassword = await bcrypt.hash(password, 10);[m
+     const query = `[m
+       INSERT INTO babysitters[m
+[31m-      (name, email, password, phone, region, available_days, available_from, available_to, about, rate)[m
+[32m+[m[32m      (name, email, password, phone, available_days, available_from, available_to, about, rate, latitude, longitude, address)[m
+       VALUES[m
+[31m-      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)[m
+[31m-      RETURNING id, name, email, region, created_at;[m
+[32m+[m[32m      ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)[m
+[32m+[m[32m      RETURNING id, name, email, latitude, longitude, address, created_at;[m
+     `;[m
+     const values = [[m
+       name,[m
+       email,[m
+       hashedPassword,[m
+       phone,[m
+[31m-      region,[m
+       availableDaysArray,[m
+       available_from,[m
+       available_to,[m
+       about,[m
+[31m-      rate[m
+[32m+[m[32m      rate,[m
+[32m+[m[32m      latitude,[m
+[32m+[m[32m      longitude,[m
+[32m+[m[32m      address[m
+     ];[m
+     const result = await db.query(query, values);[m
+     res.status(201).json({[m
+[36m@@ -622,7 +591,7 @@[m [mapp.post('/api/babysitters/login', async (req, res) => {[m
+ app.get('/api/babysitters/profile', authMiddleware, async (req, res) => {[m
+   try {[m
+     const query = `[m
+[31m-      SELECT id, name, email, region, phone, available_days, available_from, available_to, about, rate, created_at[m
+[32m+[m[32m      SELECT id, name, email, phone, available_days, available_from, available_to, about, rate, latitude, longitude, address, created_at[m
+       FROM babysitters[m
+       WHERE id = $1[m
+     `;[m
+[36m@@ -646,7 +615,6 @@[m [mapp.get("/api/babysitters/:id", async (req, res) => {[m
+         id,[m
+         name,[m
+         email,[m
+[31m-        region,[m
+         background_check_uploaded,[m
+         created_at,[m
+         available_days,[m
+[36m@@ -676,12 +644,14 @@[m [mapp.put('/api/babysitters/profile', authMiddleware, async (req, res) => {[m
+     name,[m
+     email,[m
+     phone,[m
+[31m-    region,[m
+     available_days,[m
+     available_from,[m
+     available_to,[m
+     about,[m
+[31m-    rate[m
+[32m+[m[32m    rate,[m
+[32m+[m[32m    latitude,[m
+[32m+[m[32m    longitude,[m
+[32m+[m[32m    address[m
+   } = req.body;[m
+   try {[m
+     const queryBabysitter = `SELECT * FROM babysitters WHERE id = $1`;[m
+[36m@@ -693,37 +663,43 @@[m [mapp.put('/api/babysitters/profile', authMiddleware, async (req, res) => {[m
+       name: name || resultBabysitter.rows[0].name,[m
+       email: email || resultBabysitter.rows[0].email,[m
+       phone: phone || resultBabysitter.rows[0].phone,[m
+[31m-      region: region || resultBabysitter.rows[0].region,[m
+       available_days: available_days || resultBabysitter.rows[0].available_days,[m
+       available_from: available_from || resultBabysitter.rows[0].available_from,[m
+       available_to: available_to || resultBabysitter.rows[0].available_to,[m
+       about: about || resultBabysitter.rows[0].about,[m
+[31m-      rate: rate || resultBabysitter.rows[0].rate[m
+[32m+[m[32m      rate: rate || resultBabysitter.rows[0].rate,[m
+[32m+[m[32m      latitude: latitude !== undefined ? latitude : resultBabysitter.rows[0].latitude,[m
+[32m+[m[32m      longitude: longitude !== undefined ? longitude : resultBabysitter.rows[0].longitude,[m
+[32m+[m[32m      address: address || resultBabysitter.rows[0].address[m
+     };[m
+     const queryUpdate = `[m
+       UPDATE babysitters[m
+       SET name = $1,[m
+           email = $2,[m
+           phone = $3,[m
+[31m-          region = $4,[m
+[31m-          available_days = $5,[m
+[31m-          available_from = $6,[m
+[31m-          available_to = $7,[m
+[31m-          about = $8,[m
+[31m-          rate = $9[m
+[31m-      WHERE id = $10[m
+[31m-      RETURNING id, name, email, region, phone, available_days, available_from, available_to, about, rate, created_at;[m
+[32m+[m[32m          available_days = $4,[m
+[32m+[m[32m          available_from = $5,[m
+[32m+[m[32m          available_to = $6,[m
+[32m+[m[32m          about = $7,[m
+[32m+[m[32m          rate = $8,[m
+[32m+[m[32m          latitude = $9,[m
+[32m+[m[32m          longitude = $10,[m
+[32m+[m[32m          address = $11[m
+[32m+[m[32m      WHERE id = $12[m
+[32m+[m[32m      RETURNING id, name, email, phone, available_days, available_from, available_to, about, rate, latitude, longitude, address, created_at;[m
+     `;[m
+     const values = [[m
+       updates.name,[m
+       updates.email,[m
+       updates.phone,[m
+[31m-      updates.region,[m
+       updates.available_days,[m
+       updates.available_from,[m
+       updates.available_to,[m
+       updates.about,[m
+       updates.rate,[m
+[32m+[m[32m      updates.latitude,[m
+[32m+[m[32m      updates.longitude,[m
+[32m+[m[32m      updates.address,[m
+       req.user.id[m
+     ];[m
+     const result = await db.query(queryUpdate, values);[m
+[36m@@ -772,13 +748,15 @@[m [mapp.get('/api/babysitters', async (req, res) => {[m
+         name,[m
+         email,[m
+         phone,[m
+[31m-        region,[m
+         rate,[m
+         about,[m
+         available_days,[m
+         available_from,[m
+         available_to,[m
+         profile_photo,[m
+[32m+[m[32m        latitude,[m
+[32m+[m[32m        longitude,[m
+[32m+[m[32m        address,[m
+         created_at[m
+       FROM babysitters[m
+       ORDER BY created_at DESC;[m
+[36m@@ -827,56 +805,10 @@[m [mapp.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {[m
+     return res.status(400).json({ message: "Invalid status" });[m
+   }[m
+   try {[m
+[31m-    // Get booking info first[m
+[31m-    const bookingResult = await db.query([m
+[31m-      "SELECT * FROM bookings WHERE id = $1",[m
+[31m-      [bookingId][m
+[31m-    );[m
+[31m-    if (bookingResult.rows.length === 0) {[m
+[31m-      return res.status(404).json({ message: "Booking not found" });[m
+[31m-    }[m
+[31m-    const booking = bookingResult.rows[0];[m
+[31m-[m
+[31m-    // Update booking status[m
+     await db.query([m
+       "UPDATE bookings SET status = $1 WHERE id = $2",[m
+       [status, bookingId][m
+     );[m
+[31m-[m
+[31m-    // Create notification for parent[m
+[31m-    let notificationType = null;[m
+[31m-    if (status === 'approved') {[m
+[31m-      notificationType = 'booking_confirmed';[m
+[31m-    } else if (status === 'cancelled') {[m
+[31m-      notificationType = 'booking_cancelled';[m
+[31m-    }[m
+[31m-[m
+[31m-    if (notificationType) {[m
+[31m-      try {[m
+[31m-        await db.query([m
+[31m-          `INSERT INTO notifications_read (user_id, notification_type, notification_id, is_read, read_at)[m
+[31m-           VALUES ($1, $2, $3, false, NULL)[m
+[31m-           ON CONFLICT (user_id, notification_type, notification_id) DO NOTHING`,[m
+[31m-          [booking.user_id, notificationType, String(booking.id)][m
+[31m-        );[m
+[31m-        [m
+[31m-        // Emit WebSocket event for parent[m
+[31m-        if (global.io) {[m
+[31m-          global.io.to(`user_${booking.user_id}`).emit('notification', {[m
+[31m-            userId: booking.user_id,[m
+[31m-            type: notificationType,[m
+[31m-            notificationId: String(booking.id),[m
+[31m-            title: getNotificationTitle(notificationType),[m
+[31m-            message: getNotificationMessage(notificationType, booking.id),[m
+[31m-            createdAt: new Date().toISOString()[m
+[31m-          });[m
+[31m-        }[m
+[31m-      } catch (notifyErr) {[m
+[31m-        console.error('Error creating notification for parent:', notifyErr);[m
+[31m-        // Only log, do not return error to user[m
+[31m-      }[m
+[31m-    }[m
+[31m-[m
+     res.json({ message: "Booking status updated successfully" });[m
+   } catch (err) {[m
+     console.error("Error updating booking status:", err);[m
+[36m@@ -953,12 +885,12 @@[m [mapp.put('/api/users/change-password', authMiddleware, async (req, res) => {[m
+ // Universal Login (User or Babysitter)[m
+ app.post('/api/login', async (req, res) => {[m
+   const { email, password } = req.body;[m
+[31m-  [m
+[32m+[m[32m  console.log('Login attempt for email:', email);[m
+   try {[m
+     if (!email || !password) {[m
+       return res.status(400).json({ error: 'Email and password are required.' });[m
+     }[m
+[31m-    [m
+[32m+[m[32m    console.log('Checking users table...');[m
+     const userQuery = `SELECT * FROM users WHERE email = $1`;[m
+     const userResult = await db.query(userQuery, [email]);[m
+     if (userResult.rows.length > 0) {[m
+[36m@@ -984,7 +916,7 @@[m [mapp.post('/api/login', async (req, res) => {[m
+         }[m
+       });[m
+     }[m
+[31m-    [m
+[32m+[m[32m    console.log('User not found, checking babysitters table...');[m
+     const babysitterQuery = `SELECT * FROM babysitters WHERE email = $1`;[m
+     const babysitterResult = await db.query(babysitterQuery, [email]);[m
+     if (babysitterResult.rows.length > 0) {[m
+[36m@@ -1032,35 +964,9 @@[m [mapp.post('/api/bookings', async (req, res) => {[m
+     `;[m
+     const values = [user_id, babysitter_id, date, time_start, time_end];[m
+     const result = await db.query(query, values);[m
+[31m-    const booking = result.rows[0];[m
+[31m-[m
+[31m-    // Create notification for babysitter[m
+[31m-    try {[m
+[31m-      await db.query([m
+[31m-        `INSERT INTO notifications_read (user_id, notification_type, notification_id, is_read, read_at)[m
+[31m-         VALUES ($1, $2, $3, false, NULL)[m
+[31m-         ON CONFLICT (user_id, notification_type, notification_id) DO NOTHING`,[m
+[31m-        [babysitter_id, 'booking_created', String(booking.id)][m
+[31m-      );[m
+[31m-      // Emitir evento WebSocket para o babysitter[m
+[31m-      if (global.io) {[m
+[31m-        global.io.to(`user_${babysitter_id}`).emit('notification', {[m
+[31m-          userId: babysitter_id,[m
+[31m-          type: 'booking_created',[m
+[31m-          notificationId: String(booking.id),[m
+[31m-          title: getNotificationTitle('booking_created'),[m
+[31m-          message: getNotificationMessage('booking_created', booking.id),[m
+[31m-          createdAt: new Date().toISOString()[m
+[31m-        });[m
+[31m-      }[m
+[31m-    } catch (notifyErr) {[m
+[31m-      console.error('Error creating notification for babysitter:', notifyErr);[m
+[31m-      // Only log, do not return error to user[m
+[31m-    }[m
+[31m-[m
+     res.status(201).json({[m
+       message: 'Booking created successfully.',[m
+[31m-      booking: booking[m
+[32m+[m[32m      booking: result.rows[0][m
+     });[m
+   } catch (error) {[m
+     console.error('Error creating booking:', error);[m
+[36m@@ -1134,61 +1040,9 @@[m [mapp.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {[m
+     if (result.rows.length === 0) {[m
+       return res.status(404).json({ error: 'Booking not found.' });[m
+     }[m
+[31m-    const booking = result.rows[0];[m
+[31m-[m
+[31m-    // Determine who should be notified based on who is making the action[m
+[31m-    let notificationType = null;[m
+[31m-    let targetUserId = null;[m
+[31m-    [m
+[31m-    if (status === 'cancelled') {[m
+[31m-      notificationType = 'booking_cancelled';[m
+[31m-      // If the current user is the parent (booking.user_id), notify the babysitter[m
+[31m-      // If the current user is the babysitter (booking.babysitter_id), notify the parent[m
+[31m-      if (req.user.id === booking.user_id) {[m
+[31m-        // Parent is cancelling, notify babysitter[m
+[31m-        targetUserId = booking.babysitter_id;[m
+[31m-      } else if (req.user.id === booking.babysitter_id) {[m
+[31m-        // Babysitter is cancelling, notify parent[m
+[31m-        targetUserId = booking.user_id;[m
+[31m-      }[m
+[31m-    } else if (status === 'confirmed') {[m
+[31m-      notificationType = 'booking_confirmed';[m
+[31m-      // Babysitter confirming, notify parent[m
+[31m-      targetUserId = booking.user_id;[m
+[31m-    } else if (status === 'rejected') {[m
+[31m-      notificationType = 'booking_rejected';[m
+[31m-      // Babysitter rejecting, notify parent[m
+[31m-      targetUserId = booking.user_id;[m
+[31m-    }[m
+[31m-[m
+[31m-    if (notificationType && targetUserId) {[m
+[31m-      try {[m
+[31m-        await db.query([m
+[31m-          `INSERT INTO notifications_read (user_id, notification_type, notification_id, is_read, read_at)[m
+[31m-           VALUES ($1, $2, $3, false, NULL)[m
+[31m-           ON CONFLICT (user_id, notification_type, notification_id) DO NOTHING`,[m
+[31m-          [targetUserId, notificationType, String(booking.id)][m
+[31m-        );[m
+[31m-        // Emitir evento WebSocket para o usuário correto[m
+[31m-        if (global.io) {[m
+[31m-          global.io.to(`user_${targetUserId}`).emit('notification', {[m
+[31m-            userId: targetUserId,[m
+[31m-            type: notificationType,[m
+[31m-            notificationId: String(booking.id),[m
+[31m-            title: getNotificationTitle(notificationType),[m
+[31m-            message: getNotificationMessage(notificationType, booking.id),[m
+[31m-            createdAt: new Date().toISOString()[m
+[31m-          });[m
+[31m-        }[m
+[31m-      } catch (notifyErr) {[m
+[31m-        console.error('Error creating notification:', notifyErr);[m
+[31m-        // Only log, do not return error to user[m
+[31m-      }[m
+[31m-    }[m
+[31m-[m
+     res.status(200).json({[m
+       message: 'Booking status updated successfully.',[m
+[31m-      booking: booking,[m
+[32m+[m[32m      booking: result.rows[0],[m
+     });[m
+   } catch (error) {[m
+     console.error('Error updating booking status:', error);[m
+[36m@@ -1196,556 +1050,6 @@[m [mapp.put('/api/bookings/:id/status', authMiddleware, async (req, res) => {[m
+   }[m
+ });[m
+ [m
+[31m-// Update Booking Date/Time[m
+[31m-app.put('/api/bookings/:id', authMiddleware, async (req, res) => {[m
+[31m-  const { id } = req.params;[m
+[31m-  const { date, time_start, time_end } = req.body;[m
+[31m-  try {[m
+[31m-    // Get current booking info[m
+[31m-    const bookingResult = await db.query('SELECT * FROM bookings WHERE id = $1', [id]);[m
+[31m-    if (bookingResult.rows.length === 0) {[m
+[31m-      return res.status(404).json({ error: 'Booking not found.' });[m
+[31m-    }[m
+[31m-    const booking = bookingResult.rows[0];[m
+[31m-[m
+[31m-    // Update booking[m
+[31m-    const updateQuery = `[m
+[31m-      UPDATE bookings[m
+[31m-      SET date = $1, time_start = $2, time_end = $3[m
+[31m-      WHERE id = $4[m
+[31m-      RETURNING *;[m
+[31m-    `;[m
+[31m-    const updateValues = [date || booking.date, time_start || booking.time_start, time_end || booking.time_end, id];[m
+[31m-    const updatedResult = await db.query(updateQuery, updateValues);[m
+[31m-    const updatedBooking = updatedResult.rows[0];[m
+[31m-[m
+[31m-    // Notify both users (parent and babysitter)[m
+[31m-    const notificationType = 'booking_time_changed';[m
+[31m-    const notificationId = String(updatedBooking.id);[m
+[31m-    const usersToNotify = [updatedBooking.user_id, updatedBooking.babysitter_id];[m
+[31m-    for (const userId of usersToNotify) {[m
+[31m-      try {[m
+[31m-        await db.query([m
+[31m-          `INSERT INTO notifications_read (user_id, notification_type, notification_id, is_read, read_at)[m
+[31m-           VALUES ($1, $2, $3, false, NULL)[m
+[31m-           ON CONFLICT (user_id, notification_type, notification_id) DO NOTHING`,[m
+[31m-          [userId, notificationType, notificationId][m
+[31m-        );[m
+[31m-      } catch (notifyErr) {[m
+[31m-        console.error('Error creating notification for user:', userId, notifyErr);[m
+[31m-        // Only log, do not return error to user[m
+[31m-      }[m
+[31m-    }[m
+[31m-[m
+[31m-    res.status(200).json({[m
+[31m-      message: 'Booking date/time updated successfully.',[m
+[31m-      booking: updatedBooking[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error updating booking date/time:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error.' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// GET /api/bookings/:bookingId/reports - List all reports for a booking[m
+[31m-app.get('/api/bookings/:bookingId/reports', async (req, res) => {[m
+[31m-  try {[m
+[31m-    const bookingId = req.params.bookingId;[m
+[31m-    const query = `[m
+[31m-      SELECT * FROM reports[m
+[31m-      WHERE booking_id = $1[m
+[31m-      ORDER BY created_at DESC;[m
+[31m-    `;[m
+[31m-    const result = await db.query(query, [bookingId]);[m
+[31m-    res.status(200).json({ reports: result.rows });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching reports:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// POST /api/reports - Create a new babysitter report[m
+[31m-app.post('/api/reports', uploadReportPhoto.single('photo'), async (req, res) => {[m
+[31m-  try {[m
+[31m-    const { booking_id, checklist, comment } = req.body;[m
+[31m-    const babysitter_id = req.body.babysitter_id; // Should come from token in the future[m
+[31m-    let checklistArray = [];[m
+[31m-    if (checklist) {[m
+[31m-      if (Array.isArray(checklist)) {[m
+[31m-        checklistArray = checklist;[m
+[31m-      } else if (typeof checklist === 'string') {[m
+[31m-        // Can come as a comma-separated string[m
+[31m-        checklistArray = checklist.split(',').map(item => item.trim());[m
+[31m-      }[m
+[31m-    }[m
+[31m-    let photo_url = null;[m
+[31m-    if (req.file) {[m
+[31m-      photo_url = `/uploads/reports/${req.file.filename}`;[m
+[31m-    }[m
+[31m-    const insertQuery = `[m
+[31m-      INSERT INTO reports (booking_id, babysitter_id, checklist, comment, photo_url)[m
+[31m-      VALUES ($1, $2, $3, $4, $5)[m
+[31m-      RETURNING *;[m
+[31m-    `;[m
+[31m-    const values = [[m
+[31m-      booking_id,[m
+[31m-      babysitter_id,[m
+[31m-      checklistArray.length > 0 ? checklistArray : null,[m
+[31m-      comment || null,[m
+[31m-      photo_url[m
+[31m-    ];[m
+[31m-    const result = await db.query(insertQuery, values);[m
+[31m-    const createdReport = result.rows[0];[m
+[31m-[m
+[31m-    // Notify parent when babysitter sends a report[m
+[31m-    try {[m
+[31m-      // Get booking to find parent user_id[m
+[31m-      const bookingResult = await db.query('SELECT user_id FROM bookings WHERE id = $1', [booking_id]);[m
+[31m-      if (bookingResult.rows.length > 0) {[m
+[31m-        const parentId = bookingResult.rows[0].user_id;[m
+[31m-        await db.query([m
+[31m-          `INSERT INTO notifications_read (user_id, notification_type, notification_id, is_read, read_at)[m
+[31m-           VALUES ($1, $2, $3, false, NULL)[m
+[31m-           ON CONFLICT (user_id, notification_type, notification_id) DO NOTHING`,[m
+[31m-          [parentId, 'report_sent', String(createdReport.id)][m
+[31m-        );[m
+[31m-        // Emitir evento WebSocket para o pai[m
+[31m-        if (global.io) {[m
+[31m-          global.io.to(`user_${parentId}`).emit('notification', {[m
+[31m-            userId: parentId,[m
+[31m-            type: 'report_sent',[m
+[31m-            notificationId: String(createdReport.id),[m
+[31m-            title: getNotificationTitle('report_sent'),[m
+[31m-            message: getNotificationMessage('report_sent', createdReport.id),[m
+[31m-            createdAt: new Date().toISOString()[m
+[31m-          });[m
+[31m-        }[m
+[31m-      }[m
+[31m-    } catch (notifyErr) {[m
+[31m-      console.error('Error creating notification for parent (report):', notifyErr);[m
+[31m-      // Only log, do not return error to user[m
+[31m-    }[m
+[31m-[m
+[31m-    res.status(201).json({ message: 'Report created successfully', report: createdReport });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error creating report:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// GET /api/reports/:id - Get a specific report by ID[m
+[31m-app.get('/api/reports/:id', async (req, res) => {[m
+[31m-  try {[m
+[31m-    const reportId = req.params.id;[m
+[31m-    const query = `[m
+[31m-      SELECT * FROM reports[m
+[31m-      WHERE id = $1[m
+[31m-      LIMIT 1;[m
+[31m-    `;[m
+[31m-    const result = await db.query(query, [reportId]);[m
+[31m-    if (result.rows.length === 0) {[m
+[31m-      return res.status(404).json({ error: 'Report not found' });[m
+[31m-    }[m
+[31m-    res.status(200).json({ report: result.rows[0] });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching report:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-/* -----------------------------------[m
+[31m-   Notifications Read Status Routes[m
+[31m------------------------------------ */[m
+[31m-[m
+[31m-// Mark notification as read[m
+[31m-app.post('/api/notifications/read', authMiddleware, async (req, res) => {[m
+[31m-  const { notification_type, notification_id } = req.body;[m
+[31m-  const user_id = req.user.id;[m
+[31m-[m
+[31m-  try {[m
+[31m-    if (!notification_type || !notification_id) {[m
+[31m-      return res.status(400).json({ error: 'Notification type and ID are required' });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Insert or update the read status[m
+[31m-    const query = `[m
+[31m-      INSERT INTO notifications_read (user_id, notification_type, notification_id, is_read, read_at)[m
+[31m-      VALUES ($1, $2, $3, true, CURRENT_TIMESTAMP)[m
+[31m-      ON CONFLICT (user_id, notification_type, notification_id)[m
+[31m-      DO UPDATE SET is_read = true, read_at = CURRENT_TIMESTAMP[m
+[31m-      RETURNING *[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [user_id, notification_type, notification_id]);[m
+[31m-    [m
+[31m-    res.status(200).json({[m
+[31m-      message: 'Notification marked as read',[m
+[31m-      notification: result.rows[0][m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error marking notification as read:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Mark notification as unread[m
+[31m-app.post('/api/notifications/unread', authMiddleware, async (req, res) => {[m
+[31m-  const { notification_type, notification_id } = req.body;[m
+[31m-  const user_id = req.user.id;[m
+[31m-[m
+[31m-  try {[m
+[31m-    if (!notification_type || !notification_id) {[m
+[31m-      return res.status(400).json({ error: 'Notification type and ID are required' });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Insert or update the read status[m
+[31m-    const query = `[m
+[31m-      INSERT INTO notifications_read (user_id, notification_type, notification_id, is_read, read_at)[m
+[31m-      VALUES ($1, $2, $3, false, NULL)[m
+[31m-      ON CONFLICT (user_id, notification_type, notification_id)[m
+[31m-      DO UPDATE SET is_read = false, read_at = NULL[m
+[31m-      RETURNING *[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [user_id, notification_type, notification_id]);[m
+[31m-    [m
+[31m-    res.status(200).json({[m
+[31m-      message: 'Notification marked as unread',[m
+[31m-      notification: result.rows[0][m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error marking notification as unread:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Delete notification for a user[m
+[31m-app.delete('/api/notifications/:type/:id', authMiddleware, async (req, res) => {[m
+[31m-  const user_id = req.user.id;[m
+[31m-  const { type, id } = req.params;[m
+[31m-  try {[m
+[31m-    // Delete from notifications_read table[m
+[31m-    await db.query([m
+[31m-      'DELETE FROM notifications_read WHERE user_id = $1 AND notification_type = $2 AND notification_id = $3',[m
+[31m-      [user_id, type, id][m
+[31m-    );[m
+[31m-    [m
+[31m-    // Also delete from notifications_saved table if it exists there[m
+[31m-    await db.query([m
+[31m-      'DELETE FROM notifications_saved WHERE user_id = $1 AND notification_type = $2 AND notification_id = $3',[m
+[31m-      [user_id, type, id][m
+[31m-    );[m
+[31m-    [m
+[31m-    res.json({ message: 'Notification deleted successfully' });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error deleting notification:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Endpoint DELETE /api/notifications/:type/:id já permite que qualquer usuário autenticado (cliente ou babá) delete suas próprias notificações, pois usa req.user.id para filtrar.[m
+[31m-// Não é necessário ajuste extra, apenas garantir que ambos os papéis usam o mesmo endpoint.[m
+[31m-[m
+[31m-// Get read status for notifications[m
+[31m-app.get('/api/notifications/status', authMiddleware, async (req, res) => {[m
+[31m-  const user_id = req.user.id;[m
+[31m-  const { notification_type, notification_ids } = req.query;[m
+[31m-[m
+[31m-  try {[m
+[31m-    if (!notification_type || !notification_ids) {[m
+[31m-      return res.status(400).json({ error: 'Notification type and IDs are required' });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Parse notification_ids from query string (comma-separated)[m
+[31m-    const ids = notification_ids.split(',').map(id => id.trim());[m
+[31m-[m
+[31m-    // Get read status for multiple notifications[m
+[31m-    const query = `[m
+[31m-      SELECT notification_id, is_read, read_at[m
+[31m-      FROM notifications_read[m
+[31m-      WHERE user_id = $1 [m
+[31m-      AND notification_type = $2 [m
+[31m-      AND notification_id = ANY($3)[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [user_id, notification_type, ids]);[m
+[31m-    [m
+[31m-    // Create a map of notification_id to read status[m
+[31m-    const statusMap = {};[m
+[31m-    result.rows.forEach(row => {[m
+[31m-      statusMap[row.notification_id] = {[m
+[31m-        is_read: row.is_read,[m
+[31m-        read_at: row.read_at[m
+[31m-      };[m
+[31m-    });[m
+[31m-[m
+[31m-    // Add default false for notifications not in database[m
+[31m-    ids.forEach(id => {[m
+[31m-      if (!statusMap[id]) {[m
+[31m-        statusMap[id] = {[m
+[31m-          is_read: false,[m
+[31m-          read_at: null[m
+[31m-        };[m
+[31m-      }[m
+[31m-    });[m
+[31m-    [m
+[31m-    res.status(200).json({[m
+[31m-      notification_status: statusMap[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error getting notification status:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get all read notifications for a user[m
+[31m-app.get('/api/notifications/read', authMiddleware, async (req, res) => {[m
+[31m-  const user_id = req.user.id;[m
+[31m-  const { notification_type } = req.query;[m
+[31m-[m
+[31m-  try {[m
+[31m-    let query = `[m
+[31m-      SELECT notification_type, notification_id, is_read, read_at, created_at[m
+[31m-      FROM notifications_read[m
+[31m-      WHERE user_id = $1[m
+[31m-    `;[m
+[31m-    let params = [user_id];[m
+[31m-[m
+[31m-    if (notification_type) {[m
+[31m-      query += ` AND notification_type = $2`;[m
+[31m-      params.push(notification_type);[m
+[31m-    }[m
+[31m-[m
+[31m-    query += ` ORDER BY created_at DESC`;[m
+[31m-    [m
+[31m-    const result = await db.query(query, params);[m
+[31m-    [m
+[31m-    res.status(200).json({[m
+[31m-      notifications: result.rows[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error getting read notifications:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get all notifications for a user (for the notification bell)[m
+[31m-app.get('/api/notifications', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const userId = req.user.id;[m
+[31m-    const { limit = 10 } = req.query;[m
+[31m-    [m
+[31m-    const query = `[m
+[31m-      SELECT notification_type, notification_id, is_read, read_at, created_at[m
+[31m-      FROM notifications_read[m
+[31m-      WHERE user_id = $1[m
+[31m-      ORDER BY created_at DESC[m
+[31m-      LIMIT $2[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [userId, limit]);[m
+[31m-    [m
+[31m-    // Transform the data to include human-readable information[m
+[31m-    const notifications = result.rows.map(row => {[m
+[31m-      const notification = {[m
+[31m-        id: row.notification_id,[m
+[31m-        type: row.notification_type,[m
+[31m-        isRead: row.is_read,[m
+[31m-        readAt: row.read_at,[m
+[31m-        createdAt: row.created_at,[m
+[31m-        title: getNotificationTitle(row.notification_type),[m
+[31m-        message: getNotificationMessage(row.notification_type, row.notification_id),[m
+[31m-        timestamp: row.created_at[m
+[31m-      };[m
+[31m-      return notification;[m
+[31m-    });[m
+[31m-    [m
+[31m-    res.json(notifications);[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching notifications:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get unread count for a user[m
+[31m-app.get('/api/notifications/unread-count', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const userId = req.user.id;[m
+[31m-    [m
+[31m-    const query = `[m
+[31m-      SELECT COUNT(*) as count[m
+[31m-      FROM notifications_read[m
+[31m-      WHERE user_id = $1 AND is_read = false[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [userId]);[m
+[31m-    res.json({ count: parseInt(result.rows[0].count) });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching unread count:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Helper functions for notification titles and messages[m
+[31m-function getNotificationTitle(type) {[m
+[31m-  const titles = {[m
+[31m-    'booking_created': 'New Booking Request',[m
+[31m-    'booking_confirmed': 'Booking Confirmed',[m
+[31m-    'booking_rejected': 'Booking Rejected',[m
+[31m-    'booking_cancelled': 'Booking Cancelled',[m
+[31m-    'report_sent': 'Report Received',[m
+[31m-    'booking_reminder_12h': 'Booking Reminder (12h)',[m
+[31m-    'booking_reminder_1h': 'Booking Reminder (1h)',[m
+[31m-    'booking_time_changed': 'Booking Time Changed',[m
+[31m-    'chat_message': 'New Message',[m
+[31m-    'payment_confirmed': 'Payment Confirmed'[m
+[31m-  };[m
+[31m-  return titles[type] || 'Notification';[m
+[31m-}[m
+[31m-[m
+[31m-function getNotificationMessage(type, notificationId) {[m
+[31m-  const messages = {[m
+[31m-    'booking_created': 'You have a new booking request',[m
+[31m-    'booking_confirmed': 'Your booking has been confirmed',[m
+[31m-    'booking_rejected': 'Your booking has been rejected',[m
+[31m-    'booking_cancelled': 'Your booking has been cancelled',[m
+[31m-    'report_sent': 'You received a report from your babysitter',[m
+[31m-    'booking_reminder_12h': 'Your booking is in 12 hours',[m
+[31m-    'booking_reminder_1h': 'Your booking is in 1 hour',[m
+[31m-    'booking_time_changed': 'Your booking time has been changed',[m
+[31m-    'chat_message': 'You have a new message',[m
+[31m-    'payment_confirmed': 'Payment has been confirmed'[m
+[31m-  };[m
+[31m-  return messages[type] || 'You have a new notification';[m
+[31m-}[m
+[31m-[m
+[31m-// Save notification[m
+[31m-app.post('/api/notifications/save', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const userId = req.user.id;[m
+[31m-    const { notification_type, notification_id } = req.body;[m
+[31m-    [m
+[31m-    const query = `[m
+[31m-      INSERT INTO notifications_saved (user_id, notification_type, notification_id)[m
+[31m-      VALUES ($1, $2, $3)[m
+[31m-      ON CONFLICT (user_id, notification_type, notification_id) DO NOTHING[m
+[31m-      RETURNING id[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [userId, notification_type, notification_id]);[m
+[31m-    [m
+[31m-    if (result.rows.length > 0) {[m
+[31m-      res.json({ message: 'Notification saved successfully' });[m
+[31m-    } else {[m
+[31m-      res.json({ message: 'Notification already saved' });[m
+[31m-    }[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error saving notification:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Unsave notification[m
+[31m-app.delete('/api/notifications/save', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const userId = req.user.id;[m
+[31m-    const { notification_type, notification_id } = req.body;[m
+[31m-    [m
+[31m-    const query = `[m
+[31m-      DELETE FROM notifications_saved[m
+[31m-      WHERE user_id = $1 AND notification_type = $2 AND notification_id = $3[m
+[31m-    `;[m
+[31m-    [m
+[31m-    await db.query(query, [userId, notification_type, notification_id]);[m
+[31m-    res.json({ message: 'Notification unsaved successfully' });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error unsaving notification:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get saved notifications[m
+[31m-app.get('/api/notifications/saved', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const userId = req.user.id;[m
+[31m-    const { limit = 50 } = req.query;[m
+[31m-    [m
+[31m-    const query = `[m
+[31m-      SELECT ns.notification_type, ns.notification_id, ns.saved_at,[m
+[31m-             nr.is_read, nr.read_at, nr.created_at[m
+[31m-      FROM notifications_saved ns[m
+[31m-      LEFT JOIN notifications_read nr ON [m
+[31m-        ns.user_id = nr.user_id AND [m
+[31m-        ns.notification_type = nr.notification_type AND [m
+[31m-        ns.notification_id = nr.notification_id[m
+[31m-      WHERE ns.user_id = $1[m
+[31m-      ORDER BY ns.saved_at DESC[m
+[31m-      LIMIT $2[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [userId, limit]);[m
+[31m-    [m
+[31m-    // Transform the data to include human-readable information[m
+[31m-    const notifications = result.rows.map(row => {[m
+[31m-      const notification = {[m
+[31m-        id: row.notification_id,[m
+[31m-        type: row.notification_type,[m
+[31m-        isRead: row.is_read || false,[m
+[31m-        readAt: row.read_at,[m
+[31m-        createdAt: row.created_at,[m
+[31m-        savedAt: row.saved_at,[m
+[31m-        title: getNotificationTitle(row.notification_type),[m
+[31m-        message: getNotificationMessage(row.notification_type, row.notification_id),[m
+[31m-        timestamp: row.created_at[m
+[31m-      };[m
+[31m-      return notification;[m
+[31m-    });[m
+[31m-    [m
+[31m-    res.json(notifications);[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching saved notifications:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get saved count[m
+[31m-app.get('/api/notifications/saved-count', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const userId = req.user.id;[m
+[31m-    [m
+[31m-    const query = `[m
+[31m-      SELECT COUNT(*) as count[m
+[31m-      FROM notifications_saved[m
+[31m-      WHERE user_id = $1[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [userId]);[m
+[31m-    res.json({ count: parseInt(result.rows[0].count) });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching saved count:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Check if notification is saved[m
+[31m-app.get('/api/notifications/saved-status', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const userId = req.user.id;[m
+[31m-    const { notification_type, notification_id } = req.query;[m
+[31m-    [m
+[31m-    const query = `[m
+[31m-      SELECT id FROM notifications_saved[m
+[31m-      WHERE user_id = $1 AND notification_type = $2 AND notification_id = $3[m
+[31m-    `;[m
+[31m-    [m
+[31m-    const result = await db.query(query, [userId, notification_type, notification_id]);[m
+[31m-    res.json({ isSaved: result.rows.length > 0 });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error checking saved status:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+ /* -----------------------------------[m
+    Health Check Endpoint[m
+ ----------------------------------- */[m
+[36m@@ -1759,7 +1063,7 @@[m [mapp.get('/api/health', (req, res) => {[m
+ [m
+ // Test login endpoint[m
+ app.post('/api/test-login', (req, res) => {[m
+[31m-  [m
+[32m+[m[32m  console.log('Test login endpoint called');[m
+   res.json({ [m
+     message: 'Test login endpoint working',[m
+     receivedData: { ...req.body, password: '***' }[m
+[36m@@ -1773,526 +1077,18 @@[m [mapp.get('/', (req, res) => {[m
+   res.send('TrustaSitter backend is running!');[m
+ });[m
+ [m
+[31m-/* -----------------------------------[m
+[31m-   Chat System Routes[m
+[31m------------------------------------ */[m
+[31m-[m
+[31m-// Create a new conversation[m
+[31m-app.post('/api/chat/conversations', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const result = await db.query([m
+[31m-      'INSERT INTO chat_conversations DEFAULT VALUES RETURNING *'[m
+[31m-    );[m
+[31m-    res.status(201).json({[m
+[31m-      message: 'Conversation created successfully',[m
+[31m-      conversation: result.rows[0][m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error creating conversation:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Create conversation for booking[m
+[31m-app.post('/api/chat/bookings/:bookingId/conversation', authMiddleware, async (req, res) => {[m
+[31m-  const { bookingId } = req.params;[m
+[31m-  [m
+[31m-  try {[m
+[31m-    // Get booking details[m
+[31m-    const bookingResult = await db.query(`[m
+[31m-      SELECT user_id, babysitter_id, status[m
+[31m-      FROM bookings[m
+[31m-      WHERE id = $1[m
+[31m-    `, [bookingId]);[m
+[31m-    [m
+[31m-    if (bookingResult.rows.length === 0) {[m
+[31m-      return res.status(404).json({ error: 'Booking not found' });[m
+[31m-    }[m
+[31m-    [m
+[31m-    const booking = bookingResult.rows[0];[m
+[31m-    [m
+[31m-    // Check if user is authorized to access this booking[m
+[31m-    if (req.user.role === 'user' && booking.user_id !== req.user.id) {[m
+[31m-      return res.status(403).json({ error: 'Not authorized' });[m
+[31m-    }[m
+[31m-    if (req.user.role === 'babysitter' && booking.babysitter_id !== req.user.id) {[m
+[31m-      return res.status(403).json({ error: 'Not authorized' });[m
+[31m-    }[m
+[31m-    [m
+[31m-    // Check if conversation already exists[m
+[31m-    const existingConversation = await db.query(`[m
+[31m-      SELECT c.id[m
+[31m-      FROM chat_conversations c[m
+[31m-      JOIN chat_participants cp1 ON c.id = cp1.conversation_id[m
+[31m-      JOIN chat_participants cp2 ON c.id = cp2.conversation_id[m
+[31m-      WHERE cp1.user_id = $1 AND cp2.user_id = $2[m
+[31m-    `, [booking.user_id, booking.babysitter_id]);[m
+[31m-    [m
+[31m-    if (existingConversation.rows.length > 0) {[m
+[31m-      return res.status(200).json({[m
+[31m-        message: 'Conversation already exists',[m
+[31m-        conversation_id: existingConversation.rows[0].id[m
+[31m-      });[m
+[31m-    }[m
+[31m-    [m
+[31m-    // Create new conversation[m
+[31m-    const conversationResult = await db.query([m
+[31m-      'INSERT INTO chat_conversations DEFAULT VALUES RETURNING *'[m
+[31m-    );[m
+[31m-    [m
+[31m-    const conversationId = conversationResult.rows[0].id;[m
+[31m-    [m
+[31m-    // Add both participants[m
+[31m-    await db.query([m
+[31m-      'INSERT INTO chat_participants (conversation_id, user_id, user_type) VALUES ($1, $2, $3)',[m
+[31m-      [conversationId, booking.user_id, 'client'][m
+[31m-    );[m
+[31m-    [m
+[31m-    await db.query([m
+[31m-      'INSERT INTO chat_participants (conversation_id, user_id, user_type) VALUES ($1, $2, $3)',[m
+[31m-      [conversationId, booking.babysitter_id, 'babysitter'][m
+[31m-    );[m
+[31m-    [m
+[31m-    res.status(201).json({[m
+[31m-      message: 'Conversation created successfully',[m
+[31m-      conversation_id: conversationId[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error creating conversation for booking:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Add participant to conversation[m
+[31m-app.post('/api/chat/conversations/:conversationId/participants', authMiddleware, async (req, res) => {[m
+[31m-  const { conversationId } = req.params;[m
+[31m-  const { userId, userType } = req.body;[m
+[31m-  [m
+[31m-  try {[m
+[31m-    const result = await db.query([m
+[31m-      'INSERT INTO chat_participants (conversation_id, user_id, user_type) VALUES ($1, $2, $3) RETURNING *',[m
+[31m-      [conversationId, userId, userType][m
+[31m-    );[m
+[31m-    res.status(201).json({[m
+[31m-      message: 'Participant added successfully',[m
+[31m-      participant: result.rows[0][m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error adding participant:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get user's conversations with booking info[m
+[31m-app.get('/api/chat/conversations', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    // First, check if chat tables exist[m
+[31m-    const tableCheck = await db.query(`[m
+[31m-      SELECT table_name [m
+[31m-      FROM information_schema.tables [m
+[31m-      WHERE table_schema = 'public' [m
+[31m-      AND table_name IN ('chat_conversations', 'chat_participants', 'chat_messages')[m
+[31m-    `);[m
+[31m-    [m
+[31m-[m
+[31m-    [m
+[31m-    // Check if sender_type column exists in chat_messages table[m
+[31m-[m
+[31m-    [m
+[31m-    // Create tables if they don't exist[m
+[31m-    await db.query(`[m
+[31m-      CREATE TABLE IF NOT EXISTS chat_conversations ([m
+[31m-        id SERIAL PRIMARY KEY,[m
+[31m-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,[m
+[31m-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP[m
+[31m-      )[m
+[31m-    `);[m
+[31m-    [m
+[31m-    await db.query(`[m
+[31m-      CREATE TABLE IF NOT EXISTS chat_participants ([m
+[31m-        id SERIAL PRIMARY KEY,[m
+[31m-        conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,[m
+[31m-        user_id INTEGER NOT NULL,[m
+[31m-        user_type VARCHAR(20) NOT NULL CHECK (user_type IN ('client', 'babysitter')),[m
+[31m-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,[m
+[31m-        UNIQUE(conversation_id, user_id)[m
+[31m-      )[m
+[31m-    `);[m
+[31m-    [m
+[31m-    // Create chat_messages table if it doesn't exist[m
+[31m-    await db.query(`[m
+[31m-      CREATE TABLE IF NOT EXISTS chat_messages ([m
+[31m-        id SERIAL PRIMARY KEY,[m
+[31m-        conversation_id INTEGER REFERENCES chat_conversations(id) ON DELETE CASCADE,[m
+[31m-        sender_id INTEGER NOT NULL,[m
+[31m-        sender_type VARCHAR(20) NOT NULL,[m
+[31m-        message TEXT NOT NULL,[m
+[31m-        is_read BOOLEAN DEFAULT FALSE,[m
+[31m-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP[m
+[31m-      )[m
+[31m-    `);[m
+[31m-    [m
+[31m-    // Check if sender_type column exists, if not add it[m
+[31m-    const columnCheck = await db.query(`[m
+[31m-      SELECT column_name [m
+[31m-      FROM information_schema.columns [m
+[31m-      WHERE table_name = 'chat_messages' AND column_name = 'sender_type'[m
+[31m-    `);[m
+[31m-    [m
+[31m-    if (columnCheck.rows.length === 0) {[m
+[31m-      await db.query(`ALTER TABLE chat_messages ADD COLUMN sender_type VARCHAR(20) NOT NULL DEFAULT 'client'`);[m
+[31m-    }[m
+[31m-    [m
+[31m-    let query;[m
+[31m-    let params;[m
+[31m-    [m
+[31m-    if (req.user.role === 'user') {[m
+[31m-      // For clients: get conversations with babysitters[m
+[31m-      query = `[m
+[31m-        SELECT DISTINCT [m
+[31m-          c.id,[m
+[31m-          c.created_at,[m
+[31m-          c.updated_at,[m
+[31m-          b.id as booking_id,[m
+[31m-          b.date as booking_date,[m
+[31m-          b.status as booking_status,[m
+[31m-          bs.name as participant_name,[m
+[31m-          bs.id as participant_id,[m
+[31m-          (SELECT COUNT(*) FROM chat_messages cm [m
+[31m-           WHERE cm.conversation_id = c.id [m
+[31m-           AND cm.sender_id != $1 [m
+[31m-           AND cm.is_read = false) as unread_count,[m
+[31m-          (SELECT cm.message FROM chat_messages cm [m
+[31m-           WHERE cm.conversation_id = c.id [m
+[31m-           ORDER BY cm.created_at DESC [m
+[31m-           LIMIT 1) as last_message[m
+[31m-        FROM chat_conversations c[m
+[31m-        JOIN chat_participants cp ON c.id = cp.conversation_id[m
+[31m-        JOIN bookings b ON (b.user_id = $1 AND b.babysitter_id = cp.user_id)[m
+[31m-        JOIN babysitters bs ON cp.user_id = bs.id[m
+[31m-        WHERE cp.user_id != $1[m
+[31m-        ORDER BY c.updated_at DESC[m
+[31m-      `;[m
+[31m-      params = [req.user.id];[m
+[31m-    } else {[m
+[31m-      // For babysitters: get conversations with clients[m
+[31m-      query = `[m
+[31m-        SELECT DISTINCT [m
+[31m-          c.id,[m
+[31m-          c.created_at,[m
+[31m-          c.updated_at,[m
+[31m-          b.id as booking_id,[m
+[31m-          b.date as booking_date,[m
+[31m-          b.status as booking_status,[m
+[31m-          u.name as participant_name,[m
+[31m-          u.id as participant_id,[m
+[31m-          (SELECT COUNT(*) FROM chat_messages cm [m
+[31m-           WHERE cm.conversation_id = c.id [m
+[31m-           AND cm.sender_id != $1 [m
+[31m-           AND cm.is_read = false) as unread_count,[m
+[31m-          (SELECT cm.message FROM chat_messages cm [m
+[31m-           WHERE cm.conversation_id = c.id [m
+[31m-           ORDER BY cm.created_at DESC [m
+[31m-           LIMIT 1) as last_message[m
+[31m-        FROM chat_conversations c[m
+[31m-        JOIN chat_participants cp ON c.id = cp.conversation_id[m
+[31m-        JOIN bookings b ON (b.babysitter_id = $1 AND b.user_id = cp.user_id)[m
+[31m-        JOIN users u ON cp.user_id = u.id[m
+[31m-        WHERE cp.user_id != $1[m
+[31m-        ORDER BY c.updated_at DESC[m
+[31m-      `;[m
+[31m-      params = [req.user.id];[m
+[31m-    }[m
+[31m-    [m
+[31m-    const result = await db.query(query, params);[m
+[31m-    [m
+[31m-    // Convert unread_count to number for each conversation[m
+[31m-    const conversations = result.rows.map(row => ({[m
+[31m-      ...row,[m
+[31m-      unread_count: parseInt(row.unread_count) || 0[m
+[31m-    }));[m
+[31m-    [m
+[31m-    res.json({[m
+[31m-      conversations[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching conversations:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get conversation participants[m
+[31m-app.get('/api/chat/conversations/:conversationId/participants', authMiddleware, async (req, res) => {[m
+[31m-  const { conversationId } = req.params;[m
+[31m-  [m
+[31m-  try {[m
+[31m-    const result = await db.query(`[m
+[31m-      SELECT user_id, user_type[m
+[31m-      FROM chat_participants[m
+[31m-      WHERE conversation_id = $1[m
+[31m-    `, [conversationId]);[m
+[31m-    [m
+[31m-    res.json({[m
+[31m-      participants: result.rows[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching participants:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Send a message[m
+[31m-app.post('/api/chat/conversations/:conversationId/messages', authMiddleware, async (req, res) => {[m
+[31m-  const { conversationId } = req.params;[m
+[31m-  const { message } = req.body;[m
+[31m-  [m
+[31m-  try {[m
+[31m-    // Update conversation timestamp[m
+[31m-    await db.query([m
+[31m-      'UPDATE chat_conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = $1',[m
+[31m-      [conversationId][m
+[31m-    );[m
+[31m-    [m
+[31m-    // Insert message[m
+[31m-    const result = await db.query(`[m
+[31m-      INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message)[m
+[31m-      VALUES ($1, $2, $3, $4)[m
+[31m-      RETURNING *[m
+[31m-    `, [conversationId, req.user.id, req.user.role === 'user' ? 'client' : 'babysitter', message]);[m
+[31m-    [m
+[31m-    res.status(201).json({[m
+[31m-      message: 'Message sent successfully',[m
+[31m-      chatMessage: result.rows[0][m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error sending message:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Get conversation messages[m
+[31m-app.get('/api/chat/conversations/:conversationId/messages', authMiddleware, async (req, res) => {[m
+[31m-  const { conversationId } = req.params;[m
+[31m-  [m
+[31m-  try {[m
+[31m-    const result = await db.query(`[m
+[31m-      SELECT [m
+[31m-        id,[m
+[31m-        sender_id,[m
+[31m-        sender_type,[m
+[31m-        message,[m
+[31m-        created_at,[m
+[31m-        is_read[m
+[31m-      FROM chat_messages[m
+[31m-      WHERE conversation_id = $1[m
+[31m-      ORDER BY created_at ASC[m
+[31m-    `, [conversationId]);[m
+[31m-    [m
+[31m-    res.json({[m
+[31m-      messages: result.rows[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error fetching messages:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Mark messages as read[m
+[31m-app.put('/api/chat/conversations/:conversationId/messages/read', authMiddleware, async (req, res) => {[m
+[31m-  const { conversationId } = req.params;[m
+[31m-  [m
+[31m-  try {[m
+[31m-    const result = await db.query(`[m
+[31m-      UPDATE chat_messages [m
+[31m-      SET is_read = true [m
+[31m-      WHERE conversation_id = $1 AND sender_id != $2[m
+[31m-    `, [conversationId, req.user.id]);[m
+[31m-    [m
+[31m-    res.json({[m
+[31m-      message: 'Messages marked as read'[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error marking messages as read:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-// Delete conversation[m
+[31m-app.delete('/api/chat/conversations/:conversationId', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const { conversationId } = req.params;[m
+[31m-    [m
+[31m-    // Check if user is participant in this conversation[m
+[31m-    const participantCheck = await db.query(`[m
+[31m-      SELECT * FROM chat_participants [m
+[31m-      WHERE conversation_id = $1 AND user_id = $2[m
+[31m-    `, [conversationId, req.user.id]);[m
+[31m-    [m
+[31m-    if (participantCheck.rows.length === 0) {[m
+[31m-      return res.status(403).json({ error: 'Not authorized to delete this conversation' });[m
+[31m-    }[m
+[31m-    [m
+[31m-    // Delete conversation (cascade will delete participants and messages)[m
+[31m-    const result = await db.query(`[m
+[31m-      DELETE FROM chat_conversations [m
+[31m-      WHERE id = $1[m
+[31m-    `, [conversationId]);[m
+[31m-    [m
+[31m-    if (result.rowCount === 0) {[m
+[31m-      return res.status(404).json({ error: 'Conversation not found' });[m
+[31m-    }[m
+[31m-    [m
+[31m-    res.json({[m
+[31m-      message: 'Conversation deleted successfully'[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error deleting conversation:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-[m
+[31m-[m
+[31m-// Get unread message count[m
+[31m-app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {[m
+[31m-  try {[m
+[31m-    const result = await db.query(`[m
+[31m-      SELECT COUNT(*) as unread_count[m
+[31m-      FROM chat_messages cm[m
+[31m-      JOIN chat_participants cp ON cm.conversation_id = cp.conversation_id[m
+[31m-      WHERE cp.user_id = $1 [m
+[31m-      AND cm.sender_id != $1 [m
+[31m-      AND cm.is_read = false[m
+[31m-    `, [req.user.id]);[m
+[31m-    [m
+[31m-    const unreadCount = parseInt(result.rows[0].unread_count);[m
+[31m-    [m
+[31m-    res.json({[m
+[31m-      unread_count: unreadCount[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Error getting unread count:', error);[m
+[31m-    res.status(500).json({ error: 'Internal server error' });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-/* -----------------------------------[m
+[31m-   WebSocket Implementation[m
+[31m------------------------------------ */[m
+[31m-[m
+[31m-// Store connected users[m
+[31m-const connectedUsers = new Map();[m
+[31m-[m
+[31m-// Socket.IO connection handling[m
+[31m-io.on('connection', (socket) => {[m
+[31m-[m
+[31m-  // Authenticate user and join their room[m
+[31m-  socket.on('authenticate', async (token) => {[m
+[31m-    try {[m
+[31m-      const decoded = jwt.verify(token, process.env.JWT_SECRET);[m
+[31m-      const userId = decoded.id;[m
+[31m-      [m
+[31m-      // Store user connection[m
+[31m-      connectedUsers.set(userId, socket.id);[m
+[31m-      socket.userId = userId;[m
+[31m-      [m
+[31m-      // Join user's personal room[m
+[31m-      socket.join(`user_${userId}`);[m
+[31m-      [m
+[31m-      socket.emit('authenticated', { userId });[m
+[31m-    } catch (error) {[m
+[31m-      console.error('Socket authentication failed:', error);[m
+[31m-      socket.emit('auth_error', { message: 'Authentication failed' });[m
+[31m-    }[m
+[31m-  });[m
+[31m-[m
+[31m-  // Join conversation room[m
+[31m-  socket.on('join_conversation', (conversationId) => {[m
+[31m-    socket.join(`conversation_${conversationId}`);[m
+[31m-  });[m
+[31m-[m
+[31m-  // Handle new message[m
+[31m-  socket.on('send_message', async (data) => {[m
+[31m-    try {[m
+[31m-      const { conversationId, message, senderType } = data;[m
+[31m-      [m
+[31m-      // Save message to database[m
+[31m-      const result = await db.query(`[m
+[31m-        INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message)[m
+[31m-        VALUES ($1, $2, $3, $4)[m
+[31m-        RETURNING *[m
+[31m-      `, [conversationId, socket.userId, senderType, message]);[m
+[31m-      [m
+[31m-      const savedMessage = result.rows[0];[m
+[31m-      [m
+[31m-      // Emit message to all users in conversation[m
+[31m-      io.to(`conversation_${conversationId}`).emit('new_message', {[m
+[31m-        conversationId,[m
+[31m-        message: savedMessage[m
+[31m-      });[m
+[31m-    } catch (error) {[m
+[31m-      console.error('Error sending message:', error);[m
+[31m-      socket.emit('message_error', { message: 'Failed to send message' });[m
+[31m-    }[m
+[31m-  });[m
+[31m-[m
+[31m-  // Handle typing indicator[m
+[31m-  socket.on('typing_start', (conversationId) => {[m
+[31m-    socket.to(`conversation_${conversationId}`).emit('user_typing', {[m
+[31m-      conversationId,[m
+[31m-      userId: socket.userId[m
+[31m-    });[m
+[31m-  });[m
+[31m-[m
+[31m-  socket.on('typing_stop', (conversationId) => {[m
+[31m-    socket.to(`conversation_${conversationId}`).emit('user_stopped_typing', {[m
+[31m-      conversationId,[m
+[31m-      userId: socket.userId[m
+[31m-    });[m
+[31m-  });[m
+[31m-[m
+[31m-  // Handle disconnect[m
+[31m-  socket.on('disconnect', () => {[m
+[31m-    if (socket.userId) {[m
+[31m-      connectedUsers.delete(socket.userId);[m
+[31m-    }[m
+[31m-  });[m
+[31m-});[m
+[31m-[m
+ /* -----------------------------------[m
+    Server Initialization[m
+ ----------------------------------- */[m
+[31m-[m
+[31m-// Global io for use in routes[m
+[31m-global.io = io;[m
+[31m-[m
+ const PORT = process.env.PORT || 3000;[m
+[31m-server.listen(PORT, () => {[m
+[32m+[m[32mapp.listen(PORT, () => {[m
+   console.log(`Server is running on port ${PORT}`);[m
+[31m-  console.log(`WebSocket server is ready`);[m
+ });[m
+ [m
+ // Email sending endpoint[m
+ app.post('/api/send-email', authMiddleware, async (req, res) => {[m
+   const { to, subject, message, fromName } = req.body;[m
+ [m
+[31m-  // Log environment variables[m
+[31m-  console.log('EMAIL_USER:', process.env.EMAIL_USER);[m
+[31m-  console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'SET' : 'MISSING');[m
+[31m-[m

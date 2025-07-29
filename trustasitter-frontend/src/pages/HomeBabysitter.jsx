@@ -2,10 +2,8 @@
 import React, { useEffect, useState, useContext } from "react";
 import { api } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
-<<<<<<< HEAD
 import { useNavigate } from "react-router-dom";
 import { FaComments } from "react-icons/fa";
-=======
 import BabysitterReportForm from '../components/BabysitterReportForm';
 import ReportList from '../components/ReportList';
 import { FiX } from 'react-icons/fi';
@@ -15,7 +13,6 @@ function formatBookingTime(timeString) {
   const [hour, minute] = timeString.split(':');
   return `${hour}:${minute}`;
 }
->>>>>>> feature/babysitter-report
 
 const HomeBabysitter = () => {
   const { token, user, isLoading } = useContext(AuthContext);
@@ -26,11 +23,8 @@ const HomeBabysitter = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [modal, setModal] = useState({ message: "", type: "" });
-<<<<<<< HEAD
-=======
   const [sendingCountdown, setSendingCountdown] = useState(0);
   const [openReportModal, setOpenReportModal] = useState(null); // bookingId or null
->>>>>>> feature/babysitter-report
 
   useEffect(() => {
     if (!user) return;
@@ -79,23 +73,8 @@ const HomeBabysitter = () => {
     }
   };
 
-<<<<<<< HEAD
   // Navigate to chat with client
   const handleOpenChat = async (bookingId, clientId, clientName) => {
-=======
-  // Send email handler
-  const handleSendEmail = async () => {
-    console.log('Token available:', !!token);
-    console.log('Token value:', token);
-    
-    setSendingCountdown(5);
-    for (let i = 5; i > 0; i--) {
-      setSendingCountdown(i);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    setSendingCountdown(0);
-    
->>>>>>> feature/babysitter-report
     try {
       // Create conversation for this booking
       await api.post(`/chat/bookings/${bookingId}/conversation`, {}, {
