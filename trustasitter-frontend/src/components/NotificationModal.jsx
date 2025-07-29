@@ -152,10 +152,18 @@ const NotificationModal = ({
             <span className="text-2xl">{getNotificationIcon(notification.type)}</span>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">{typeLabel}</h3>
-              <p className="text-sm text-gray-500 flex items-center gap-1">
-                <FiClock className="inline" />
-                {formatTimeAgo(notification.createdAt)}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <FiClock className="inline" />
+                  {formatTimeAgo(notification.createdAt)}
+                </p>
+                {notification.isRead && (
+                  <span className="flex items-center gap-1 text-sm text-green-600">
+                    <FiCheck className="inline" />
+                    Read
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -177,21 +185,8 @@ const NotificationModal = ({
 
           {/* Notification Info */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h4 className="font-medium text-gray-900 mb-2">Status</h4>
+            <h4 className="font-medium text-gray-900 mb-2">Details</h4>
             <div className="space-y-2 text-sm text-gray-600">
-              <div className="flex justify-between">
-                <span>Status:</span>
-                <span className={`font-medium ${notification.isRead ? 'text-green-600' : 'text-red-600'}`}>
-                  {notification.isRead ? (
-                    <span className="flex items-center gap-1">
-                      <FiCheck className="inline" />
-                      Read
-                    </span>
-                  ) : (
-                    'Unread'
-                  )}
-                </span>
-              </div>
               <div className="flex justify-between">
                 <span>Received:</span>
                 <span>{new Date(notification.createdAt).toLocaleString()}</span>

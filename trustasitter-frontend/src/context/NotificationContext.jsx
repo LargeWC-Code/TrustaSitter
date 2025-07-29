@@ -43,11 +43,12 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     checkUnreadMessages();
     
-    // Check every 10 seconds for better responsiveness
-    if (user && token) {
-      const interval = setInterval(checkUnreadMessages, 10000);
-      return () => clearInterval(interval);
-    }
+    // Expose checkUnreadMessages globally for WebSocket updates
+    window.notificationContext = { checkUnreadMessages };
+    
+    return () => {
+      delete window.notificationContext;
+    };
   }, [user, token, role]);
 
   const value = {

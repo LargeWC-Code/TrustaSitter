@@ -81,15 +81,9 @@ const Chat = () => {
     // Listen for new messages
     const handleNewMessage = (data) => {
       try {
-        console.log('Received new message:', data);
-        console.log('Current conversation:', selectedConversation?.id);
-        console.log('Message conversation:', data.conversationId);
-        console.log('User ID:', user?.id);
-        console.log('Message sender ID:', data.message.sender_id);
         
         // Add message to current conversation if it matches
         if (data.conversationId === selectedConversation?.id) {
-          console.log('Adding message to current conversation');
           setMessages(prev => [...prev, data.message]);
           // Auto-scroll to bottom
           setTimeout(() => {
@@ -99,7 +93,8 @@ const Chat = () => {
             }
           }, 100);
         } else {
-          console.log('Message not for current conversation');
+          // Message received for a different conversation - update notifications
+          checkUnreadMessages();
         }
         
         // Update conversations list without full refresh
@@ -109,7 +104,6 @@ const Chat = () => {
               // Only increment unread count if message is from other user
               const shouldIncrement = data.message.sender_id !== user?.id;
               const currentUnreadCount = parseInt(conv.unread_count) || 0;
-              console.log('Updating conversation:', conv.id, 'shouldIncrement:', shouldIncrement);
               return {
                 ...conv,
                 last_message: data.message.message,
@@ -217,6 +211,11 @@ const Chat = () => {
         setMessages(prev => [...prev, data.chatMessage]);
         setNewMessage('');
       }
+      
+      // Update notifications immediately after sending message
+      setTimeout(() => {
+        checkUnreadMessages();
+      }, 500);
     } catch (err) {
       setError('Failed to send message');
       console.error('Error sending message:', err);

@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../hooks/useNotifications';
 import { AuthContext } from '../context/AuthContext';
+import { useWebSocket } from '../context/WebSocketContext';
 import { FiBell } from 'react-icons/fi';
 import NotificationModal from './NotificationModal';
-import { io as socketIOClient } from 'socket.io-client';
 
 function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,17 +24,12 @@ function NotificationBell() {
   const { role, user } = useContext(AuthContext);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const socketRef = useRef(null);
+  const { socket, isConnected } = useWebSocket();
 
   useEffect(() => {
-    // WebSocket connection
-    if (user && user.id) {
-      socketRef.current = socketIOClient('http://localhost:3000', {
-        transports: ['websocket'],
-        withCredentials: true
-      });
-      socketRef.current.emit('register', user.id);
-      socketRef.current.on('notification', (data) => {
+    // Listen for notifications using existing WebSocket
+    if (socket && isConnected && user && user.id) {
+      socket.on('notification', (data) => {
         // Atualiza notificações em tempo real
         setNotifications((prev) => [
           {
@@ -50,12 +45,7 @@ function NotificationBell() {
         setUnreadCount((prev) => prev + 1);
       });
     }
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-    };
-  }, [user]);
+  }, [socket, isConnected, user]);
 
   useEffect(() => {
     // Load notifications and count unread
@@ -74,9 +64,33 @@ function NotificationBell() {
     };
 
     loadNotifications();
-  }, []); // Remove the dependencies to prevent infinite loop
+  }, [user]);
 
-  // Close dropdown when clicking outside
+  // Listen for notification read events from other components
+  useEffect(() => {
+    const handleNotificationRead = (event) => {
+      setUnreadCount(event.detail.unreadCount);
+    };
+
+    const handleNotificationDeleted = (event) => {
+      // Remove the deleted notification from the list
+      setNotifications(prev => prev.filter(n => n.id !== event.detail.notificationId));
+      
+      // Update unread count if the deleted notification was unread
+      if (event.detail.wasUnread) {
+        setUnreadCount(event.detail.unreadCount);
+      }
+    };
+
+    window.addEventListener('notificationRead', handleNotificationRead);
+    window.addEventListener('notificationDeleted', handleNotificationDeleted);
+    
+    return () => {
+      window.removeEventListener('notificationRead', handleNotificationRead);
+      window.removeEventListener('notificationDeleted', handleNotificationDeleted);
+    };
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -84,26 +98,23 @@ function NotificationBell() {
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleNotificationClick = async (notification) => {
     // Mark as read if not already read
     if (!notification.isRead) {
       try {
         await markAsRead(notification.type, notification.id);
+        
         // Update local state
         setNotifications(prev => 
           prev.map(n => 
             n.id === notification.id ? { ...n, isRead: true } : n
           )
         );
+        
         setUnreadCount(prev => Math.max(0, prev - 1));
       } catch (error) {
         console.error('Error marking notification as read:', error);
@@ -199,13 +210,12 @@ function NotificationBell() {
         return '✅';
       case 'booking_rejected':
         return '❌';
-      case 'report_sent':
-        return '📋';
-      case 'booking_reminder_12h':
-      case 'booking_reminder_1h':
-        return '⏰';
-      case 'booking_time_changed':
-        return '🔄';
+      case 'booking_cancelled':
+        return '🚫';
+      case 'report_submitted':
+        return '📝';
+      case 'message_received':
+        return '💬';
       default:
         return '🔔';
     }
@@ -244,7 +254,7 @@ function NotificationBell() {
                 No notifications yet
               </div>
             ) : (
-              notifications.filter(n => !n.isRead).map((notification) => (
+              notifications.map((notification) => (
                 <div
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
@@ -292,21 +302,21 @@ function NotificationBell() {
         </div>
       )}
 
-                        {/* Notification Modal */}
-                  <NotificationModal
-                    notification={selectedNotification}
-                    isOpen={isModalOpen}
-                    onClose={() => {
-                      setIsModalOpen(false);
-                      setSelectedNotification(null);
-                    }}
-                    onMarkAsUnread={handleMarkAsUnread}
-                    onDelete={handleDelete}
-                    onSave={handleSave}
-                    onUnsave={handleUnsave}
-                    isSaved={selectedNotification?.savedAt ? true : false}
-                    className="bell-modal"
-                  />
+      {/* Notification Modal */}
+      <NotificationModal
+        notification={selectedNotification}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedNotification(null);
+        }}
+        onMarkAsUnread={handleMarkAsUnread}
+        onDelete={handleDelete}
+        onSave={handleSave}
+        onUnsave={handleUnsave}
+        isSaved={selectedNotification?.savedAt ? true : false}
+        className="bell-modal"
+      />
     </div>
   );
 }

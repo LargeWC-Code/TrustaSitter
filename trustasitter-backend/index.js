@@ -879,6 +879,7 @@ app.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {
         
         // Emit WebSocket event for parent
         if (global.io) {
+          console.log('📤 Sending notification to user:', booking.user_id);
           global.io.to(`user_${booking.user_id}`).emit('notification', {
             userId: booking.user_id,
             type: notificationType,
@@ -887,6 +888,7 @@ app.put("/api/babysitters/bookings/:bookingId/status", async (req, res) => {
             message: getNotificationMessage(notificationType, booking.id),
             createdAt: new Date().toISOString()
           });
+          console.log('✅ Notification sent successfully');
         }
       } catch (notifyErr) {
         console.error('Error creating notification for parent:', notifyErr);
@@ -2232,51 +2234,6 @@ app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// Debug endpoint to check chat data
-app.get('/api/chat/debug', authMiddleware, async (req, res) => {
-  try {
-    console.log('Debug request from user:', req.user.id, 'role:', req.user.role);
-    
-    // Get all conversations
-    const conversationsResult = await db.query(`
-      SELECT * FROM chat_conversations
-    `);
-    
-    // Get all participants
-    const participantsResult = await db.query(`
-      SELECT * FROM chat_participants
-    `);
-    
-    // Get all messages
-    const messagesResult = await db.query(`
-      SELECT * FROM chat_messages
-    `);
-    
-    // Get user's conversations
-    const userConversationsResult = await db.query(`
-      SELECT c.id, c.created_at, cp.user_id, cp.user_type
-      FROM chat_conversations c
-      JOIN chat_participants cp ON c.id = cp.conversation_id
-      WHERE cp.user_id = $1
-    `, [req.user.id]);
-    
-    res.json({
-      user: {
-        id: req.user.id,
-        role: req.user.role
-      },
-      all_conversations: conversationsResult.rows,
-      all_participants: participantsResult.rows,
-      all_messages: messagesResult.rows,
-      user_conversations: userConversationsResult.rows
-    });
-  } catch (error) {
-    console.error('Error in debug endpoint:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 /* -----------------------------------
    WebSocket Implementation
 ----------------------------------- */
@@ -2362,7 +2319,6 @@ io.on('connection', (socket) => {
       `, [conversationId, socket.userId, senderType, message]);
       
       const savedMessage = result.rows[0];
-      console.log('Saved message:', savedMessage);
       
       // Emit message to all users in conversation
       io.to(`conversation_${conversationId}`).emit('new_message', {

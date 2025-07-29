@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNotifications } from '../hooks/useNotifications';
+import { useWebSocket } from '../context/WebSocketContext';
+import { AuthContext } from '../context/AuthContext';
 import { FiBell, FiCheck, FiX, FiClock, FiRefreshCw, FiBookmark } from 'react-icons/fi';
 import NotificationModal from '../components/NotificationModal';
 import ConfirmModal from '../components/ConfirmModal';
@@ -26,6 +28,8 @@ const Notifications = () => {
   const [savedNotifications, setSavedNotifications] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [notificationToDelete, setNotificationToDelete] = useState(null);
+  const { socket, isConnected } = useWebSocket();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const loadNotifications = async () => {
@@ -45,6 +49,27 @@ const Notifications = () => {
     loadNotifications();
   }, [getAllNotifications, getUnreadNotificationsCount, getSavedNotificationsCount]);
 
+  // Listen for notifications using existing WebSocket
+  useEffect(() => {
+    if (socket && isConnected && user && user.id) {
+      socket.on('notification', (data) => {
+        // Add new notification to the list
+        setNotifications(prev => [
+          {
+            id: data.notificationId,
+            type: data.type,
+            isRead: false,
+            createdAt: data.createdAt,
+            title: data.title,
+            message: data.message
+          },
+          ...prev
+        ]);
+        setUnreadCount(prev => prev + 1);
+      });
+    }
+  }, [socket, isConnected, user]);
+
   useEffect(() => {
     if (activeTab === 'saved') {
       const loadSavedNotifications = async () => {
@@ -59,23 +84,28 @@ const Notifications = () => {
     }
   }, [activeTab, getSavedNotificationsList]);
 
-  const handleNotificationClick = async (notification) => {
-    if (!notification.isRead) {
-      try {
-        await markAsRead(notification.type, notification.id);
-        setNotifications(prev => 
-          prev.map(n => 
-            n.id === notification.id ? { ...n, isRead: true } : n
-          )
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      } catch (error) {
-        console.error('Error marking notification as read:', error);
-      }
-    }
-    setSelectedNotification(notification);
-    setIsModalOpen(true);
-  };
+                const handleNotificationClick = async (notification) => {
+                if (!notification.isRead) {
+                  try {
+                    await markAsRead(notification.type, notification.id);
+                    setNotifications(prev => 
+                      prev.map(n => 
+                        n.id === notification.id ? { ...n, isRead: true } : n
+                      )
+                    );
+                    setUnreadCount(prev => Math.max(0, prev - 1));
+                    
+                    // Dispatch custom event to sync with NotificationBell
+                    window.dispatchEvent(new CustomEvent('notificationRead', {
+                      detail: { unreadCount: Math.max(0, unreadCount - 1) }
+                    }));
+                  } catch (error) {
+                    console.error('Error marking notification as read:', error);
+                  }
+                }
+                setSelectedNotification(notification);
+                setIsModalOpen(true);
+              };
 
   const handleMarkAsUnread = async (notification) => {
     try {
@@ -122,6 +152,15 @@ const Notifications = () => {
           setIsModalOpen(false);
           setSelectedNotification(null);
         }
+        
+        // Dispatch custom event to sync with NotificationBell
+        window.dispatchEvent(new CustomEvent('notificationDeleted', {
+          detail: { 
+            notificationId: notificationToDelete.id,
+            wasUnread: !notificationToDelete.isRead,
+            unreadCount: !notificationToDelete.isRead ? Math.max(0, unreadCount - 1) : unreadCount
+          }
+        }));
       }
     } catch (error) {
       console.error('Error deleting notification:', error);
