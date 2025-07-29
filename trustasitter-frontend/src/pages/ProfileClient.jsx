@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { updateClientProfile, deleteClientAccount } from "../services/api";
 import { api } from "../services/api";
+import AddressAutocomplete from "../components/AddressAutocomplete";
 
 
 const ProfileClient = () => {
@@ -23,7 +24,9 @@ const ProfileClient = () => {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [error, setError] = useState("");
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   // Fetch client profile data on mount using the token for authentication
   useEffect(() => {
@@ -51,6 +54,50 @@ const ProfileClient = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // If address is changed manually, geocode it with debounce
+    if (name === 'address' && value.trim()) {
+      clearTimeout(window.geocodeTimeout);
+      window.geocodeTimeout = setTimeout(() => {
+        geocodeAddress(value);
+      }, 1000); // Wait 1 second after user stops typing
+    }
+  };
+
+  // Geocode address to get coordinates
+  const geocodeAddress = async (address) => {
+    setIsGeocoding(true);
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status === "OK") {
+        const location = data.results[0].geometry.location;
+        const lat = location.lat;
+        const lng = location.lng;
+        setFormData((prev) => ({ 
+          ...prev, 
+          latitude: lat, 
+          longitude: lng 
+        }));
+        console.log("Address geocoded successfully:", { lat, lng });
+      }
+    } catch (error) {
+      console.error("Error geocoding address:", error);
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
+  // Handle address selection from autocomplete
+  const handleAddressSelect = ({ lat, lng, address }) => {
+    setFormData((prev) => ({ 
+      ...prev, 
+      latitude: lat, 
+      longitude: lng,
+      address 
+    }));
+    console.log("Address selected from autocomplete:", { lat, lng, address });
   };
 
   const handleSubmit = async (e) => {
@@ -78,6 +125,8 @@ const ProfileClient = () => {
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         children_count:
           formData.children_count === "" ? null : parseInt(formData.children_count, 10)
       };
@@ -96,14 +145,14 @@ const ProfileClient = () => {
         );
       }
 
-      setShowSuccess(true);
+      setShowSuccessModal(true);
       setFormData((prev) => ({
         ...prev,
         currentPassword: "",
         newPassword: "",
         confirmPassword: ""
       }));
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setShowSuccessModal(false), 3000);
     } catch (err) {
       console.error(err);
       if (err.response?.data?.error) {
@@ -177,13 +226,22 @@ const ProfileClient = () => {
 
           <div>
             <label className="block mb-1 text-gray-700 font-medium">Address</label>
-            <input 
-              name="address" 
-              value={formData.address} 
-              onChange={handleChange} 
-              type="text" 
-              placeholder="Enter your home address" 
-              className="w-full px-4 py-2 border rounded" 
+            <AddressAutocomplete
+              value={formData.address}
+              onChange={(e) => {
+                // Create a synthetic event with the correct name
+                const syntheticEvent = {
+                  target: {
+                    name: 'address',
+                    value: e.target.value
+                  }
+                };
+                handleChange(syntheticEvent);
+              }}
+              onSelect={handleAddressSelect}
+              placeholder="Enter your home address"
+              isGeocoding={isGeocoding}
+              hasCoordinates={formData.latitude && formData.longitude}
             />
           </div>
 
@@ -220,6 +278,31 @@ const ProfileClient = () => {
               <button onClick={() => setShowConfirm(false)} className="px-4 py-2 rounded border border-gray-300 hover:bg-gray-100">Cancel</button>
               <button onClick={confirmDelete} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Yes, Delete</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md text-center">
+            <div className="flex items-center justify-center mb-4">
+              <div className="bg-green-100 rounded-full p-3">
+                <FaCheckCircle className="text-green-600 text-2xl" />
+              </div>
+            </div>
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">
+              Changes Saved Successfully!
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Your profile information has been updated and saved.
+            </p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}

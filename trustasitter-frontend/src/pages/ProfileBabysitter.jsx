@@ -8,6 +8,7 @@ import { api } from "../services/api";
 import { changeBabysitterPassword } from "../services/api";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import axios from "axios";
+import AddressAutocomplete from "../components/AddressAutocomplete";
 
 const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
 
@@ -31,8 +32,10 @@ const ProfileBabysitter = () => {
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -74,7 +77,7 @@ const ProfileBabysitter = () => {
 
   // 地图选点和逆地理编码
   async function fetchAddressByLatLng(lat, lng) {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_API_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&components=country:NZ&key=${GOOGLE_API_KEY}`;
     try {
       const res = await axios.get(url);
       if (res.data.status === "OK") {
@@ -96,6 +99,51 @@ const ProfileBabysitter = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // If address is changed manually, geocode it with debounce
+    if (name === 'address' && value.trim()) {
+      clearTimeout(window.geocodeTimeout);
+      window.geocodeTimeout = setTimeout(() => {
+        geocodeAddress(value);
+      }, 1000); // Wait 1 second after user stops typing
+    }
+  };
+
+  // Geocode address to get coordinates
+  const geocodeAddress = async (address) => {
+    setIsGeocoding(true);
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=${GOOGLE_API_KEY}`;
+    try {
+      const res = await axios.get(url);
+      if (res.data.status === "OK") {
+        const location = res.data.results[0].geometry.location;
+        const lat = location.lat;
+        const lng = location.lng;
+        setMarker({ lat, lng });
+        setFormData((prev) => ({ 
+          ...prev, 
+          latitude: lat, 
+          longitude: lng 
+        }));
+        console.log("Address geocoded successfully:", { lat, lng });
+      }
+    } catch (error) {
+      console.error("Error geocoding address:", error);
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
+  // Handle address selection from autocomplete
+  const handleAddressSelect = ({ lat, lng, address }) => {
+    setMarker({ lat, lng });
+    setFormData((prev) => ({ 
+      ...prev, 
+      latitude: lat, 
+      longitude: lng,
+      address 
+    }));
+    console.log("Address selected from autocomplete:", { lat, lng, address });
   };
 
   const handleCheckboxChange = (day) => {
@@ -119,8 +167,8 @@ const ProfileBabysitter = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setShowSuccessModal(true);
+      setTimeout(() => setShowSuccessModal(false), 3000);
     } catch (error) {
       console.error("Error updating profile:", error);
     }
@@ -263,13 +311,22 @@ const ProfileBabysitter = () => {
             rows="3"
           />
 
-          <input
-            name="address"
-            value={formData.address || ""}
-            onChange={handleChange}
-            type="text"
-            placeholder="Address"
-            className="w-full px-4 py-2 border rounded"
+          <AddressAutocomplete
+            value={formData.address}
+            onChange={(e) => {
+              // Create a synthetic event with the correct name
+              const syntheticEvent = {
+                target: {
+                  name: 'address',
+                  value: e.target.value
+                }
+              };
+              handleChange(syntheticEvent);
+            }}
+            onSelect={handleAddressSelect}
+            placeholder="Enter your address"
+            isGeocoding={isGeocoding}
+            hasCoordinates={formData.latitude && formData.longitude}
           />
           <div>
             <label className="block text-gray-700 mb-1">Select your location on the map:</label>
@@ -369,6 +426,31 @@ const ProfileBabysitter = () => {
                     Yes, Delete
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success Modal */}
+          {showSuccessModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="bg-green-100 rounded-full p-3">
+                    <FaCheckCircle className="text-green-600 text-2xl" />
+                  </div>
+                </div>
+                <h2 className="text-xl font-semibold mb-2 text-gray-800">
+                  Changes Saved Successfully!
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Your profile information has been updated and saved.
+                </p>
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+                >
+                  OK
+                </button>
               </div>
             </div>
           )}
