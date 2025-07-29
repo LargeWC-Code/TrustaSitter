@@ -55,6 +55,7 @@ const reportsStorage = multer.diskStorage({
 const uploadReportPhoto = multer({ storage: reportsStorage });
 
 // PostgreSQL client configuration
+
 const db = new Client({
   host: "20.40.73.193",
   port: 5432,
@@ -66,6 +67,18 @@ const db = new Client({
   idleTimeoutMillis: 30000
 });
 
+/*
+const db = new Client({
+  host: "10.0.0.4",
+  port: 5432,
+  user: "developer",
+  password: "LargeWC<123456>",
+  database: "postgres",
+  ssl: { rejectUnauthorized: false },
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000
+});
+*/
 
 // Connect to PostgreSQL
 db.connect()
@@ -1975,6 +1988,11 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
         JOIN bookings b ON (b.user_id = $1 AND b.babysitter_id = cp.user_id)
         JOIN babysitters bs ON cp.user_id = bs.id
         WHERE cp.user_id != $1
+        AND EXISTS (
+          SELECT 1 FROM chat_participants cp2 
+          WHERE cp2.conversation_id = c.id 
+          AND cp2.user_id = $1
+        )
         ORDER BY c.updated_at DESC
       `;
       params = [req.user.id];
@@ -2003,6 +2021,11 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
         JOIN bookings b ON (b.babysitter_id = $1 AND b.user_id = cp.user_id)
         JOIN users u ON cp.user_id = u.id
         WHERE cp.user_id != $1
+        AND EXISTS (
+          SELECT 1 FROM chat_participants cp2 
+          WHERE cp2.conversation_id = c.id 
+          AND cp2.user_id = $1
+        )
         ORDER BY c.updated_at DESC
       `;
       params = [req.user.id];
@@ -2010,11 +2033,15 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
     
     const result = await db.query(query, params);
     
+    console.log('Conversations query result:', result.rows);
+    
     // Convert unread_count to number for each conversation
     const conversations = result.rows.map(row => ({
       ...row,
       unread_count: parseInt(row.unread_count) || 0
     }));
+    
+    console.log('Processed conversations:', conversations);
     
     res.json({
       conversations
@@ -2036,6 +2063,8 @@ app.get('/api/chat/conversations/:conversationId/participants', authMiddleware, 
       WHERE conversation_id = $1
     `, [conversationId]);
     
+    console.log('Participants for conversation', conversationId, ':', result.rows);
+    
     res.json({
       participants: result.rows
     });
@@ -2051,6 +2080,16 @@ app.post('/api/chat/conversations/:conversationId/messages', authMiddleware, asy
   const { message } = req.body;
   
   try {
+    // First, check if user is participant in this conversation
+    const participantCheck = await db.query(`
+      SELECT * FROM chat_participants 
+      WHERE conversation_id = $1 AND user_id = $2
+    `, [conversationId, req.user.id]);
+    
+    if (participantCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to send messages in this conversation' });
+    }
+    
     // Update conversation timestamp
     await db.query(
       'UPDATE chat_conversations SET updated_at = CURRENT_TIMESTAMP WHERE id = $1',
@@ -2079,6 +2118,16 @@ app.get('/api/chat/conversations/:conversationId/messages', authMiddleware, asyn
   const { conversationId } = req.params;
   
   try {
+    // First, check if user is participant in this conversation
+    const participantCheck = await db.query(`
+      SELECT * FROM chat_participants 
+      WHERE conversation_id = $1 AND user_id = $2
+    `, [conversationId, req.user.id]);
+    
+    if (participantCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Not authorized to access this conversation' });
+    }
+    
     const result = await db.query(`
       SELECT 
         id,
@@ -2091,6 +2140,8 @@ app.get('/api/chat/conversations/:conversationId/messages', authMiddleware, asyn
       WHERE conversation_id = $1
       ORDER BY created_at ASC
     `, [conversationId]);
+    
+    console.log('Messages for conversation', conversationId, ':', result.rows);
     
     res.json({
       messages: result.rows
@@ -2182,6 +2233,50 @@ app.get('/api/chat/unread-count', authMiddleware, async (req, res) => {
   }
 });
 
+// Debug endpoint to check chat data
+app.get('/api/chat/debug', authMiddleware, async (req, res) => {
+  try {
+    console.log('Debug request from user:', req.user.id, 'role:', req.user.role);
+    
+    // Get all conversations
+    const conversationsResult = await db.query(`
+      SELECT * FROM chat_conversations
+    `);
+    
+    // Get all participants
+    const participantsResult = await db.query(`
+      SELECT * FROM chat_participants
+    `);
+    
+    // Get all messages
+    const messagesResult = await db.query(`
+      SELECT * FROM chat_messages
+    `);
+    
+    // Get user's conversations
+    const userConversationsResult = await db.query(`
+      SELECT c.id, c.created_at, cp.user_id, cp.user_type
+      FROM chat_conversations c
+      JOIN chat_participants cp ON c.id = cp.conversation_id
+      WHERE cp.user_id = $1
+    `, [req.user.id]);
+    
+    res.json({
+      user: {
+        id: req.user.id,
+        role: req.user.role
+      },
+      all_conversations: conversationsResult.rows,
+      all_participants: participantsResult.rows,
+      all_messages: messagesResult.rows,
+      user_conversations: userConversationsResult.rows
+    });
+  } catch (error) {
+    console.error('Error in debug endpoint:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 /* -----------------------------------
    WebSocket Implementation
 ----------------------------------- */
@@ -2195,7 +2290,7 @@ io.on('connection', (socket) => {
   // Authenticate user and join their room
   socket.on('authenticate', async (token) => {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024');
       const userId = decoded.id;
       
       // Store user connection
@@ -2212,6 +2307,22 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Register user for notifications (used by NotificationBell)
+  socket.on('register', async (userId) => {
+    try {
+      // Store user connection
+      connectedUsers.set(userId, socket.id);
+      socket.userId = userId;
+      
+      // Join user's personal room
+      socket.join(`user_${userId}`);
+      
+      console.log(`User ${userId} registered for notifications`);
+    } catch (error) {
+      console.error('Socket registration failed:', error);
+    }
+  });
+
   // Join conversation room
   socket.on('join_conversation', (conversationId) => {
     socket.join(`conversation_${conversationId}`);
@@ -2222,6 +2333,27 @@ io.on('connection', (socket) => {
     try {
       const { conversationId, message, senderType } = data;
       
+      console.log('WebSocket send_message:', {
+        conversationId,
+        message,
+        senderType,
+        socketUserId: socket.userId
+      });
+      
+      // Check if user is participant in this conversation
+      const participantCheck = await db.query(`
+        SELECT * FROM chat_participants 
+        WHERE conversation_id = $1 AND user_id = $2
+      `, [conversationId, socket.userId]);
+      
+      console.log('Participant check result:', participantCheck.rows);
+      
+      if (participantCheck.rows.length === 0) {
+        console.log('User not authorized to send message in conversation');
+        socket.emit('message_error', { message: 'Not authorized to send messages in this conversation' });
+        return;
+      }
+      
       // Save message to database
       const result = await db.query(`
         INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message)
@@ -2230,12 +2362,15 @@ io.on('connection', (socket) => {
       `, [conversationId, socket.userId, senderType, message]);
       
       const savedMessage = result.rows[0];
+      console.log('Saved message:', savedMessage);
       
       // Emit message to all users in conversation
       io.to(`conversation_${conversationId}`).emit('new_message', {
         conversationId,
         message: savedMessage
       });
+      
+      console.log('Message emitted to conversation:', conversationId);
     } catch (error) {
       console.error('Error sending message:', error);
       socket.emit('message_error', { message: 'Failed to send message' });
