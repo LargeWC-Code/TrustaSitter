@@ -81,11 +81,15 @@ const Chat = () => {
     // Listen for new messages
     const handleNewMessage = (data) => {
       try {
-  
+        console.log('Received new message:', data);
+        console.log('Current conversation:', selectedConversation?.id);
+        console.log('Message conversation:', data.conversationId);
+        console.log('User ID:', user?.id);
+        console.log('Message sender ID:', data.message.sender_id);
         
         // Add message to current conversation if it matches
         if (data.conversationId === selectedConversation?.id) {
-          
+          console.log('Adding message to current conversation');
           setMessages(prev => [...prev, data.message]);
           // Auto-scroll to bottom
           setTimeout(() => {
@@ -95,7 +99,7 @@ const Chat = () => {
             }
           }, 100);
         } else {
-
+          console.log('Message not for current conversation');
         }
         
         // Update conversations list without full refresh
@@ -105,6 +109,7 @@ const Chat = () => {
               // Only increment unread count if message is from other user
               const shouldIncrement = data.message.sender_id !== user?.id;
               const currentUnreadCount = parseInt(conv.unread_count) || 0;
+              console.log('Updating conversation:', conv.id, 'shouldIncrement:', shouldIncrement);
               return {
                 ...conv,
                 last_message: data.message.message,
@@ -418,30 +423,35 @@ const Chat = () => {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            {messages.map((message) => (
-                              <div
-                                key={message.id}
-                                className={`flex ${message.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
-                              >
+                            {messages.map((message) => {
+                              const isOwnMessage = message.sender_id === user.id;
+                              console.log('Message:', message.id, 'Sender:', message.sender_id, 'User:', user.id, 'IsOwn:', isOwnMessage);
+                              
+                              return (
                                 <div
-                                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                                    message.sender_id === user.id
-                                      ? 'bg-blue-500 text-white'
-                                      : 'bg-white text-gray-800 border border-gray-200'
-                                  }`}
+                                  key={message.id}
+                                  className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
                                 >
-                                  <p className="text-sm">{message.message}</p>
-                                  <p className={`text-xs mt-1 ${
-                                    message.sender_id === user.id ? 'text-blue-100' : 'text-gray-500'
-                                  }`}>
-                                    {new Date(message.created_at).toLocaleTimeString([], {
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                  </p>
+                                  <div
+                                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                      isOwnMessage
+                                        ? 'bg-blue-500 text-white'
+                                        : 'bg-white text-gray-800 border border-gray-200'
+                                    }`}
+                                  >
+                                    <p className="text-sm">{message.message}</p>
+                                    <p className={`text-xs mt-1 ${
+                                      isOwnMessage ? 'text-blue-100' : 'text-gray-500'
+                                    }`}>
+                                      {new Date(message.created_at).toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </>
