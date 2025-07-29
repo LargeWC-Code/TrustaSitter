@@ -1,8 +1,19 @@
+// Try to load local configuration
+let localConfig;
+try {
+  localConfig = require('./local');
+} catch (error) {
+  console.error('❌ Local configuration file (config/local.js) not found!');
+  console.error('Please copy config/local.template.js to config/local.js and fill in your configuration.');
+  console.error('Error:', error.message);
+  process.exit(1);
+}
+
 // JWT Configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024';
+const JWT_SECRET = process.env.JWT_SECRET || localConfig.jwtSecret;
 
 // Google Maps API Key
-const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
+const GOOGLE_API_KEY = localConfig.googleMapsApiKey;
 
 // File upload configuration
 const uploadConfig = {

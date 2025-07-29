@@ -1,30 +1,18 @@
 const { Client } = require('pg');
 
-// Database configuration
-const dbConfig = {
-  host: "20.40.73.193",
-  port: 5432,
-  user: "postgres",
-  password: "LargeWC<123456>",
-  database: "postgres",
-  // ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000
-};
+// Try to load local configuration
+let localConfig;
+try {
+  localConfig = require('./local');
+} catch (error) {
+  console.error('❌ Local configuration file (config/local.js) not found!');
+  console.error('Please copy config/local.template.js to config/local.js and fill in your configuration.');
+  console.error('Error:', error.message);
+  process.exit(1);
+}
 
-// Alternative database configuration (commented out)
-/*
-const dbConfig = {
-  host: "10.0.0.4",
-  port: 5432,
-  user: "developer",
-  password: "LargeWC<123456>",
-  database: "postgres",
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000
-};
-*/
+// Database configuration from local config
+const dbConfig = localConfig.database;
 
 // Create and export database client
 const db = new Client(dbConfig);
