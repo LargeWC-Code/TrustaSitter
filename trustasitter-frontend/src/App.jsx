@@ -1,7 +1,6 @@
 // App.jsx – Router setup with Navbar
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { LoadScript } from '@react-google-maps/api';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -25,96 +24,92 @@ import Chat from './pages/Chat';
 import Notifications from './pages/Notifications';
 
 const App = () => {
-  const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
-
   return (
-    <LoadScript googleMapsApiKey={GOOGLE_API_KEY}>
-      <Router>
-        <ScrollToTop />
-        <Navbar />
-        <div className="p-6">
-          <Routes>
-          {/* Admin Login */}
-          <Route path="/admin-login" element={<AdminLogin />} />
+    <Router>
+      <ScrollToTop />
+      <Navbar />
+      <div className="p-6">
+        <Routes>
+        {/* Admin Login */}
+        <Route path="/admin-login" element={<AdminLogin />} />
 
-          {/* Admin Protected */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* Admin Protected */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/choose-role" element={<ChooseRole />} />
-          <Route path="/register-babysitter" element={<RegisterBabysitter />} />
-          <Route path="/register-client" element={<RegisterClient />} />
-          <Route path="/notifications" element={<Notifications />} />
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/choose-role" element={<ChooseRole />} />
+        <Route path="/register-babysitter" element={<RegisterBabysitter />} />
+        <Route path="/register-client" element={<RegisterClient />} />
+        <Route path="/notifications" element={<Notifications />} />
 
-          {/* Protected Routes for Clients */}
-          <Route
-            path="/homeclient"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <HomeClient />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <Bookings />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile-client"
-            element={
-              <ProtectedRoute allowedRoles={["user"]}>
-                <ProfileClient />
-              </ProtectedRoute>
-            }
-          />
+        {/* Protected Routes for Clients */}
+        <Route
+          path="/homeclient"
+          element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <HomeClient />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings"
+          element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <Bookings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile-client"
+          element={
+            <ProtectedRoute allowedRoles={["user"]}>
+              <ProfileClient />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Chat Route - Available for both users and babysitters */}
-          <Route
-            path="/chat"
-            element={
-              <ProtectedRoute allowedRoles={["user", "babysitter"]}>
-                <Chat />
-              </ProtectedRoute>
-            }
-          />
+        {/* Chat Route - Available for both users and babysitters */}
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute allowedRoles={["user", "babysitter"]}>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* Protected Routes for Babysitters */}
-          <Route
-            path="/home-babysitter"
-            element={
-              <ProtectedRoute allowedRoles={["babysitter"]}>
-                <HomeBabysitter />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute allowedRoles={["babysitter"]}>
-                <ProfileBabysitter />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </div>
-      <Footer />
-      <EnvironmentDebug />
-    </Router>
-    </LoadScript>
+        {/* Protected Routes for Babysitters */}
+        <Route
+          path="/home-babysitter"
+          element={
+            <ProtectedRoute allowedRoles={["babysitter"]}>
+              <HomeBabysitter />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={["babysitter"]}>
+              <ProfileBabysitter />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </div>
+    <Footer />
+    <EnvironmentDebug />
+  </Router>
   );
 };
 

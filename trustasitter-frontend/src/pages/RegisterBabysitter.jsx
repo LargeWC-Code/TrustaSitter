@@ -5,6 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import { FaUserNurse } from "react-icons/fa";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import axios from "axios";
+import AddressAutocomplete from "../components/AddressAutocomplete";
 
 
 
@@ -12,7 +13,7 @@ const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
 
 async function fetchAddressByLatLng(lat, lng) {
   console.log('Fetching address for:', lat, lng);
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_API_KEY}`;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&components=country:NZ&key=${GOOGLE_API_KEY}`;
   try {
     const res = await axios.get(url);
     console.log('Geocoding response:', res.data);
@@ -55,6 +56,7 @@ const RegisterBabysitter = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [marker, setMarker] = useState({ lat: -36.8485, lng: 174.7633 }); // Auckland 默认
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
 
   useEffect(() => {
@@ -96,7 +98,52 @@ const RegisterBabysitter = () => {
       }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+      
+      // If address is changed manually, geocode it with debounce
+      if (name === 'address' && value.trim()) {
+        clearTimeout(window.geocodeTimeout);
+        window.geocodeTimeout = setTimeout(() => {
+          geocodeAddress(value);
+        }, 1000); // Wait 1 second after user stops typing
+      }
     }
+  };
+
+  // Geocode address to get coordinates
+  const geocodeAddress = async (address) => {
+    setIsGeocoding(true);
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=${GOOGLE_API_KEY}`;
+    try {
+      const res = await axios.get(url);
+      if (res.data.status === "OK") {
+        const location = res.data.results[0].geometry.location;
+        const lat = location.lat;
+        const lng = location.lng;
+        setMarker({ lat, lng });
+        setFormData((prev) => ({ 
+          ...prev, 
+          latitude: lat, 
+          longitude: lng 
+        }));
+        console.log("Address geocoded successfully:", { lat, lng });
+      }
+    } catch (error) {
+      console.error("Error geocoding address:", error);
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
+
+  // Handle address selection from autocomplete
+  const handleAddressSelect = ({ lat, lng, address }) => {
+    setMarker({ lat, lng });
+    setFormData((prev) => ({ 
+      ...prev, 
+      latitude: lat, 
+      longitude: lng,
+      address 
+    }));
+    console.log("Address selected from autocomplete:", { lat, lng, address });
   };
 
   const handleMapClick = async (e) => {
@@ -242,13 +289,22 @@ const RegisterBabysitter = () => {
             placeholder="Phone Number"
             className="w-full px-4 py-2 border rounded focus:outline-none"
           />
-          <input
-            name="address"
-            value={formData.address || ""}
-            onChange={handleChange}
-            type="text"
-            placeholder="Address"
-            className="w-full px-4 py-2 border rounded focus:outline-none"
+          <AddressAutocomplete
+            value={formData.address}
+            onChange={(e) => {
+              // Create a synthetic event with the correct name
+              const syntheticEvent = {
+                target: {
+                  name: 'address',
+                  value: e.target.value
+                }
+              };
+              handleChange(syntheticEvent);
+            }}
+            onSelect={handleAddressSelect}
+            placeholder="Enter your address"
+            isGeocoding={isGeocoding}
+            hasCoordinates={formData.latitude && formData.longitude}
           />
 
           {/* 地图选点功能 */}

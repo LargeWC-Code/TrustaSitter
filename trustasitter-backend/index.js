@@ -397,7 +397,7 @@ app.post('/api/users/login', async (req, res) => {
 // Client Profile Get
 app.get('/api/users/profile', authMiddleware, async (req, res) => {
   try {
-    const query = `SELECT id, name, email, phone, address, children_count, created_at FROM users WHERE id = $1`;
+    const query = `SELECT id, name, email, phone, address, children_count, latitude, longitude, created_at FROM users WHERE id = $1`;
     const result = await db.query(query, [req.user.id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
@@ -411,7 +411,7 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
 
 // Client Profile Update
 app.put('/api/users/profile', authMiddleware, async (req, res) => {
-  const { name, email, password, phone, children_count, address } = req.body;
+  const { name, email, password, phone, children_count, address, latitude, longitude } = req.body;
   try {
     const queryUser = `SELECT * FROM users WHERE id = $1`;
     const resultUser = await db.query(queryUser, [req.user.id]);
@@ -424,6 +424,8 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
       email: email || existingUser.email,
       phone: phone || existingUser.phone,
       address: address || existingUser.address,
+      latitude: latitude !== undefined ? latitude : existingUser.latitude,
+      longitude: longitude !== undefined ? longitude : existingUser.longitude,
       children_count:
       children_count === "" || children_count === undefined
         ? existingUser.children_count
@@ -443,9 +445,11 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
         password = $3,
         phone = $4,
         children_count = $5,
-        address = $6
-      WHERE id = $7
-      RETURNING id, name, email, phone, children_count, address, created_at;
+        address = $6,
+        latitude = $7,
+        longitude = $8
+      WHERE id = $9
+      RETURNING id, name, email, phone, children_count, address, latitude, longitude, created_at;
     `;
     const values = [
       updates.name,
@@ -454,6 +458,8 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
       updates.phone,
       updates.children_count,
       updates.address,
+      updates.latitude,
+      updates.longitude,
       req.user.id
     ];
     const result = await db.query(queryUpdate, values);
