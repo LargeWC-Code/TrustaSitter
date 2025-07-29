@@ -6,21 +6,6 @@ const app = express();
 require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { Client } = require('pg');
-const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Access token required.' });
-  }
-  const token = authHeader.substring(7);
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024');
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid token.' });
-  }
-};
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const { createServer } = require('http');
@@ -28,16 +13,32 @@ const { Server } = require('socket.io');
 const multer = require('multer');
 const path = require('path');
 
+// Import configurations
+const { db } = require('./config/database');
+const serverConfig = require('./config/server');
+const { JWT_SECRET, uploadConfig } = require('./config/constants');
+
+// Auth middleware
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Access token required.' });
+  }
+  const token = authHeader.substring(7);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid token.' });
+  }
+};
+
 // Create HTTP server
 const server = createServer(app);
 
 // Create Socket.IO server
-const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173", "http://localhost:3000"],
-    methods: ["GET", "POST"]
-  }
-});
+const io = new Server(server, serverConfig.socketIO);
 
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -45,40 +46,21 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Multer config for babysitter reports
 const reportsStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../uploads/reports'));
+    cb(null, path.join(__dirname, uploadConfig.reports.destination));
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext); }
+    cb(null, uniqueSuffix + ext);
+  }
 });
-const uploadReportPhoto = multer({ storage: reportsStorage });
-
-// PostgreSQL client configuration
-
-const db = new Client({
-  host: "20.40.73.193",
-  port: 5432,
-  user: "postgres",
-  password: "LargeWC<123456>",
-  database: "postgres",
-  // ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000
+const uploadReportPhoto = multer({ 
+  storage: reportsStorage,
+  limits: uploadConfig.reports.limits,
+  fileFilter: uploadConfig.reports.fileFilter
 });
 
-/*
-const db = new Client({
-  host: "10.0.0.4",
-  port: 5432,
-  user: "developer",
-  password: "LargeWC<123456>",
-  database: "postgres",
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000
-});
-*/
+// Database connection is now handled in config/database.js
 
 // Connect to PostgreSQL
 db.connect()
@@ -107,27 +89,7 @@ testDatabaseConnection();
 // Middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow any Azure Static Web Apps subdomain and localhost
-    if (
-      !origin ||
-      origin.match(/^https:\/\/proud-field-07cdeb800\.2\.azurestaticapps\.net$/) ||
-      origin.match(/^https:\/\/trustasitter\.azurewebsites\.net$/) ||
-      origin.match(/^https:\/\/trustasitter-api-cwahftcwg4e5axah\.australiaeast-01\.azurewebsites\.net$/) ||
-      origin.match(/^http:\/\/localhost:5173$/) ||
-      origin.match(/^http:\/\/localhost:5174$/) ||
-      origin.match(/^http:\/\/localhost:3000$/)
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors(serverConfig.cors));
 
 // Add request logging middleware (only for errors)
 app.use((req, res, next) => {
@@ -176,7 +138,7 @@ app.post("/api/admin/login", async (req, res) => {
     }
     const token = jwt.sign(
       { id: admin.id, email: admin.email, role: "admin" },
-        process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
+      JWT_SECRET,
       { expiresIn: "8h" }
     );
     res.json({
@@ -341,7 +303,7 @@ app.post('/api/users/register', async (req, res) => {
     const result = await db.query(query, values);
     const token = jwt.sign(
       { id: result.rows[0].id, email: result.rows[0].email, role: 'user' },
-      process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
+      JWT_SECRET,
       { expiresIn: '3h' }
     );
     res.status(201).json({
@@ -387,7 +349,7 @@ app.post('/api/users/login', async (req, res) => {
     }
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
+      JWT_SECRET,
       { expiresIn: '3h' }
     );
     res.status(200).json({
@@ -606,7 +568,7 @@ app.post('/api/babysitters/login', async (req, res) => {
     }
     const token = jwt.sign(
       { id: babysitter.id, email: babysitter.email },
-      process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
+      JWT_SECRET,
       { expiresIn: '3h' }
     );
     res.status(200).json({
@@ -988,7 +950,7 @@ app.post('/api/login', async (req, res) => {
       }
       const token = jwt.sign(
         { id: user.id, email: user.email, role: 'user' },
-        process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
+        JWT_SECRET,
         { expiresIn: '3h' }
       );
       return res.status(200).json({
@@ -1014,7 +976,7 @@ app.post('/api/login', async (req, res) => {
       }
       const token = jwt.sign(
         { id: babysitter.id, email: babysitter.email, role: 'babysitter' },
-        process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024',
+        JWT_SECRET,
         { expiresIn: '3h' }
       );
       return res.status(200).json({
@@ -2247,7 +2209,7 @@ io.on('connection', (socket) => {
   // Authenticate user and join their room
   socket.on('authenticate', async (token) => {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'trustasitter-super-secret-jwt-key-2024');
+      const decoded = jwt.verify(token, JWT_SECRET);
       const userId = decoded.id;
       
       // Store user connection
@@ -2363,9 +2325,8 @@ io.on('connection', (socket) => {
 // Global io for use in routes
 global.io = io;
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+server.listen(serverConfig.port, () => {
+  console.log(`Server is running on port ${serverConfig.port}`);
   console.log(`WebSocket server is ready`);
 });
 
