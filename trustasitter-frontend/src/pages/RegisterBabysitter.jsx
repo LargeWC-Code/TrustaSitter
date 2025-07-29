@@ -1,8 +1,34 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { AuthContext } from "../context/AuthContext";
 import { FaUserNurse } from "react-icons/fa";
+import { GoogleMap, Marker } from "@react-google-maps/api";
+import axios from "axios";
+
+
+
+const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
+
+async function fetchAddressByLatLng(lat, lng) {
+  console.log('Fetching address for:', lat, lng);
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_API_KEY}`;
+  try {
+    const res = await axios.get(url);
+    console.log('Geocoding response:', res.data);
+    if (res.data.status === "OK") {
+      return res.data.results[0]; // 最详细的地址
+    } else {
+      console.log('Geocoding failed with status:', res.data.status);
+      return null;
+    }
+  } catch (error) {
+    console.error('Geocoding request failed:', error);
+    return null;
+  }
+}
+
+
 
 const RegisterBabysitter = () => {
   const { login } = useContext(AuthContext);
@@ -14,7 +40,6 @@ const RegisterBabysitter = () => {
     password: "",
     confirmPassword: "",
     phone: "",
-    region: "",
     rate: "",
     availableDays: [],
     availableFrom: "",
@@ -22,10 +47,36 @@ const RegisterBabysitter = () => {
     about: "",
     profilePicture: null,
     certificates: [],
+    latitude: null,
+    longitude: null,
+    address: "",
   });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [marker, setMarker] = useState({ lat: -36.8485, lng: 174.7633 }); // Auckland 默认
+
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setMarker({ lat, lng });
+          let address = "";
+          const addressResult = await fetchAddressByLatLng(lat, lng);
+          if (addressResult) {
+            address = addressResult.formatted_address;
+          }
+          setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng, address }));
+        },
+        (error) => {
+          // 定位失败，保持默认Auckland
+        }
+      );
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -48,6 +99,18 @@ const RegisterBabysitter = () => {
     }
   };
 
+  const handleMapClick = async (e) => {
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+    setMarker({ lat, lng });
+    let address = "";
+    const addressResult = await fetchAddressByLatLng(lat, lng);
+    if (addressResult) {
+      address = addressResult.formatted_address;
+    }
+    setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng, address }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -58,10 +121,11 @@ const RegisterBabysitter = () => {
       !formData.email ||
       !formData.password ||
       !formData.confirmPassword ||
-      !formData.region ||
       !formData.availableFrom ||
       !formData.availableTo ||
-      !formData.rate
+      !formData.rate ||
+      !formData.latitude ||
+      !formData.longitude
     ) {
       setError("Please fill in all required fields.");
       return;
@@ -79,12 +143,14 @@ const RegisterBabysitter = () => {
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
-        region: formData.region,
         available_days: formData.availableDays,
         available_from: formData.availableFrom,
         available_to: formData.availableTo,
         about: formData.about,
         rate: formData.rate,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        address: formData.address,
       });
 
       // Login babysitter after registration
@@ -176,19 +242,30 @@ const RegisterBabysitter = () => {
             placeholder="Phone Number"
             className="w-full px-4 py-2 border rounded focus:outline-none"
           />
-          <select
-            name="region"
-            value={formData.region}
+          <input
+            name="address"
+            value={formData.address || ""}
             onChange={handleChange}
+            type="text"
+            placeholder="Address"
             className="w-full px-4 py-2 border rounded focus:outline-none"
-          >
-            <option value="">Select Region</option>
-            <option value="Central">Central</option>
-            <option value="East">East</option>
-            <option value="West">West</option>
-            <option value="North">North</option>
-            <option value="South">South</option>
-          </select>
+          />
+
+          {/* 地图选点功能 */}
+          <div>
+            <label className="block text-gray-700 mb-1">Select your location on the map:</label>
+            <GoogleMap
+              mapContainerStyle={{ width: "100%", height: "300px" }}
+              center={marker}
+              zoom={12}
+              onClick={handleMapClick}
+            >
+              <Marker position={marker} />
+            </GoogleMap>
+            <div className="mt-2 text-sm text-gray-600">
+              Latitude: {marker.lat.toFixed(6)}, Longitude: {marker.lng.toFixed(6)}
+            </div>
+          </div>
           <input
             name="rate"
             value={formData.rate}

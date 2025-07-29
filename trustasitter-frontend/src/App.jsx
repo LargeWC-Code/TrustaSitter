@@ -1,6 +1,7 @@
 // App.jsx – Router setup with Navbar
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { LoadScript } from '@react-google-maps/api';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -24,12 +25,15 @@ import Chat from './pages/Chat';
 import Notifications from './pages/Notifications';
 
 const App = () => {
+  const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
+
   return (
-    <Router>
-      <ScrollToTop />
-      <Navbar />
-      <div className="p-6">
-        <Routes>
+    <LoadScript googleMapsApiKey={GOOGLE_API_KEY}>
+      <Router>
+        <ScrollToTop />
+        <Navbar />
+        <div className="p-6">
+          <Routes>
           {/* Admin Login */}
           <Route path="/admin-login" element={<AdminLogin />} />
 
@@ -110,6 +114,7 @@ const App = () => {
       <Footer />
       <EnvironmentDebug />
     </Router>
+    </LoadScript>
   );
 };
 

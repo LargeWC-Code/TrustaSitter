@@ -6,6 +6,10 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 
 import { changeBabysitterPassword } from "../services/api";
+import { GoogleMap, Marker } from "@react-google-maps/api";
+import axios from "axios";
+
+const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
 
 const ProfileBabysitter = () => {
   const { token, user, logout } = useContext(AuthContext);
@@ -15,12 +19,14 @@ const ProfileBabysitter = () => {
     name: "",
     email: "",
     phone: "",
-    region: "",
     rate: "",
     available_days: [],
     available_from: "",
     available_to: "",
-    about: ""
+    about: "",
+    latitude: null,
+    longitude: null,
+    address: ""
   });
 
   const [showSuccess, setShowSuccess] = useState(false);
@@ -31,6 +37,9 @@ const ProfileBabysitter = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+  const [marker, setMarker] = useState(null);
+
 
   // Fetch profile on mount
   useEffect(() => {
@@ -43,13 +52,18 @@ const ProfileBabysitter = () => {
           name: res.data.name || "",
           email: res.data.email || "",
           phone: res.data.phone || "",
-          region: res.data.region || "",
           rate: res.data.rate || "",
           available_days: res.data.available_days || [],
           available_from: res.data.available_from || "",
           available_to: res.data.available_to || "",
-          about: res.data.about || ""
+          about: res.data.about || "",
+          latitude: res.data.latitude,
+          longitude: res.data.longitude,
+          address: res.data.address || ""
         });
+        if (res.data.latitude && res.data.longitude) {
+          setMarker({ lat: res.data.latitude, lng: res.data.longitude });
+        }
       } catch (error) {
         console.error("Error fetching profile:", error);
       }
@@ -57,6 +71,26 @@ const ProfileBabysitter = () => {
 
     fetchProfile();
   }, [token]);
+
+  // 地图选点和逆地理编码
+  async function fetchAddressByLatLng(lat, lng) {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_API_KEY}`;
+    try {
+      const res = await axios.get(url);
+      if (res.data.status === "OK") {
+        return res.data.results[0].formatted_address;
+      }
+    } catch (e) {}
+    return "";
+  }
+
+  const handleMapClick = async (e) => {
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+    setMarker({ lat, lng });
+    const address = await fetchAddressByLatLng(lat, lng);
+    setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng, address }));
+  };
 
   // Handle form changes
   const handleChange = (e) => {
@@ -171,19 +205,7 @@ const ProfileBabysitter = () => {
             placeholder="Phone Number"
             className="w-full px-4 py-2 border rounded"
           />
-          <select
-            name="region"
-            value={formData.region}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
-          >
-            <option value="">Select Region</option>
-            <option value="Central">Central</option>
-            <option value="East">East</option>
-            <option value="West">West</option>
-            <option value="North">North</option>
-            <option value="South">South</option>
-          </select>
+
           <input
             name="rate"
             value={formData.rate}
@@ -240,6 +262,31 @@ const ProfileBabysitter = () => {
             className="w-full px-4 py-2 border rounded"
             rows="3"
           />
+
+          <input
+            name="address"
+            value={formData.address || ""}
+            onChange={handleChange}
+            type="text"
+            placeholder="Address"
+            className="w-full px-4 py-2 border rounded"
+          />
+          <div>
+            <label className="block text-gray-700 mb-1">Select your location on the map:</label>
+            <GoogleMap
+              mapContainerStyle={{ width: "100%", height: "300px" }}
+              center={marker || { lat: -36.8485, lng: 174.7633 }}
+              zoom={marker ? 13 : 11}
+              onClick={handleMapClick}
+            >
+              {marker && <Marker position={marker} />}
+            </GoogleMap>
+            {marker && (
+              <div className="mt-2 text-sm text-gray-600">
+                Latitude: {marker.lat.toFixed(6)}, Longitude: {marker.lng.toFixed(6)}
+              </div>
+            )}
+          </div>
 
           <button
             type="submit"

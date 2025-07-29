@@ -16,7 +16,6 @@ const RegisterClient = () => {
     email: "",
     phone: "",
     address: "",
-    region: "",
     children_count: "",
     password: "",
     confirmPassword: "",
@@ -63,7 +62,6 @@ const RegisterClient = () => {
         password: formData.password,
         phone: formData.phone,
         address: formData.address,
-        region: formData.region,
         children: formData.children_count,
       });
 
@@ -110,75 +108,95 @@ const RegisterClient = () => {
 
         {/* Registration form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Full Name"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          />
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="Email Address"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          />
-          <input
-            type="text"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            placeholder="Phone Number"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          />
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            placeholder="Street Address"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          />
-          <select
-            name="region"
-            value={formData.region}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          >
-            <option value="">Select Region</option>
-            <option value="Central">Central</option>
-            <option value="East">East</option>
-            <option value="West">West</option>
-            <option value="North">North</option>
-            <option value="South">South</option>
-          </select>
-          <input
-            type="number"
-            name="children_count"
-            value={formData.children_count}
-            onChange={handleChange}
-            placeholder="Number of Children"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          />
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            placeholder="Password"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            placeholder="Confirm Password"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none"
-          />
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Full Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your full name"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none"
+            />
+
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email address"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none"
+            />
+
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Phone Number</label>
+            <input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none"
+            />
+
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Address</label>
+            <input
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              placeholder="Enter your home address"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none"
+            />
+
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Number of Children</label>
+            <input
+              type="number"
+              name="children_count"
+              value={formData.children_count}
+              onChange={handleChange}
+              placeholder="How many children do you have?"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none"
+            />
+
+          </div>
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a secure password"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none"
+            />
+
+          </div>
+
+          <div>
+            <label className="block mb-1 text-gray-700 font-medium">Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter your password"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none"
+            />
+
+          </div>
 
           <button
             type="submit"
