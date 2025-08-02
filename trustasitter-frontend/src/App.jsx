@@ -22,14 +22,16 @@ import AdminLogin from './pages/AdminLogin';
 import EnvironmentDebug from './components/EnvironmentDebug';
 import Chat from './pages/Chat';
 import Notifications from './pages/Notifications';
+import GoogleMapsLoader from './components/GoogleMapsLoader';
 
 const App = () => {
   return (
     <Router>
       <ScrollToTop />
       <Navbar />
-      <div className="p-6">
-        <Routes>
+      <GoogleMapsLoader>
+        <div className="p-6">
+          <Routes>
         {/* Admin Login */}
         <Route path="/admin-login" element={<AdminLogin />} />
 
@@ -105,11 +107,12 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-      </Routes>
-    </div>
-    <Footer />
-    <EnvironmentDebug />
-  </Router>
+              </Routes>
+      </div>
+      </GoogleMapsLoader>
+      <Footer />
+      <EnvironmentDebug />
+    </Router>
   );
 };
 

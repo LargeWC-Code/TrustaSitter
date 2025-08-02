@@ -12,11 +12,12 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const multer = require('multer');
 const path = require('path');
+const axios = require('axios');
 
 // Import configurations
 const { db } = require('./config/database');
 const serverConfig = require('./config/server');
-const { JWT_SECRET, uploadConfig } = require('./config/constants');
+const { JWT_SECRET, uploadConfig, GOOGLE_API_KEY, GOOGLE_FRONTEND_API_KEY } = require('./config/constants');
 
 // Auth middleware
 const authMiddleware = (req, res, next) => {
@@ -1748,6 +1749,16 @@ app.post('/api/test-login', (req, res) => {
 });
 
 /* -----------------------------------
+   Google Maps API Key Endpoint
+   (Returns restricted key for frontend map display only)
+----------------------------------- */
+app.get('/api/config/google-maps-key', (req, res) => {
+  res.json({
+    apiKey: GOOGLE_FRONTEND_API_KEY
+  });
+});
+
+/* -----------------------------------
    Root Endpoint
 ----------------------------------- */
 app.get('/', (req, res) => {
@@ -2409,3 +2420,62 @@ async function sendBookingReminderNotifications(bookingId, reminderType = '12h')
     console.error('Error sending booking reminder notifications:', error);
   }
 }
+
+/* -----------------------------------
+   Google Maps API Proxy Endpoints
+   (More secure than exposing API key to frontend)
+----------------------------------- */
+
+// Geocoding proxy endpoint
+app.get('/api/google/geocode', async (req, res) => {
+  try {
+    const { address } = req.query;
+    if (!address) {
+      return res.status(400).json({ error: 'Address parameter is required' });
+    }
+
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=${GOOGLE_API_KEY}`;
+    const response = await axios.get(url);
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('Geocoding error:', error);
+    res.status(500).json({ error: 'Geocoding failed' });
+  }
+});
+
+// Places Autocomplete proxy endpoint
+app.get('/api/google/places/autocomplete', async (req, res) => {
+  try {
+    const { input } = req.query;
+    if (!input) {
+      return res.status(400).json({ error: 'Input parameter is required' });
+    }
+
+    const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(input)}&types=address&components=country:nz&key=${GOOGLE_API_KEY}`;
+    const response = await axios.get(url);
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('Places autocomplete error:', error);
+    res.status(500).json({ error: 'Places autocomplete failed' });
+  }
+});
+
+// Place Details proxy endpoint
+app.get('/api/google/places/details', async (req, res) => {
+  try {
+    const { place_id } = req.query;
+    if (!place_id) {
+      return res.status(400).json({ error: 'Place ID parameter is required' });
+    }
+
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=formatted_address,geometry,place_id&key=${GOOGLE_API_KEY}`;
+    const response = await axios.get(url);
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('Place details error:', error);
+    res.status(500).json({ error: 'Place details failed' });
+  }
+});

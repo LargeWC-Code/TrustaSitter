@@ -231,3 +231,52 @@ export const deleteNotification = async (token, notificationType, notificationId
   });
   return response.data;
 };
+
+// Get Google Maps API Key from backend
+export const getGoogleMapsApiKey = async () => {
+  try {
+    const response = await api.get('/config/google-maps-key');
+    return response.data.apiKey;
+  } catch (error) {
+    console.error('Error fetching Google Maps API key:', error);
+    // Fallback to a default key or throw error
+    throw new Error('Failed to fetch Google Maps API key');
+  }
+};
+
+// Google Maps API proxy functions (more secure)
+export const geocodeAddress = async (address) => {
+  try {
+    const response = await api.get('/google/geocode', {
+      params: { address }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error geocoding address:', error);
+    throw error;
+  }
+};
+
+export const getPlacesAutocomplete = async (input) => {
+  try {
+    const response = await api.get('/google/places/autocomplete', {
+      params: { input }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting places autocomplete:', error);
+    throw error;
+  }
+};
+
+export const getPlaceDetails = async (placeId) => {
+  try {
+    const response = await api.get('/google/places/details', {
+      params: { place_id: placeId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting place details:', error);
+    throw error;
+  }
+};

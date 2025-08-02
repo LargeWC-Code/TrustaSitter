@@ -5,11 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { updateClientProfile, deleteClientAccount } from "../services/api";
 import { api } from "../services/api";
 import AddressAutocomplete from "../components/AddressAutocomplete";
+import { useGoogleMapsApiKey } from "../hooks/useGoogleMapsApiKey";
+import { geocodeAddress } from '../services/api';
 
 
 const ProfileClient = () => {
   const { token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { apiKey: GOOGLE_API_KEY, loading: apiKeyLoading, error: apiKeyError } = useGoogleMapsApiKey();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -59,18 +62,16 @@ const ProfileClient = () => {
     if (name === 'address' && value.trim()) {
       clearTimeout(window.geocodeTimeout);
       window.geocodeTimeout = setTimeout(() => {
-        geocodeAddress(value);
+        handleGeocodeAddress(value);
       }, 1000); // Wait 1 second after user stops typing
     }
   };
 
   // Geocode address to get coordinates
-  const geocodeAddress = async (address) => {
+  const handleGeocodeAddress = async (address) => {
     setIsGeocoding(true);
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4`;
     try {
-      const res = await fetch(url);
-      const data = await res.json();
+      const data = await geocodeAddress(address);
       if (data.status === "OK") {
         const location = data.results[0].geometry.location;
         const lat = location.lat;

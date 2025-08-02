@@ -14,6 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || localConfig.jwtSecret;
 
 // Google Maps API Key
 const GOOGLE_API_KEY = localConfig.googleMapsApiKey;
+const GOOGLE_FRONTEND_API_KEY = localConfig.googleMapsFrontendKey;
 
 // File upload configuration
 const uploadConfig = {
@@ -66,6 +67,7 @@ const USER_ROLES = {
 module.exports = {
   JWT_SECRET,
   GOOGLE_API_KEY,
+  GOOGLE_FRONTEND_API_KEY,
   uploadConfig,
   NOTIFICATION_TYPES,
   BOOKING_STATUSES,

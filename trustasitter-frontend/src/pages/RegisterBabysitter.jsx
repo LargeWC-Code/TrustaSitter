@@ -9,9 +9,15 @@ import AddressAutocomplete from "../components/AddressAutocomplete";
 
 
 
-const GOOGLE_API_KEY = "AIzaSyBVW-pAsL7J590t7Y1uM8Y4tlcNvSdy0O4";
+import { useGoogleMapsApiKey } from "../hooks/useGoogleMapsApiKey";
+import { geocodeAddress } from '../services/api';
 
-async function fetchAddressByLatLng(lat, lng) {
+const RegisterBabysitter = () => {
+  const { login } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const { apiKey: GOOGLE_API_KEY, loading: apiKeyLoading, error: apiKeyError } = useGoogleMapsApiKey();
+
+  const fetchAddressByLatLng = async (lat, lng) => {
   console.log('Fetching address for:', lat, lng);
   const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&components=country:NZ&key=${GOOGLE_API_KEY}`;
   try {
@@ -30,10 +36,6 @@ async function fetchAddressByLatLng(lat, lng) {
 }
 
 
-
-const RegisterBabysitter = () => {
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -103,27 +105,26 @@ const RegisterBabysitter = () => {
       if (name === 'address' && value.trim()) {
         clearTimeout(window.geocodeTimeout);
         window.geocodeTimeout = setTimeout(() => {
-          geocodeAddress(value);
+          handleGeocodeAddress(value);
         }, 1000); // Wait 1 second after user stops typing
       }
     }
   };
 
   // Geocode address to get coordinates
-  const geocodeAddress = async (address) => {
+  const handleGeocodeAddress = async (address) => {
     setIsGeocoding(true);
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=${GOOGLE_API_KEY}`;
     try {
-      const res = await axios.get(url);
-      if (res.data.status === "OK") {
-        const location = res.data.results[0].geometry.location;
+      const data = await geocodeAddress(address);
+      if (data.status === "OK") {
+        const location = data.results[0].geometry.location;
         const lat = location.lat;
         const lng = location.lng;
         setMarker({ lat, lng });
-        setFormData((prev) => ({ 
-          ...prev, 
-          latitude: lat, 
-          longitude: lng 
+        setFormData((prev) => ({
+          ...prev,
+          latitude: lat,
+          longitude: lng
         }));
         console.log("Address geocoded successfully:", { lat, lng });
       }
@@ -229,6 +230,33 @@ const RegisterBabysitter = () => {
       );
     }
   };
+
+  // Show loading state while API key is being fetched
+  if (apiKeyLoading) {
+    return (
+      <div className="flex items-start justify-center min-h-[80vh] bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+            <p className="mt-4 text-gray-600">Loading Google Maps...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if API key fetch failed
+  if (apiKeyError) {
+    return (
+      <div className="flex items-start justify-center min-h-[80vh] bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
+          <div className="flex flex-col items-center">
+            <p className="text-red-600">Error loading Google Maps. Please refresh the page.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-start justify-center min-h-[80vh] bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
