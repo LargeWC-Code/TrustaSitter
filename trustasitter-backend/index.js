@@ -2426,17 +2426,26 @@ async function sendBookingReminderNotifications(bookingId, reminderType = '12h')
    (More secure than exposing API key to frontend)
 ----------------------------------- */
 
-// Geocoding proxy endpoint
+// Geocoding proxy endpoint (supports both address and latlng)
 app.get('/api/google/geocode', async (req, res) => {
   try {
-    const { address } = req.query;
-    if (!address) {
-      return res.status(400).json({ error: 'Address parameter is required' });
+    const { address, latlng } = req.query;
+    
+    if (!address && !latlng) {
+      return res.status(400).json({ error: 'Either address or latlng parameter is required' });
     }
 
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=${GOOGLE_API_KEY}`;
-    const response = await axios.get(url);
+    let url;
+    if (address) {
+      // Forward geocoding (address to coordinates)
+      url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=country:NZ&key=${GOOGLE_API_KEY}`;
+    } else {
+      // Reverse geocoding (coordinates to address) - request more detailed results
+      url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${encodeURIComponent(latlng)}&key=${GOOGLE_API_KEY}`;
+    }
     
+    const response = await axios.get(url);
+    console.log('Google Maps API response:', response.data);
     res.json(response.data);
   } catch (error) {
     console.error('Geocoding error:', error);

@@ -6,36 +6,13 @@ import { FaUserNurse } from "react-icons/fa";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import axios from "axios";
 import AddressAutocomplete from "../components/AddressAutocomplete";
-
-
-
-import { useGoogleMapsApiKey } from "../hooks/useGoogleMapsApiKey";
 import { geocodeAddress } from '../services/api';
+import { useGoogleMaps } from '../hooks/useGoogleMaps';
 
 const RegisterBabysitter = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-  const { apiKey: GOOGLE_API_KEY, loading: apiKeyLoading, error: apiKeyError } = useGoogleMapsApiKey();
-
-  const fetchAddressByLatLng = async (lat, lng) => {
-  console.log('Fetching address for:', lat, lng);
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&components=country:NZ&key=${GOOGLE_API_KEY}`;
-  try {
-    const res = await axios.get(url);
-    console.log('Geocoding response:', res.data);
-    if (res.data.status === "OK") {
-      return res.data.results[0]; // 最详细的地址
-    } else {
-      console.log('Geocoding failed with status:', res.data.status);
-      return null;
-    }
-  } catch (error) {
-    console.error('Geocoding request failed:', error);
-    return null;
-  }
-}
-
-
+  const { isLoaded, isLoading, error: mapsError } = useGoogleMaps();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -55,7 +32,7 @@ const RegisterBabysitter = () => {
     address: "",
   });
 
-  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
   const [success, setSuccess] = useState("");
   const [marker, setMarker] = useState({ lat: -36.8485, lng: 174.7633 }); // Auckland 默认
   const [isGeocoding, setIsGeocoding] = useState(false);
@@ -68,12 +45,7 @@ const RegisterBabysitter = () => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
           setMarker({ lat, lng });
-          let address = "";
-          const addressResult = await fetchAddressByLatLng(lat, lng);
-          if (addressResult) {
-            address = addressResult.formatted_address;
-          }
-          setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng, address }));
+          setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
         },
         (error) => {
           // 定位失败，保持默认Auckland
@@ -151,17 +123,35 @@ const RegisterBabysitter = () => {
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
     setMarker({ lat, lng });
-    let address = "";
-    const addressResult = await fetchAddressByLatLng(lat, lng);
-    if (addressResult) {
-      address = addressResult.formatted_address;
+    
+    // Get address from coordinates using backend proxy
+    try {
+      const response = await api.get('/google/geocode', {
+        params: { 
+          latlng: `${lat},${lng}`
+        }
+      });
+      
+      if (response.data.status === 'OK' && response.data.results.length > 0) {
+        const address = response.data.results[0].formatted_address;
+        setFormData((prev) => ({ 
+          ...prev, 
+          latitude: lat, 
+          longitude: lng,
+          address 
+        }));
+      } else {
+        setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+      }
+    } catch (error) {
+      console.error('Error getting address from coordinates:', error);
+      setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
     }
-    setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng, address }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setFormError("");
     setSuccess("");
 
     if (
@@ -175,12 +165,12 @@ const RegisterBabysitter = () => {
       !formData.latitude ||
       !formData.longitude
     ) {
-      setError("Please fill in all required fields.");
+      setFormError("Please fill in all required fields.");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      setFormError("Passwords do not match.");
       return;
     }
 
@@ -224,15 +214,15 @@ const RegisterBabysitter = () => {
       navigate("/home-babysitter");
     } catch (err) {
       console.error(err);
-      setError(
+      setFormError(
         err.response?.data?.error ||
           "Failed to create account. Please try again."
       );
     }
   };
 
-  // Show loading state while API key is being fetched
-  if (apiKeyLoading) {
+  // Show loading state while Google Maps is being loaded
+  if (isLoading) {
     return (
       <div className="flex items-start justify-center min-h-[80vh] bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
         <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
@@ -245,8 +235,8 @@ const RegisterBabysitter = () => {
     );
   }
 
-  // Show error state if API key fetch failed
-  if (apiKeyError) {
+  // Show error state if Google Maps failed to load
+  if (mapsError) {
     return (
       <div className="flex items-start justify-center min-h-[80vh] bg-gradient-to-b from-purple-100 via-white to-purple-100 px-4 pt-20 pb-20">
         <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
@@ -269,8 +259,8 @@ const RegisterBabysitter = () => {
           </p>
         </div>
 
-        {error && (
-          <p className="text-red-500 text-center mb-4">{error}</p>
+        {formError && (
+          <p className="text-red-500 text-center mb-4">{formError}</p>
         )}
         {success && (
           <p className="text-green-600 text-center mb-4">{success}</p>
@@ -338,14 +328,26 @@ const RegisterBabysitter = () => {
           {/* 地图选点功能 */}
           <div>
             <label className="block text-gray-700 mb-1">Select your location on the map:</label>
-            <GoogleMap
-              mapContainerStyle={{ width: "100%", height: "300px" }}
-              center={marker}
-              zoom={12}
-              onClick={handleMapClick}
-            >
-              <Marker position={marker} />
-            </GoogleMap>
+            {isLoading && (
+              <div className="w-full h-[300px] bg-gray-100 flex items-center justify-center">
+                <div className="text-gray-600">Loading Google Maps...</div>
+              </div>
+            )}
+            {mapsError && (
+              <div className="w-full h-[300px] bg-red-50 flex items-center justify-center">
+                <div className="text-red-600">Error loading Google Maps: {mapsError}</div>
+              </div>
+            )}
+            {isLoaded && !mapsError && (
+              <GoogleMap
+                mapContainerStyle={{ width: "100%", height: "300px" }}
+                center={marker}
+                zoom={12}
+                onClick={handleMapClick}
+              >
+                <Marker position={marker} />
+              </GoogleMap>
+            )}
             <div className="mt-2 text-sm text-gray-600">
               Latitude: {marker.lat.toFixed(6)}, Longitude: {marker.lng.toFixed(6)}
             </div>

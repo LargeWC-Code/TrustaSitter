@@ -5,14 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { updateClientProfile, deleteClientAccount } from "../services/api";
 import { api } from "../services/api";
 import AddressAutocomplete from "../components/AddressAutocomplete";
-import { useGoogleMapsApiKey } from "../hooks/useGoogleMapsApiKey";
 import { geocodeAddress } from '../services/api';
+import { useGoogleMaps } from '../hooks/useGoogleMaps';
 
 
 const ProfileClient = () => {
   const { token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const { apiKey: GOOGLE_API_KEY, loading: apiKeyLoading, error: apiKeyError } = useGoogleMapsApiKey();
+  const { isLoaded, isLoading, error: mapsError } = useGoogleMaps();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -28,7 +28,7 @@ const ProfileClient = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
 
   // Fetch client profile data on mount using the token for authentication
@@ -103,19 +103,19 @@ const ProfileClient = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+          setFormError("");
 
     if (formData.newPassword || formData.confirmPassword || formData.currentPassword) {
       if (!formData.currentPassword) {
-        setError("Please enter your current password to change it.");
+        setFormError("Please enter your current password to change it.");
         return;
       }
       if (!formData.newPassword || !formData.confirmPassword) {
-        setError("Please fill in all password fields.");
+        setFormError("Please fill in all password fields.");
         return;
       }
       if (formData.newPassword !== formData.confirmPassword) {
-        setError("New passwords do not match.");
+        setFormError("New passwords do not match.");
         return;
       }
     }
@@ -157,9 +157,9 @@ const ProfileClient = () => {
     } catch (err) {
       console.error(err);
       if (err.response?.data?.error) {
-        setError(err.response.data.error);
+        setFormError(err.response.data.error);
       } else {
-        setError("Failed to update profile.");
+                  setFormError("Failed to update profile.");
       }
     }
   };
@@ -185,8 +185,8 @@ const ProfileClient = () => {
             <span>Profile updated successfully!</span>
           </div>
         )}
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-center">{error}</div>
+        {formError && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-center">{formError}</div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

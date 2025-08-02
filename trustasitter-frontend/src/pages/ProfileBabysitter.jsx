@@ -9,14 +9,13 @@ import { changeBabysitterPassword } from "../services/api";
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import axios from "axios";
 import AddressAutocomplete from "../components/AddressAutocomplete";
-
-import { useGoogleMapsApiKey } from "../hooks/useGoogleMapsApiKey";
 import { geocodeAddress } from '../services/api';
+import { useGoogleMaps } from '../hooks/useGoogleMaps';
 
 const ProfileBabysitter = () => {
-  const { apiKey: GOOGLE_API_KEY, loading: apiKeyLoading, error: apiKeyError } = useGoogleMapsApiKey();
   const { token, user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { isLoaded, isLoading, error: mapsError } = useGoogleMaps();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -77,24 +76,34 @@ const ProfileBabysitter = () => {
     fetchProfile();
   }, [token]);
 
-  // 地图选点和逆地理编码
-  async function fetchAddressByLatLng(lat, lng) {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&components=country:NZ&key=${GOOGLE_API_KEY}`;
-    try {
-      const res = await axios.get(url);
-      if (res.data.status === "OK") {
-        return res.data.results[0].formatted_address;
-      }
-    } catch (e) {}
-    return "";
-  }
-
   const handleMapClick = async (e) => {
     const lat = e.latLng.lat();
     const lng = e.latLng.lng();
     setMarker({ lat, lng });
-    const address = await fetchAddressByLatLng(lat, lng);
-    setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng, address }));
+    
+    // Get address from coordinates using backend proxy
+    try {
+      const response = await api.get('/google/geocode', {
+        params: { 
+          latlng: `${lat},${lng}`
+        }
+      });
+      
+      if (response.data.status === 'OK' && response.data.results.length > 0) {
+        const address = response.data.results[0].formatted_address;
+        setFormData((prev) => ({ 
+          ...prev, 
+          latitude: lat, 
+          longitude: lng,
+          address 
+        }));
+      } else {
+        setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+      }
+    } catch (error) {
+      console.error('Error getting address from coordinates:', error);
+      setFormData((prev) => ({ ...prev, latitude: lat, longitude: lng }));
+    }
   };
 
   // Handle form changes
@@ -331,14 +340,26 @@ const ProfileBabysitter = () => {
           />
           <div>
             <label className="block text-gray-700 mb-1">Select your location on the map:</label>
-            <GoogleMap
-              mapContainerStyle={{ width: "100%", height: "300px" }}
-              center={marker || { lat: -36.8485, lng: 174.7633 }}
-              zoom={marker ? 13 : 11}
-              onClick={handleMapClick}
-            >
-              {marker && <Marker position={marker} />}
-            </GoogleMap>
+            {isLoading && (
+              <div className="w-full h-[300px] bg-gray-100 flex items-center justify-center">
+                <div className="text-gray-600">Loading Google Maps...</div>
+              </div>
+            )}
+            {mapsError && (
+              <div className="w-full h-[300px] bg-red-50 flex items-center justify-center">
+                <div className="text-red-600">Error loading Google Maps: {mapsError}</div>
+              </div>
+            )}
+            {isLoaded && !mapsError && (
+              <GoogleMap
+                mapContainerStyle={{ width: "100%", height: "300px" }}
+                center={marker || { lat: -36.8485, lng: 174.7633 }}
+                zoom={marker ? 13 : 11}
+                onClick={handleMapClick}
+              >
+                {marker && <Marker position={marker} />}
+              </GoogleMap>
+            )}
             {marker && (
               <div className="mt-2 text-sm text-gray-600">
                 Latitude: {marker.lat.toFixed(6)}, Longitude: {marker.lng.toFixed(6)}

@@ -3,10 +3,12 @@ import React, { useEffect, useState } from "react";
 import { api } from "../services/api";
 import { GoogleMap, Marker, InfoWindow } from "@react-google-maps/api";
 import { FaMapMarkerAlt, FaSearch, FaFilter, FaTimes, FaSync } from "react-icons/fa";
+import { useGoogleMaps } from '../hooks/useGoogleMaps';
 
 
 
 const Search = () => {
+  const { isLoaded, isLoading, error: mapsError } = useGoogleMaps();
   const [babysitters, setBabysitters] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -297,12 +299,23 @@ const Search = () => {
 
       {/* Map Section - Always show */}
       <div className="max-w-4xl mx-auto mb-8">
-        <GoogleMap
-          mapContainerStyle={{ width: "100%", height: "350px" }}
-          center={mapCenter}
-          zoom={userLocation ? 9 : 11}
-          onClick={handleMapClick}
-        >
+        {isLoading && (
+          <div className="w-full h-[350px] bg-gray-100 flex items-center justify-center">
+            <div className="text-gray-600">Loading Google Maps...</div>
+          </div>
+        )}
+        {mapsError && (
+          <div className="w-full h-[350px] bg-red-50 flex items-center justify-center">
+            <div className="text-red-600">Error loading Google Maps: {mapsError}</div>
+          </div>
+        )}
+        {isLoaded && !mapsError && (
+          <GoogleMap
+            mapContainerStyle={{ width: "100%", height: "350px" }}
+            center={mapCenter}
+            zoom={userLocation ? 9 : 11}
+            onClick={handleMapClick}
+          >
             {userLocation && (
               <Marker
                 key={`user-${userLocation.lat}-${userLocation.lng}`}
@@ -348,6 +361,7 @@ const Search = () => {
               </InfoWindow>
                           )}
             </GoogleMap>
+          )}
             
             {/* Update Location Button - Below Map */}
             <div className="flex justify-center mt-4">
