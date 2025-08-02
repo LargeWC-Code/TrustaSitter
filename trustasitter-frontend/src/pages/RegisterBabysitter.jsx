@@ -325,7 +325,7 @@ const RegisterBabysitter = () => {
             hasCoordinates={formData.latitude && formData.longitude}
           />
 
-          {/* 地图选点功能 */}
+          {/* */}
           <div>
             <label className="block text-gray-700 mb-1">Select your location on the map:</label>
             {isLoading && (

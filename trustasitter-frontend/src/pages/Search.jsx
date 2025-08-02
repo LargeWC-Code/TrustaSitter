@@ -322,7 +322,7 @@ const Search = () => {
                 position={userLocation}
                 icon={{
                   url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                  scaledSize: new google.maps.Size(30, 30),
+                  scaledSize: window.google?.maps ? new window.google.maps.Size(30, 30) : undefined,
                 }}
               />
             )}
@@ -331,7 +331,7 @@ const Search = () => {
                 position={selectedLocation}
                 icon={{
                   url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                  scaledSize: new google.maps.Size(30, 30),
+                  scaledSize: window.google?.maps ? new window.google.maps.Size(30, 30) : undefined,
                 }}
               />
             )}
