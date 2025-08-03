@@ -12,7 +12,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://20.58.138.202:3000',
+        target: 'https://largewc.org:3000',
         changeOrigin: true,
         secure: false
       }
