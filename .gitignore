@@ -32,3 +32,5 @@ dist-ssr
 .lh/
 /trustasitter-backend/install/privkey.pem
 /trustasitter-backend/install/fullchain.pem
+/trustasitter-backend/ssl/fullchain.pem
+/trustasitter-backend/ssl/privkey.pem

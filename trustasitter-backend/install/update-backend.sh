@@ -8,11 +8,11 @@ sudo git reset --hard
 sudo git pull origin main
 
 # install
-sudo npm install
-sudo npm update
+sudo -u developer npm install
+sudo -u developer npm update
 
 # restart PM2
-pm2 restart trustasitter-backend || pm2 start index.js --name trustasitter-backend
+sudo -u developer pm2 restart trustasitter-backend || pm2 start ssl-server.js --name trustasitter-backend
 
 echo "Update complete!"
 exit 0
