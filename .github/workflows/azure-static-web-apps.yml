@@ -38,7 +38,7 @@ jobs:
         env:
           VITE_API_URL: "http://20.58.138.202:3000/api"
         with:
-          azure_static_web_apps_api_token: 260161fafced70d51e25c8aa5b23415d40841639722d6ed64a18e63e31de75ff02-1a06530a-3067-481e-b2fd-5c73da45a5e6000060508e8ea700
+          azure_static_web_apps_api_token: "260161fafced70d51e25c8aa5b23415d40841639722d6ed64a18e63e31de75ff02-1a06530a-3067-481e-b2fd-5c73da45a5e6000060508e8ea700"
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
