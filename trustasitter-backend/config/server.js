@@ -3,13 +3,13 @@ const serverConfig = {
   port: process.env.PORT || 3000,
   cors: {
     origin: (origin, callback) => {
-      // Allow any Azure Static Web Apps subdomain, localhost, and Azure VM
+      // Allow any Azure Static Web Apps subdomain, localhost, and backend domain
       if (
         !origin ||
         origin.includes('azurestaticapps.net') ||
         origin.includes('localhost') ||
         origin.includes('127.0.0.1') ||
-        origin.includes('20.58.138.202')
+        origin.includes('largewc.org')
       ) {
         callback(null, true);
       } else {
@@ -20,7 +20,7 @@ const serverConfig = {
   },
   socketIO: {
     cors: {
-      origin: ["http://localhost:5173", "http://localhost:3000", "http://20.58.138.202:3000"],
+      origin: ["http://localhost:5173", "http://localhost:3000", "https://largewc.org"],
       methods: ["GET", "POST"]
     }
   }
