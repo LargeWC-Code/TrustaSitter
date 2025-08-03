@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../services/api";
+import StressTest from "../components/StressTest";
 
 const AdminDashboard = () => {
   const { token } = useContext(AuthContext);
@@ -15,6 +16,7 @@ const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const [confirmModal, setConfirmModal] = useState({
     visible: false,
@@ -153,143 +155,179 @@ const AdminDashboard = () => {
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-12 px-6">
         <h1 className="text-3xl font-bold mb-8 text-center">Admin Dashboard</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-          {[
-            { label: "Clients", count: summary.usersCount },
-            { label: "Babysitters", count: summary.babysittersCount },
-            { label: "Total Bookings", count: summary.bookingsCount },
-            { label: "Pending Bookings", count: summary.pendingBookings },
-          ].map((item) => (
-            <div key={item.label} className="bg-white p-4 rounded shadow text-center">
-              <h2 className="text-xl font-semibold text-gray-800">{item.label}</h2>
-              <p className="text-3xl text-purple-600">{item.count}</p>
-            </div>
-          ))}
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-lg shadow p-1">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`px-6 py-3 rounded-md font-medium transition-colors ${
+                activeTab === 'dashboard'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              📊 Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('stress-test')}
+              className={`px-6 py-3 rounded-md font-medium transition-colors ${
+                activeTab === 'stress-test'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              🚀 Stress Test
+            </button>
+          </div>
         </div>
 
-        {/* Bookings */}
-        <div className="bg-white p-4 rounded shadow mb-8">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">All Bookings</h2>
-          {bookings.length === 0 ? (
-            <p className="text-gray-600">No bookings found.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border">
-                <thead>
-                  <tr className="bg-purple-100">
-                    <th className="py-2 px-4 border">ID</th>
-                    <th className="py-2 px-4 border">Client</th>
-                    <th className="py-2 px-4 border">Babysitter</th>
-                    <th className="py-2 px-4 border">Date</th>
-                    <th className="py-2 px-4 border">Status</th>
-                    <th className="py-2 px-4 border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((b) => (
-                    <tr key={b.id} className="hover:bg-purple-50">
-                      <td className="py-2 px-4 border">{b.id}</td>
-                      <td className="py-2 px-4 border">{b.client_name}</td>
-                      <td className="py-2 px-4 border">{b.babysitter_name}</td>
-                      <td className="py-2 px-4 border">{new Date(b.date).toLocaleDateString()}</td>
-                      <td className="py-2 px-4 border capitalize">{b.status}</td>
-                      <td className="py-2 px-4 border space-x-2">
-                        <button
-                          onClick={() =>
-                            setConfirmModal({
-                              visible: true,
-                              title: "Approve Booking",
-                              message: "Are you sure you want to approve this booking?",
-                              onConfirm: () => updateBookingStatus(b.id, "approved"),
-                            })
-                          }
-                          className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() =>
-                            setConfirmModal({
-                              visible: true,
-                              title: "Cancel Booking",
-                              message: "Are you sure you want to cancel this booking?",
-                              onConfirm: () => updateBookingStatus(b.id, "cancelled"),
-                            })
-                          }
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() =>
-                            setConfirmModal({
-                              visible: true,
-                              title: "Delete Booking",
-                              message: "Are you sure you want to delete this booking?",
-                              onConfirm: () => deleteBooking(b.id),
-                            })
-                          }
-                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Dashboard Tab */}
+        {activeTab === 'dashboard' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+              {[
+                { label: "Clients", count: summary.usersCount },
+                { label: "Babysitters", count: summary.babysittersCount },
+                { label: "Total Bookings", count: summary.bookingsCount },
+                { label: "Pending Bookings", count: summary.pendingBookings },
+              ].map((item) => (
+                <div key={item.label} className="bg-white p-4 rounded shadow text-center">
+                  <h2 className="text-xl font-semibold text-gray-800">{item.label}</h2>
+                  <p className="text-3xl text-purple-600">{item.count}</p>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
 
-        {/* Users */}
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">All Users</h2>
-          {users.length === 0 ? (
-            <p className="text-gray-600">No users found.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full border">
-                <thead>
-                  <tr className="bg-purple-100">
-                    <th className="py-2 px-4 border">ID</th>
-                    <th className="py-2 px-4 border">Name</th>
-                    <th className="py-2 px-4 border">Email</th>
-                    <th className="py-2 px-4 border">Role</th>
-                    <th className="py-2 px-4 border">Created At</th>
-                    <th className="py-2 px-4 border">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr key={`${u.role}-${u.id}`} className="hover:bg-purple-50">
-                      <td className="py-2 px-4 border">{u.id}</td>
-                      <td className="py-2 px-4 border">{u.name}</td>
-                      <td className="py-2 px-4 border">{u.email}</td>
-                      <td className="py-2 px-4 border capitalize">{u.role}</td>
-                      <td className="py-2 px-4 border">{new Date(u.created_at).toLocaleDateString()}</td>
-                      <td className="py-2 px-4 border">
-                        <button
-                          onClick={() =>
-                            setConfirmModal({
-                              visible: true,
-                              title: "Delete User",
-                              message: `Are you sure you want to delete this ${u.role}?`,
-                              onConfirm: () => deleteUser(u.role, u.id),
-                            })
-                          }
-                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Bookings */}
+            <div className="bg-white p-4 rounded shadow mb-8">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">All Bookings</h2>
+              {bookings.length === 0 ? (
+                <p className="text-gray-600">No bookings found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border">
+                    <thead>
+                      <tr className="bg-purple-100">
+                        <th className="py-2 px-4 border">ID</th>
+                        <th className="py-2 px-4 border">Client</th>
+                        <th className="py-2 px-4 border">Babysitter</th>
+                        <th className="py-2 px-4 border">Date</th>
+                        <th className="py-2 px-4 border">Status</th>
+                        <th className="py-2 px-4 border">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bookings.map((b) => (
+                        <tr key={b.id} className="hover:bg-purple-50">
+                          <td className="py-2 px-4 border">{b.id}</td>
+                          <td className="py-2 px-4 border">{b.client_name}</td>
+                          <td className="py-2 px-4 border">{b.babysitter_name}</td>
+                          <td className="py-2 px-4 border">{new Date(b.date).toLocaleDateString()}</td>
+                          <td className="py-2 px-4 border capitalize">{b.status}</td>
+                          <td className="py-2 px-4 border space-x-2">
+                            <button
+                              onClick={() =>
+                                setConfirmModal({
+                                  visible: true,
+                                  title: "Approve Booking",
+                                  message: "Are you sure you want to approve this booking?",
+                                  onConfirm: () => updateBookingStatus(b.id, "approved"),
+                                })
+                              }
+                              className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-sm"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() =>
+                                setConfirmModal({
+                                  visible: true,
+                                  title: "Cancel Booking",
+                                  message: "Are you sure you want to cancel this booking?",
+                                  onConfirm: () => updateBookingStatus(b.id, "cancelled"),
+                                })
+                              }
+                              className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-sm"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() =>
+                                setConfirmModal({
+                                  visible: true,
+                                  title: "Delete Booking",
+                                  message: "Are you sure you want to delete this booking?",
+                                  onConfirm: () => deleteBooking(b.id),
+                                })
+                              }
+                              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Users */}
+            <div className="bg-white p-4 rounded shadow">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">All Users</h2>
+              {users.length === 0 ? (
+                <p className="text-gray-600">No users found.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border">
+                    <thead>
+                      <tr className="bg-purple-100">
+                        <th className="py-2 px-4 border">ID</th>
+                        <th className="py-2 px-4 border">Name</th>
+                        <th className="py-2 px-4 border">Email</th>
+                        <th className="py-2 px-4 border">Role</th>
+                        <th className="py-2 px-4 border">Created At</th>
+                        <th className="py-2 px-4 border">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u) => (
+                        <tr key={`${u.role}-${u.id}`} className="hover:bg-purple-50">
+                          <td className="py-2 px-4 border">{u.id}</td>
+                          <td className="py-2 px-4 border">{u.name}</td>
+                          <td className="py-2 px-4 border">{u.email}</td>
+                          <td className="py-2 px-4 border capitalize">{u.role}</td>
+                          <td className="py-2 px-4 border">{new Date(u.created_at).toLocaleDateString()}</td>
+                          <td className="py-2 px-4 border">
+                            <button
+                              onClick={() =>
+                                setConfirmModal({
+                                  visible: true,
+                                  title: "Delete User",
+                                  message: `Are you sure you want to delete this ${u.role}?`,
+                                  onConfirm: () => deleteUser(u.role, u.id),
+                                })
+                              }
+                              className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Stress Test Tab */}
+        {activeTab === 'stress-test' && (
+          <StressTest />
+        )}
       </main>
     </>
   );

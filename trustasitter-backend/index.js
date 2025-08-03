@@ -2350,7 +2350,7 @@ app.post('/api/stress-test/start', async (req, res) => {
     const result = await stressTest.fullTest();
 
     res.json({
-      message: 'Stress test started successfully for 6 minutes',
+      message: 'Stress test started successfully for 10 minutes',
       status: stressTest.getStatus()
     });
   } catch (error) {
@@ -2424,7 +2424,7 @@ app.post('/api/stress-test/full', async (req, res) => {
     });
 
     res.json({
-      message: 'Full stress test (5 minutes) started successfully',
+      message: 'Full stress test (10 minutes) started successfully',
       status: stressTest.getStatus()
     });
   } catch (error) {

@@ -25,7 +25,7 @@ const StressTest = () => {
 
   const startTest = async () => {
     try {
-      setLogs(prev => [...prev, `🚀 Starting 6-minute stress test...`]);
+      setLogs(prev => [...prev, `🚀 Starting 10-minute stress test...`]);
       
       const response = await api.post('/stress-test/start');
       
@@ -90,7 +90,7 @@ const StressTest = () => {
           disabled={isRunning}
           className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white font-bold py-4 px-8 rounded-lg transition-colors text-lg"
         >
-          🚀 Start 6-Minute Stress Test
+          🚀 Start 10-Minute Stress Test
         </button>
       </div>
 
@@ -167,7 +167,7 @@ const StressTest = () => {
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-2">📋 Instructions</h3>
         <ul className="text-sm space-y-1">
-          <li>• <strong>6-Minute Test:</strong> Heavy CPU stress for exactly 6 minutes</li>
+          <li>• <strong>10-Minute Test:</strong> Heavy CPU stress for exactly 10 minutes</li>
           <li>• Monitor your VMSS in Azure Portal to see auto-scaling in action</li>
           <li>• CPU usage should exceed 50% to trigger scaling</li>
           <li>• Test can only be triggered from this frontend interface</li>

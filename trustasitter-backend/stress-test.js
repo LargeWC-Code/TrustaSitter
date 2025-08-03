@@ -8,7 +8,7 @@ class StressTest {
            constructor() {
            this.isRunning = false;
            this.startTime = null;
-           this.testDuration = 6 * 60 * 1000; // 6 minutes in milliseconds
+           this.testDuration = 10 * 60 * 1000; // 10 minutes in milliseconds
          }
 
   // CPU-intensive prime number calculation
@@ -161,10 +161,10 @@ class StressTest {
     };
   }
 
-  // Full CPU test (6 minutes)
+  // Full CPU test (10 minutes)
   async fullTest() {
-    console.log('🚀 Starting full CPU stress test (6 minutes)...');
-    return await this.startStressTest(6);
+    console.log('🚀 Starting full CPU stress test (10 minutes)...');
+    return await this.startStressTest(10);
   }
 }
 
