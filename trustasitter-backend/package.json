@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js"
+    "start": "node ssl-server.js",
+    "dev": "node ssl-server.js",
+    "http": "node index.js"
   },
   "keywords": [],
   "author": "",
