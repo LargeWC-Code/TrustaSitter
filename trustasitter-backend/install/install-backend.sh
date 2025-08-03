@@ -17,6 +17,7 @@ sudo git clone https://github.com/Bruno8006/TrustaSitter.git
 
 cd TrustaSitter/trustasitter-backend
 
+mkdir -p ssl
 sudo cp -f /home/developer/local.js config/local.js
 sudo cp -f /home/developer/fullchain.pem ssl/fullchain.pem
 sudo cp -f /home/developer/privkey.pem ssl/privkey.pem
