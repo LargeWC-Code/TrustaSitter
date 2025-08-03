@@ -1,0 +1,31 @@
+#!/bin/bash
+echo "Installing TrustaSitter backend..."
+
+# copy local.js
+sudo cp -f local.js /home/developer/local.js
+
+# install Node.js and Git
+sudo apt-get update -y
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs git
+
+# download project to /opt
+cd /opt
+sudo git clone https://github.com/Bruno8006/TrustaSitter.git
+
+cd TrustaSitter/trustasitter-backend
+
+sudo cp -f /home/developer/local.js config/local.js
+
+# install
+sudo npm install
+sudo npm update
+
+# install and start PM2
+sudo npm install -g pm2
+pm2 start index.js --name trustasitter-backend
+pm2 save
+pm2 startup
+
+echo "Installation complete!"
+exit 0

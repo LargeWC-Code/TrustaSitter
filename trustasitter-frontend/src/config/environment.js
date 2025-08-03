@@ -1,6 +1,8 @@
 // Environment configuration
 export const config = {
-  // apiUrl: import.meta.env.VITE_API_URL || "https://trustasitter-api-cwahftcwg4e5axah.australiaeast-01.azurewebsites.net/api",
-  apiUrl: "http://localhost:3000/api",
+  apiUrl: import.meta.env.VITE_API_URL || 
+    (import.meta.env.MODE === 'production' 
+      ? `${window.location.origin}/api` 
+      : "http://20.58.138.202:3000/api"),
   environment: import.meta.env.MODE || "development"
 }; 

@@ -2330,6 +2330,113 @@ io.on('connection', (socket) => {
 });
 
 /* -----------------------------------
+   Stress Test Endpoints
+   (For testing VMSS auto-scaling)
+----------------------------------- */
+
+const StressTest = require('./stress-test');
+const stressTest = new StressTest();
+
+// Start stress test
+app.post('/api/stress-test/start', async (req, res) => {
+  try {
+    if (stressTest.isRunning) {
+      return res.status(400).json({ 
+        error: 'Stress test is already running',
+        status: stressTest.getStatus()
+      });
+    }
+
+    const result = await stressTest.fullTest();
+
+    res.json({
+      message: 'Stress test started successfully for 6 minutes',
+      status: stressTest.getStatus()
+    });
+  } catch (error) {
+    console.error('Error starting stress test:', error);
+    res.status(500).json({ 
+      error: 'Failed to start stress test',
+      details: error.message 
+    });
+  }
+});
+
+// Stop stress test
+app.post('/api/stress-test/stop', async (req, res) => {
+  try {
+    if (!stressTest.isRunning) {
+      return res.status(400).json({ 
+        error: 'No stress test is currently running',
+        status: stressTest.getStatus()
+      });
+    }
+
+    const result = stressTest.stopStressTest();
+    res.json({
+      message: 'Stress test stopped successfully',
+      result: result,
+      status: stressTest.getStatus()
+    });
+  } catch (error) {
+    console.error('Error stopping stress test:', error);
+    res.status(500).json({ 
+      error: 'Failed to stop stress test',
+      details: error.message 
+    });
+  }
+});
+
+// Get stress test status
+app.get('/api/stress-test/status', (req, res) => {
+  try {
+    const status = stressTest.getStatus();
+    res.json({
+      status: status,
+      isRunning: stressTest.isRunning
+    });
+  } catch (error) {
+    console.error('Error getting stress test status:', error);
+    res.status(500).json({ 
+      error: 'Failed to get stress test status',
+      details: error.message 
+    });
+  }
+});
+
+
+
+// Full CPU test endpoint (5 minutes)
+app.post('/api/stress-test/full', async (req, res) => {
+  try {
+    if (stressTest.isRunning) {
+      return res.status(400).json({ 
+        error: 'Stress test is already running',
+        status: stressTest.getStatus()
+      });
+    }
+
+    // Start the test in background
+    stressTest.fullTest().then(result => {
+      console.log('Full stress test completed:', result);
+    }).catch(error => {
+      console.error('Full stress test failed:', error);
+    });
+
+    res.json({
+      message: 'Full stress test (5 minutes) started successfully',
+      status: stressTest.getStatus()
+    });
+  } catch (error) {
+    console.error('Error starting full stress test:', error);
+    res.status(500).json({ 
+      error: 'Failed to start full stress test',
+      details: error.message 
+    });
+  }
+});
+
+/* -----------------------------------
    Server Initialization
 ----------------------------------- */
 

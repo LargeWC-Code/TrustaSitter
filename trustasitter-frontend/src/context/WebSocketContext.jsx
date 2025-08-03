@@ -29,7 +29,7 @@ export const WebSocketProvider = ({ children }) => {
 
     // Create socket connection
     console.log('🔌 Creating WebSocket connection...');
-    const newSocket = io('http://localhost:3000', {
+    const newSocket = io('http://20.58.138.202:3000', {
       transports: ['websocket', 'polling']
     });
 
