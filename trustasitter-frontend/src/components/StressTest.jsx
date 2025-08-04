@@ -25,7 +25,8 @@ const StressTest = () => {
 
   const startTest = async () => {
     try {
-      setLogs(prev => [...prev, `🚀 Starting 10-minute stress test...`]);
+      setLogs(prev => [...prev, `🚀 Starting enhanced 10-minute stress test...`]);
+      setLogs(prev => [...prev, `🔥 Using multiple worker threads for maximum CPU usage`]);
       
       const response = await api.post('/stress-test/start');
       
@@ -42,7 +43,7 @@ const StressTest = () => {
 
   const stopTest = async () => {
     try {
-      setLogs(prev => [...prev, `⏹️ Stopping stress test...`]);
+      setLogs(prev => [...prev, `⏹️ Stopping enhanced stress test...`]);
       
       const response = await api.post('/stress-test/stop');
       
@@ -62,12 +63,13 @@ const StressTest = () => {
         
         if (!response.data.isRunning) {
           setIsRunning(false);
-          setLogs(prev => [...prev, `✅ Stress test completed!`]);
+          setLogs(prev => [...prev, `✅ Enhanced stress test completed!`]);
           clearInterval(interval);
         } else {
           const elapsed = response.data.status.elapsed;
           const remaining = response.data.status.testDuration - elapsed;
-          setLogs(prev => [...prev, `📊 Elapsed: ${elapsed.toFixed(1)}s, Remaining: ${remaining.toFixed(1)}s`]);
+          const workerCount = response.data.status.workerCount || 0;
+          setLogs(prev => [...prev, `📊 Elapsed: ${elapsed.toFixed(1)}s, Remaining: ${remaining.toFixed(1)}s, Workers: ${workerCount}`]);
         }
       } catch (error) {
         console.error('Error monitoring test:', error);
@@ -81,7 +83,7 @@ const StressTest = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">🚀 VMSS Stress Test</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">🚀 Enhanced VMSS Stress Test</h2>
       
       {/* Test Controls */}
       <div className="mb-6">
@@ -90,7 +92,7 @@ const StressTest = () => {
           disabled={isRunning}
           className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white font-bold py-4 px-8 rounded-lg transition-colors text-lg"
         >
-          🚀 Start 10-Minute Stress Test
+          🚀 Start Enhanced 10-Minute Stress Test
         </button>
       </div>
 
@@ -109,7 +111,7 @@ const StressTest = () => {
       {/* Status Display */}
       {status && (
         <div className="bg-gray-100 p-4 rounded-lg mb-6">
-          <h3 className="text-lg font-semibold mb-2">📊 Test Status</h3>
+          <h3 className="text-lg font-semibold mb-2">📊 Enhanced Test Status</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <span className="font-medium">Status:</span>
@@ -137,6 +139,18 @@ const StressTest = () => {
                 <span className="ml-2">{status.testDuration.toFixed(1)}s</span>
               </div>
             )}
+            {status.workerCount > 0 && (
+              <div>
+                <span className="font-medium">Worker Threads:</span>
+                <span className="ml-2">{status.workerCount}</span>
+              </div>
+            )}
+            {status.cpuCores > 0 && (
+              <div>
+                <span className="font-medium">CPU Cores:</span>
+                <span className="ml-2">{status.cpuCores}</span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -144,7 +158,7 @@ const StressTest = () => {
       {/* Logs */}
       <div className="bg-black text-green-400 p-4 rounded-lg font-mono text-sm max-h-96 overflow-y-auto">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold">📝 Test Logs</h3>
+          <h3 className="text-lg font-semibold">📝 Enhanced Test Logs</h3>
           <button
             onClick={clearLogs}
             className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs"
@@ -165,9 +179,11 @@ const StressTest = () => {
 
       {/* Instructions */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h3 className="text-lg font-semibold mb-2">📋 Instructions</h3>
+        <h3 className="text-lg font-semibold mb-2">📋 Enhanced Test Instructions</h3>
         <ul className="text-sm space-y-1">
-          <li>• <strong>10-Minute Test:</strong> Heavy CPU stress for exactly 10 minutes</li>
+          <li>• <strong>Enhanced 10-Minute Test:</strong> Multi-threaded CPU stress for exactly 10 minutes</li>
+          <li>• <strong>🔥 High CPU Usage:</strong> Uses multiple worker threads to achieve 50-80% CPU usage</li>
+          <li>• <strong>🧵 Multi-threading:</strong> Main thread + up to 4 worker threads for maximum load</li>
           <li>• Monitor your VMSS in Azure Portal to see auto-scaling in action</li>
           <li>• CPU usage should exceed 50% to trigger scaling</li>
           <li>• Test can only be triggered from this frontend interface</li>
