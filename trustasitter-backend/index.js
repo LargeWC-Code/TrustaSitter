@@ -1945,9 +1945,6 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
           c.id,
           c.created_at,
           c.updated_at,
-          b.id as booking_id,
-          b.date as booking_date,
-          b.status as booking_status,
           bs.name as participant_name,
           bs.id as participant_id,
           (SELECT COUNT(*) FROM chat_messages cm 
@@ -1960,7 +1957,6 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
            LIMIT 1) as last_message
         FROM chat_conversations c
         JOIN chat_participants cp ON c.id = cp.conversation_id
-        JOIN bookings b ON (b.user_id = $1 AND b.babysitter_id = cp.user_id)
         JOIN babysitters bs ON cp.user_id = bs.id
         WHERE cp.user_id != $1
         AND EXISTS (
@@ -1978,9 +1974,6 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
           c.id,
           c.created_at,
           c.updated_at,
-          b.id as booking_id,
-          b.date as booking_date,
-          b.status as booking_status,
           u.name as participant_name,
           u.id as participant_id,
           (SELECT COUNT(*) FROM chat_messages cm 
@@ -1993,7 +1986,6 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
            LIMIT 1) as last_message
         FROM chat_conversations c
         JOIN chat_participants cp ON c.id = cp.conversation_id
-        JOIN bookings b ON (b.babysitter_id = $1 AND b.user_id = cp.user_id)
         JOIN users u ON cp.user_id = u.id
         WHERE cp.user_id != $1
         AND EXISTS (
