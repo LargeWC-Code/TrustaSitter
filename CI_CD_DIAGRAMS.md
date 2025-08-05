@@ -1,4 +1,5 @@
-# TrustaSitter CI/CD - Simple Version
+
+# TrustaSitter CI/CD with Azure VMSS Backend
 
 ## Main CI/CD Flow
 
@@ -6,11 +7,14 @@
 graph TD
     A[Code Push] --> B[GitHub Actions]
     B --> C[Build & Test]
-    C --> D[Deploy to Azure]
-    D --> E[Production]
+    C --> D[Deploy Frontend to Azure Static Web Apps]
+    C --> E[Deploy Backend to Azure VMSS]
+    D --> F[Production Frontend]
+    E --> G[Production Backend]
     
     style A fill:#e1f5fe
-    style E fill:#c8e6c9
+    style F fill:#c8e6c9
+    style G fill:#c8e6c9
 ```
 
 ## System Architecture
@@ -18,21 +22,25 @@ graph TD
 ```mermaid
 graph TB
     subgraph "Frontend"
-        F[React App]
+        F[React App - Azure Static Web Apps]
     end
     
     subgraph "Backend"
-        B[Node.js API]
+        B1[VM Instance 1]
+        B2[VM Instance 2]
+        B3[VM Instance N]
     end
     
     subgraph "CI/CD"
         G[GitHub Actions]
-        A[Azure Static Web Apps]
+        V[VM Application Scripts]
     end
     
-    G --> A
-    A --> F
-    F --> B
+    G --> F
+    G --> V
+    V --> B1
+    V --> B2
+    V --> B3
 ```
 
 ## Three New Features
@@ -40,7 +48,7 @@ graph TB
 ```mermaid
 graph TD
     subgraph "Chat System"
-        C1[Real-time Chat]
+        C1[Real-time Chat - Socket.io]
         C2[Message History]
     end
     
@@ -64,12 +72,15 @@ graph TD
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
-    participant GH as GitHub
-    participant Azure as Azure
+    participant GH as GitHub Actions
+    participant SWA as Azure Static Web Apps
+    participant VMSS as Azure VMSS
     
-    Dev->>GH: Push code
-    GH->>Azure: Deploy
-    Azure->>Dev: Success
+    Dev->>GH: Push code to main
+    GH->>SWA: Deploy Frontend
+    GH->>VMSS: Deploy Backend
+    SWA->>Dev: Frontend deployed
+    VMSS->>Dev: Backend deployed
 ```
 
 ## Environment Setup
@@ -81,6 +92,12 @@ graph LR
     A --> D[Production]
     
     B --> E[localhost:3000]
-    C --> F[test.trustasitter.com]
+    C --> F[localhost:3000]
     D --> G[largewc.org:3000]
+    
+    subgraph "Production Backend"
+        H[Azure VMSS with Auto-scaling]
+    end
+    
+    G --> H
 ``` 
