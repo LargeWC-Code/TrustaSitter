@@ -22,7 +22,7 @@ const serverConfig = require('./config/server');
 const { JWT_SECRET, uploadConfig, GOOGLE_API_KEY, GOOGLE_FRONTEND_API_KEY } = require('./config/constants');
 
 // Import encryption utilities
-const { encrypt, decrypt, encryptObject, decryptObject } = require('./utils/encryption');
+const { encrypt, decrypt, encryptObject, decryptObject, initializeAzureKeyVault } = require('./utils/encryption');
 
 // Auth middleware
 const authMiddleware = (req, res, next) => {
@@ -153,7 +153,22 @@ const testDatabaseConnection = async () => {
   }
 };
 
-testDatabaseConnection();
+// 初始化Azure Key Vault和数据库连接
+async function initializeServices() {
+  try {
+    // 初始化Azure Key Vault
+    await initializeAzureKeyVault();
+    
+    // 测试数据库连接
+    await testDatabaseConnection();
+    
+    console.log('✅ 所有服务初始化完成');
+  } catch (error) {
+    console.error('❌ 服务初始化失败:', error);
+  }
+}
+
+initializeServices();
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

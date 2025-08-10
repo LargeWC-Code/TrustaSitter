@@ -1,9 +1,33 @@
 const crypto = require('crypto');
 
-// 加密密钥 - 从环境变量获取，生产环境应该使用Azure Key Vault或AWS KMS
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-secret-encryption-key-32-chars-long!!';
+// 加密密钥 - 优先从Azure Key Vault获取，回退到环境变量
+let ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-secret-encryption-key-32-chars-long!!';
 const ALGORITHM = 'aes-256-cbc';
 const PREFIX = 'ENC:'; // 加密数据的前缀标识
+
+// Azure Key Vault配置
+const KEY_VAULT_URL = 'https://trustasitter-keyvault.vault.azure.net/';
+const SECRET_NAME = 'encryption-key';
+
+let secretClient = null;
+
+// 尝试初始化Azure Key Vault
+async function initializeAzureKeyVault() {
+  try {
+    const { DefaultAzureCredential } = require('@azure/identity');
+    const { SecretClient } = require('@azure/keyvault-secrets');
+    
+    const credential = new DefaultAzureCredential();
+    secretClient = new SecretClient(KEY_VAULT_URL, credential);
+    
+    // 获取密钥
+    const secret = await secretClient.getSecret(SECRET_NAME);
+    ENCRYPTION_KEY = secret.value;
+    console.log('✅ 从Azure Key Vault获取密钥成功');
+  } catch (error) {
+    console.error('❌ Azure Key Vault初始化失败，使用环境变量密钥:', error.message);
+  }
+}
 
 /**
  * 加密字符串
@@ -130,5 +154,6 @@ module.exports = {
   isEncrypted,
   encryptObject,
   decryptObject,
+  initializeAzureKeyVault,
   PREFIX
 };
