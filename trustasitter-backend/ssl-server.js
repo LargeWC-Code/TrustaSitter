@@ -989,6 +989,38 @@ app.put('/api/users/change-password', authMiddleware, async (req, res) => {
   }
 });
 
+// User Profile Password (别名路由，兼容前端)
+app.put('/api/users/profile/password', authMiddleware, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  try {
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Both current and new passwords are required.' });
+    }
+    
+    const queryUser = `SELECT * FROM users WHERE id = $1`;
+    const resultUser = await db.query(queryUser, [req.user.id]);
+    if (resultUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    
+    const user = resultUser.rows[0];
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Current password is incorrect.' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.query(
+      `UPDATE users SET password = $1 WHERE id = $2`,
+      [hashedPassword, req.user.id]
+    );
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 /* -----------------------------------
    Universal Login
 ----------------------------------- */
