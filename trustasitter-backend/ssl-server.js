@@ -414,6 +414,172 @@ app.post('/api/users/register', async (req, res) => {
   }
 });
 
+// Client Login
+app.post('/api/users/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+    
+    // 查询时需要解密所有用户的email来比较
+    const query = `SELECT * FROM users`;
+    const result = await db.query(query);
+    
+    // 查找匹配的用户（解密email进行比较）
+    let user = null;
+    for (const row of result.rows) {
+      const decryptedEmail = decrypt(row.email);
+      if (decryptedEmail === email) {
+        user = row;
+        break;
+      }
+    }
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+    
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+    
+    // 解密用户数据
+    const decryptedUser = decryptObject(user);
+    
+    const token = jwt.sign(
+      { id: user.id, email: email, role: 'user' },
+      JWT_SECRET,
+      { expiresIn: '3h' }
+    );
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      role: 'user',
+      user: {
+        id: decryptedUser.id,
+        name: decryptedUser.name,
+        email: decryptedUser.email,
+        created_at: decryptedUser.created_at
+      }
+    });
+  } catch (error) {
+    console.error('User login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Client Profile Get
+app.get('/api/users/profile', authMiddleware, async (req, res) => {
+  try {
+    const query = `SELECT id, name, email, phone, address, children_count, latitude, longitude, created_at FROM users WHERE id = $1`;
+    const result = await db.query(query, [req.user.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    
+    // 解密返回给客户端的数据
+    const userData = decryptObject(result.rows[0]);
+    res.status(200).json(userData);
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Client Profile Update
+app.put('/api/users/profile', authMiddleware, async (req, res) => {
+  const { name, email, password, phone, children_count, address, latitude, longitude } = req.body;
+  try {
+    const queryUser = `SELECT * FROM users WHERE id = $1`;
+    const resultUser = await db.query(queryUser, [req.user.id]);
+    if (resultUser.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    
+    // 解密现有用户数据
+    const existingUser = decryptObject(resultUser.rows[0]);
+    
+    const updates = {
+      name: name || existingUser.name,
+      email: email || existingUser.email,
+      phone: phone || existingUser.phone,
+      address: address || existingUser.address,
+      latitude: latitude !== undefined ? latitude : existingUser.latitude,
+      longitude: longitude !== undefined ? longitude : existingUser.longitude,
+      children_count:
+      children_count === "" || children_count === undefined
+        ? existingUser.children_count
+        : Number.isNaN(parseInt(children_count, 10))
+          ? existingUser.children_count
+          : parseInt(children_count, 10)
+    };
+    
+    // 加密敏感信息
+    const encryptedEmail = encrypt(updates.email);
+    const encryptedPhone = updates.phone ? encrypt(updates.phone) : null;
+    
+    let hashedPassword = resultUser.rows[0].password; // 使用原始加密密码
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+    
+    const queryUpdate = `
+      UPDATE users
+      SET
+        name = $1,
+        email = $2,
+        password = $3,
+        phone = $4,
+        children_count = $5,
+        address = $6,
+        latitude = $7,
+        longitude = $8
+      WHERE id = $9
+      RETURNING id, name, email, phone, children_count, address, latitude, longitude, created_at;
+    `;
+    const values = [
+      updates.name,
+      encryptedEmail,
+      hashedPassword,
+      encryptedPhone,
+      updates.children_count,
+      updates.address,
+      updates.latitude,
+      updates.longitude,
+      req.user.id
+    ];
+    const result = await db.query(queryUpdate, values);
+    
+    // 解密返回给客户端的数据
+    const userData = decryptObject(result.rows[0]);
+    
+    res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: userData
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Client List All Users
+app.get('/api/users', authMiddleware, async (req, res) => {
+  try {
+    const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
+    const result = await db.query(query);
+    
+    // 解密所有用户的email
+    const decryptedUsers = result.rows.map(user => decryptObject(user));
+    res.status(200).json(decryptedUsers);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Babysitter Login
 app.post('/api/babysitters/login', async (req, res) => {
   const { email, password } = req.body;
