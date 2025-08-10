@@ -381,26 +381,35 @@ app.post('/api/users/register', async (req, res) => {
       encryptedEmail,
       hashedPassword,
       encryptedPhone,
-      availableDaysArray,
-      available_from,
-      available_to,
-      about,
-      rate,
-      latitude,
-      longitude,
-      address
+      address || null,
+      children === "" || children === undefined ? null : parseInt(children, 10)
     ];
     const result = await db.query(query, values);
     
     // 解密返回给客户端的数据
-    const babysitterData = decryptObject(result.rows[0]);
+    const userData = decryptObject(result.rows[0]);
     
+    const token = jwt.sign(
+      { id: result.rows[0].id, email: email, role: 'user' }, // JWT中使用明文email
+      JWT_SECRET,
+      { expiresIn: '3h' }
+    );
     res.status(201).json({
-      message: 'Babysitter registered successfully.',
-      babysitter: babysitterData
+      message: 'User registered successfully.',
+      token,
+      role: 'user',
+      user: {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        address: userData.address,
+        children_count: userData.children_count,
+        created_at: userData.created_at
+      }
     });
   } catch (error) {
-    console.error('Error registering babysitter:', error);
+    console.error('Error registering user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
