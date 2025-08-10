@@ -19,6 +19,9 @@ const { db } = require('./config/database');
 const serverConfig = require('./config/server');
 const { JWT_SECRET, uploadConfig, GOOGLE_API_KEY, GOOGLE_FRONTEND_API_KEY } = require('./config/constants');
 
+// Import encryption utilities
+const { encrypt, decrypt, encryptObject, decryptObject } = require('./utils/encryption');
+
 // Auth middleware
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -287,6 +290,11 @@ app.post('/api/users/register', async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
+    
+    // 加密敏感信息
+    const encryptedEmail = encrypt(email);
+    const encryptedPhone = phone ? encrypt(phone) : null;
+    
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = `
       INSERT INTO users (name, email, password, phone, address, children_count)
@@ -295,15 +303,19 @@ app.post('/api/users/register', async (req, res) => {
     `;
     const values = [
       name,
-      email,
+      encryptedEmail,
       hashedPassword,
-      phone || null,
+      encryptedPhone,
       address || null,
       children === "" || children === undefined ? null : parseInt(children, 10)
     ];
     const result = await db.query(query, values);
+    
+    // 解密返回给客户端的数据
+    const userData = decryptObject(result.rows[0]);
+    
     const token = jwt.sign(
-      { id: result.rows[0].id, email: result.rows[0].email, role: 'user' },
+      { id: result.rows[0].id, email: email, role: 'user' }, // JWT中使用明文email
       JWT_SECRET,
       { expiresIn: '3h' }
     );
@@ -312,13 +324,13 @@ app.post('/api/users/register', async (req, res) => {
       token,
       role: 'user',
       user: {
-        id: result.rows[0].id,
-        name: result.rows[0].name,
-        email: result.rows[0].email,
-        phone: result.rows[0].phone,
-        address: result.rows[0].address,
-        children_count: result.rows[0].children_count,
-        created_at: result.rows[0].created_at
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        address: userData.address,
+        children_count: userData.children_count,
+        created_at: userData.created_at
       }
     });
   } catch (error) {
@@ -338,18 +350,35 @@ app.post('/api/users/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
-    const query = `SELECT * FROM users WHERE email = $1`;
-    const result = await db.query(query, [email]);
-    if (result.rows.length === 0) {
+    
+    // 查询时需要解密所有用户的email来比较
+    const query = `SELECT * FROM users`;
+    const result = await db.query(query);
+    
+    // 查找匹配的用户（解密email进行比较）
+    let user = null;
+    for (const row of result.rows) {
+      const decryptedEmail = decrypt(row.email);
+      if (decryptedEmail === email) {
+        user = row;
+        break;
+      }
+    }
+    
+    if (!user) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    const user = result.rows[0];
+    
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
+    
+    // 解密用户数据
+    const decryptedUser = decryptObject(user);
+    
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: email },
       JWT_SECRET,
       { expiresIn: '3h' }
     );
@@ -358,10 +387,10 @@ app.post('/api/users/login', async (req, res) => {
       token,
       role: 'user',
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        created_at: user.created_at
+        id: decryptedUser.id,
+        name: decryptedUser.name,
+        email: decryptedUser.email,
+        created_at: decryptedUser.created_at
       }
     });
   } catch (error) {
@@ -378,7 +407,10 @@ app.get('/api/users/profile', authMiddleware, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
     }
-    res.status(200).json(result.rows[0]);
+    
+    // 解密返回给客户端的数据
+    const userData = decryptObject(result.rows[0]);
+    res.status(200).json(userData);
   } catch (error) {
     console.error('Profile fetch error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -394,7 +426,10 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
     if (resultUser.rows.length === 0) {
       return res.status(404).json({ error: 'User not found.' });
     }
-    const existingUser = resultUser.rows[0];
+    
+    // 解密现有用户数据
+    const existingUser = decryptObject(resultUser.rows[0]);
+    
     const updates = {
       name: name || existingUser.name,
       email: email || existingUser.email,
@@ -409,10 +444,16 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
           ? existingUser.children_count
           : parseInt(children_count, 10)
     };
-    let hashedPassword = existingUser.password;
+    
+    // 加密敏感信息
+    const encryptedEmail = encrypt(updates.email);
+    const encryptedPhone = updates.phone ? encrypt(updates.phone) : null;
+    
+    let hashedPassword = resultUser.rows[0].password; // 使用原始加密密码
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
+    
     const queryUpdate = `
       UPDATE users
       SET
@@ -429,9 +470,9 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
     `;
     const values = [
       updates.name,
-      updates.email,
+      encryptedEmail,
       hashedPassword,
-      updates.phone,
+      encryptedPhone,
       updates.children_count,
       updates.address,
       updates.latitude,
@@ -439,9 +480,13 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
       req.user.id
     ];
     const result = await db.query(queryUpdate, values);
+    
+    // 解密返回给客户端的数据
+    const userData = decryptObject(result.rows[0]);
+    
     res.status(200).json({
       message: 'Profile updated successfully.',
-      user: result.rows[0]
+      user: userData
     });
   } catch (error) {
     console.error('Error updating profile:', error);
@@ -480,7 +525,10 @@ app.get('/api/users', authMiddleware, async (req, res) => {
   try {
     const query = `SELECT id, name, email, created_at FROM users ORDER BY id ASC`;
     const result = await db.query(query);
-    res.status(200).json(result.rows);
+    
+    // 解密所有用户的email
+    const decryptedUsers = result.rows.map(user => decryptObject(user));
+    res.status(200).json(decryptedUsers);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -517,6 +565,11 @@ app.post('/api/babysitters/register', async (req, res) => {
     if (!name || !email || !password || !available_days || !available_from || !available_to || !rate) {
       return res.status(400).json({ error: 'All required fields must be filled.' });
     }
+    
+    // 加密敏感信息
+    const encryptedEmail = encrypt(email);
+    const encryptedPhone = phone ? encrypt(phone) : null;
+    
     const hashedPassword = await bcrypt.hash(password, 10);
     const query = `
       INSERT INTO babysitters
@@ -527,9 +580,9 @@ app.post('/api/babysitters/register', async (req, res) => {
     `;
     const values = [
       name,
-      email,
+      encryptedEmail,
       hashedPassword,
-      phone,
+      encryptedPhone,
       availableDaysArray,
       available_from,
       available_to,
@@ -540,9 +593,13 @@ app.post('/api/babysitters/register', async (req, res) => {
       address
     ];
     const result = await db.query(query, values);
+    
+    // 解密返回给客户端的数据
+    const babysitterData = decryptObject(result.rows[0]);
+    
     res.status(201).json({
       message: 'Babysitter registered successfully.',
-      babysitter: result.rows[0]
+      babysitter: babysitterData
     });
   } catch (error) {
     console.error('Error registering babysitter:', error);
@@ -557,18 +614,35 @@ app.post('/api/babysitters/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
-    const query = `SELECT * FROM babysitters WHERE email = $1`;
-    const result = await db.query(query, [email]);
-    if (result.rows.length === 0) {
+    
+    // 查询时需要解密所有保姆的email来比较
+    const query = `SELECT * FROM babysitters`;
+    const result = await db.query(query);
+    
+    // 查找匹配的保姆（解密email进行比较）
+    let babysitter = null;
+    for (const row of result.rows) {
+      const decryptedEmail = decrypt(row.email);
+      if (decryptedEmail === email) {
+        babysitter = row;
+        break;
+      }
+    }
+    
+    if (!babysitter) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    const babysitter = result.rows[0];
+    
     const isMatch = await bcrypt.compare(password, babysitter.password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
+    
+    // 解密保姆数据
+    const decryptedBabysitter = decryptObject(babysitter);
+    
     const token = jwt.sign(
-      { id: babysitter.id, email: babysitter.email },
+      { id: babysitter.id, email: email },
       JWT_SECRET,
       { expiresIn: '3h' }
     );
@@ -577,10 +651,10 @@ app.post('/api/babysitters/login', async (req, res) => {
       token,
       role: 'babysitter',
       user: {
-        id: babysitter.id,
-        name: babysitter.name,
-        email: babysitter.email,
-        region: babysitter.region
+        id: decryptedBabysitter.id,
+        name: decryptedBabysitter.name,
+        email: decryptedBabysitter.email,
+        region: decryptedBabysitter.region
       }
     });
   } catch (error) {
@@ -601,7 +675,10 @@ app.get('/api/babysitters/profile', authMiddleware, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Babysitter not found.' });
     }
-    res.status(200).json(result.rows[0]);
+    
+    // 解密返回给客户端的数据
+    const babysitterData = decryptObject(result.rows[0]);
+    res.status(200).json(babysitterData);
   } catch (error) {
     console.error('Error fetching babysitter profile:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -633,7 +710,10 @@ app.get("/api/babysitters/:id", async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Babysitter not found." });
     }
-    res.json(result.rows[0]);
+    
+    // 解密返回给客户端的数据
+    const babysitterData = decryptObject(result.rows[0]);
+    res.json(babysitterData);
   } catch (error) {
     console.error("Error fetching babysitter profile:", error);
     res.status(500).json({ error: "Internal server error." });
@@ -661,19 +741,28 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
     if (resultBabysitter.rows.length === 0) {
       return res.status(404).json({ error: 'Babysitter not found.' });
     }
+    
+    // 解密现有保姆数据
+    const existingBabysitter = decryptObject(resultBabysitter.rows[0]);
+    
     const updates = {
-      name: name || resultBabysitter.rows[0].name,
-      email: email || resultBabysitter.rows[0].email,
-      phone: phone || resultBabysitter.rows[0].phone,
-      available_days: available_days || resultBabysitter.rows[0].available_days,
-      available_from: available_from || resultBabysitter.rows[0].available_from,
-      available_to: available_to || resultBabysitter.rows[0].available_to,
-      about: about || resultBabysitter.rows[0].about,
-      rate: rate || resultBabysitter.rows[0].rate,
-      latitude: latitude !== undefined ? latitude : resultBabysitter.rows[0].latitude,
-      longitude: longitude !== undefined ? longitude : resultBabysitter.rows[0].longitude,
-      address: address || resultBabysitter.rows[0].address
+      name: name || existingBabysitter.name,
+      email: email || existingBabysitter.email,
+      phone: phone || existingBabysitter.phone,
+      available_days: available_days || existingBabysitter.available_days,
+      available_from: available_from || existingBabysitter.available_from,
+      available_to: available_to || existingBabysitter.available_to,
+      about: about || existingBabysitter.about,
+      rate: rate || existingBabysitter.rate,
+      latitude: latitude !== undefined ? latitude : existingBabysitter.latitude,
+      longitude: longitude !== undefined ? longitude : existingBabysitter.longitude,
+      address: address || existingBabysitter.address
     };
+    
+    // 加密敏感信息
+    const encryptedEmail = encrypt(updates.email);
+    const encryptedPhone = updates.phone ? encrypt(updates.phone) : null;
+    
     const queryUpdate = `
       UPDATE babysitters
       SET name = $1,
@@ -692,8 +781,8 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
     `;
     const values = [
       updates.name,
-      updates.email,
-      updates.phone,
+      encryptedEmail,
+      encryptedPhone,
       updates.available_days,
       updates.available_from,
       updates.available_to,
@@ -705,9 +794,13 @@ app.put('/api/babysitters/profile', authMiddleware, async (req, res) => {
       req.user.id
     ];
     const result = await db.query(queryUpdate, values);
+    
+    // 解密返回给客户端的数据
+    const babysitterData = decryptObject(result.rows[0]);
+    
     res.status(200).json({
       message: 'Babysitter profile updated successfully.',
-      babysitter: result.rows[0]
+      babysitter: babysitterData
     });
   } catch (error) {
     console.error('Error updating babysitter profile:', error);
@@ -941,16 +1034,31 @@ app.post('/api/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
     
-    const userQuery = `SELECT * FROM users WHERE email = $1`;
-    const userResult = await db.query(userQuery, [email]);
-    if (userResult.rows.length > 0) {
-      const user = userResult.rows[0];
+    // 查询所有用户，解密email进行比较
+    const userQuery = `SELECT * FROM users`;
+    const userResult = await db.query(userQuery);
+    
+    // 查找匹配的用户
+    let user = null;
+    for (const row of userResult.rows) {
+      const decryptedEmail = decrypt(row.email);
+      if (decryptedEmail === email) {
+        user = row;
+        break;
+      }
+    }
+    
+    if (user) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
         return res.status(401).json({ error: 'Invalid email or password.' });
       }
+      
+      // 解密用户数据
+      const decryptedUser = decryptObject(user);
+      
       const token = jwt.sign(
-        { id: user.id, email: user.email, role: 'user' },
+        { id: user.id, email: email, role: 'user' },
         JWT_SECRET,
         { expiresIn: '3h' }
       );
@@ -959,24 +1067,39 @@ app.post('/api/login', async (req, res) => {
         token,
         role: 'user',
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          created_at: user.created_at
+          id: decryptedUser.id,
+          name: decryptedUser.name,
+          email: decryptedUser.email,
+          created_at: decryptedUser.created_at
         }
       });
     }
     
-    const babysitterQuery = `SELECT * FROM babysitters WHERE email = $1`;
-    const babysitterResult = await db.query(babysitterQuery, [email]);
-    if (babysitterResult.rows.length > 0) {
-      const babysitter = babysitterResult.rows[0];
+    // 查询所有保姆，解密email进行比较
+    const babysitterQuery = `SELECT * FROM babysitters`;
+    const babysitterResult = await db.query(babysitterQuery);
+    
+    // 查找匹配的保姆
+    let babysitter = null;
+    for (const row of babysitterResult.rows) {
+      const decryptedEmail = decrypt(row.email);
+      if (decryptedEmail === email) {
+        babysitter = row;
+        break;
+      }
+    }
+    
+    if (babysitter) {
       const isMatch = await bcrypt.compare(password, babysitter.password);
       if (!isMatch) {
         return res.status(401).json({ error: 'Invalid email or password.' });
       }
+      
+      // 解密保姆数据
+      const decryptedBabysitter = decryptObject(babysitter);
+      
       const token = jwt.sign(
-        { id: babysitter.id, email: babysitter.email, role: 'babysitter' },
+        { id: babysitter.id, email: email, role: 'babysitter' },
         JWT_SECRET,
         { expiresIn: '3h' }
       );
@@ -985,10 +1108,10 @@ app.post('/api/login', async (req, res) => {
         token,
         role: 'babysitter',
         user: {
-          id: babysitter.id,
-          name: babysitter.name,
-          email: babysitter.email,
-          region: babysitter.region
+          id: decryptedBabysitter.id,
+          name: decryptedBabysitter.name,
+          email: decryptedBabysitter.email,
+          region: decryptedBabysitter.region
         }
       });
     }

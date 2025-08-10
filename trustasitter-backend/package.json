@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ssl-server.js",
     "dev": "node ssl-server.js",
-    "http": "node index.js"
+    "http": "node index.js",
+    "migrate-encryption": "node migrate-encryption.js"
   },
   "keywords": [],
   "author": "",
