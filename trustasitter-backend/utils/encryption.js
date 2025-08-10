@@ -1,17 +1,17 @@
 const crypto = require('crypto');
 
-// 加密密钥 - 优先从Azure Key Vault获取，回退到环境变量
+// Encryption key - prioritize Azure Key Vault, fallback to environment variable
 let ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-secret-encryption-key-32-chars-long!!';
 const ALGORITHM = 'aes-256-cbc';
-const PREFIX = 'ENC:'; // 加密数据的前缀标识
+const PREFIX = 'ENC:'; // Prefix identifier for encrypted data
 
-// Azure Key Vault配置
+// Azure Key Vault configuration
 const KEY_VAULT_URL = 'https://trustasitter-keyvault.vault.azure.net/';
 const SECRET_NAME = 'encryption-key';
 
 let secretClient = null;
 
-// 尝试初始化Azure Key Vault
+// Try to initialize Azure Key Vault
 async function initializeAzureKeyVault() {
   try {
     const { DefaultAzureCredential } = require('@azure/identity');
@@ -20,99 +20,99 @@ async function initializeAzureKeyVault() {
     const credential = new DefaultAzureCredential();
     secretClient = new SecretClient(KEY_VAULT_URL, credential);
     
-    // 获取密钥
+    // Get the key
     const secret = await secretClient.getSecret(SECRET_NAME);
     ENCRYPTION_KEY = secret.value;
-    console.log('✅ 从Azure Key Vault获取密钥成功');
+    console.log('✅ Successfully retrieved key from Azure Key Vault');
   } catch (error) {
-    console.error('❌ Azure Key Vault初始化失败，使用环境变量密钥:', error.message);
+    console.error('❌ Azure Key Vault initialization failed, using environment variable key:', error.message);
   }
 }
 
 /**
- * 加密字符串
- * @param {string} text - 要加密的文本
- * @returns {string} - 加密后的字符串（带前缀）
+ * Encrypt a string
+ * @param {string} text - Text to encrypt
+ * @returns {string} - Encrypted string (with prefix)
  */
 function encrypt(text) {
   if (!text) return text;
   
   try {
-    // 生成随机IV
+    // Generate random IV
     const iv = crypto.randomBytes(16);
     
-    // 创建cipher (使用新的API)
+    // Create cipher (using new API)
     const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.slice(0, 32)), iv);
     
-    // 加密
+    // Encrypt
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
     
-    // 组合IV和加密数据
+    // Combine IV and encrypted data
     const result = iv.toString('hex') + ':' + encrypted;
     
-    // 添加前缀标识
+    // Add prefix identifier
     return PREFIX + result;
   } catch (error) {
     console.error('Encryption error:', error);
-    return text; // 如果加密失败，返回原文本
+    return text; // If encryption fails, return original text
   }
 }
 
 /**
- * 解密字符串
- * @param {string} encryptedText - 加密的文本
- * @returns {string} - 解密后的字符串
+ * Decrypt a string
+ * @param {string} encryptedText - Encrypted text
+ * @returns {string} - Decrypted string
  */
 function decrypt(encryptedText) {
   if (!encryptedText) return encryptedText;
   
-  // 检查是否有加密前缀
+  // Check if it has encryption prefix
   if (!encryptedText.startsWith(PREFIX)) {
-    return encryptedText; // 如果没有前缀，说明是明文，直接返回
+    return encryptedText; // If no prefix, it's plain text, return directly
   }
   
   try {
-    // 移除前缀
+    // Remove prefix
     const encryptedData = encryptedText.substring(PREFIX.length);
     
-    // 分离IV和加密数据
+    // Separate IV and encrypted data
     const parts = encryptedData.split(':');
     if (parts.length !== 2) {
-      return encryptedText; // 格式不正确，返回原文本
+      return encryptedText; // Incorrect format, return original text
     }
     
     const iv = Buffer.from(parts[0], 'hex');
     const encrypted = parts[1];
     
-    // 创建decipher (使用新的API)
+    // Create decipher (using new API)
     const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY.slice(0, 32)), iv);
     
-    // 解密
+    // Decrypt
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     
     return decrypted;
   } catch (error) {
     console.error('Decryption error:', error);
-    return encryptedText; // 如果解密失败，返回原文本
+    return encryptedText; // If decryption fails, return original text
   }
 }
 
 /**
- * 检查字符串是否已加密
- * @param {string} text - 要检查的文本
- * @returns {boolean} - 是否已加密
+ * Check if a string is already encrypted
+ * @param {string} text - Text to check
+ * @returns {boolean} - Whether it's encrypted
  */
 function isEncrypted(text) {
   return text && text.startsWith(PREFIX);
 }
 
 /**
- * 批量加密对象中的敏感字段
- * @param {Object} obj - 要处理的对象
- * @param {Array} fields - 需要加密的字段名数组
- * @returns {Object} - 处理后的对象
+ * Batch encrypt sensitive fields in an object
+ * @param {Object} obj - Object to process
+ * @param {Array} fields - Array of field names to encrypt
+ * @returns {Object} - Processed object
  */
 function encryptObject(obj, fields = ['email', 'phone']) {
   if (!obj || typeof obj !== 'object') return obj;
@@ -129,10 +129,10 @@ function encryptObject(obj, fields = ['email', 'phone']) {
 }
 
 /**
- * 批量解密对象中的敏感字段
- * @param {Object} obj - 要处理的对象
- * @param {Array} fields - 需要解密的字段名数组
- * @returns {Object} - 处理后的对象
+ * Batch decrypt sensitive fields in an object
+ * @param {Object} obj - Object to process
+ * @param {Array} fields - Array of field names to decrypt
+ * @returns {Object} - Processed object
  */
 function decryptObject(obj, fields = ['email', 'phone']) {
   if (!obj || typeof obj !== 'object') return obj;

@@ -2070,6 +2070,7 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
           c.updated_at,
           bs.name as participant_name,
           bs.id as participant_id,
+          COALESCE(b.status, 'approved') as booking_status,
           (SELECT COUNT(*) FROM chat_messages cm 
            WHERE cm.conversation_id = c.id 
            AND cm.sender_id != $1 
@@ -2081,6 +2082,7 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
         FROM chat_conversations c
         JOIN chat_participants cp ON c.id = cp.conversation_id
         JOIN babysitters bs ON cp.user_id = bs.id
+        LEFT JOIN bookings b ON (b.user_id = $1 AND b.babysitter_id = bs.id)
         WHERE cp.user_id != $1
         AND EXISTS (
           SELECT 1 FROM chat_participants cp2 
@@ -2099,6 +2101,7 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
           c.updated_at,
           u.name as participant_name,
           u.id as participant_id,
+          COALESCE(b.status, 'approved') as booking_status,
           (SELECT COUNT(*) FROM chat_messages cm 
            WHERE cm.conversation_id = c.id 
            AND cm.sender_id != $1 
@@ -2110,6 +2113,7 @@ app.get('/api/chat/conversations', authMiddleware, async (req, res) => {
         FROM chat_conversations c
         JOIN chat_participants cp ON c.id = cp.conversation_id
         JOIN users u ON cp.user_id = u.id
+        LEFT JOIN bookings b ON (b.babysitter_id = $1 AND b.user_id = u.id)
         WHERE cp.user_id != $1
         AND EXISTS (
           SELECT 1 FROM chat_participants cp2 

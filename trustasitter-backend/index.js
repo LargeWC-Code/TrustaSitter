@@ -291,7 +291,7 @@ app.post('/api/users/register', async (req, res) => {
       return res.status(400).json({ error: 'Name, email, and password are required.' });
     }
     
-    // 加密敏感信息
+    // Encrypt sensitive information
     const encryptedEmail = encrypt(email);
     const encryptedPhone = phone ? encrypt(phone) : null;
     
@@ -311,11 +311,11 @@ app.post('/api/users/register', async (req, res) => {
     ];
     const result = await db.query(query, values);
     
-    // 解密返回给客户端的数据
+    // Decrypt data returned to client
     const userData = decryptObject(result.rows[0]);
     
     const token = jwt.sign(
-      { id: result.rows[0].id, email: email, role: 'user' }, // JWT中使用明文email
+      { id: result.rows[0].id, email: email, role: 'user' }, // Use plain text email in JWT
       JWT_SECRET,
       { expiresIn: '3h' }
     );
@@ -351,11 +351,11 @@ app.post('/api/users/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
     
-    // 查询时需要解密所有用户的email来比较
+    // Need to decrypt all users' email for comparison
     const query = `SELECT * FROM users`;
     const result = await db.query(query);
     
-    // 查找匹配的用户（解密email进行比较）
+    // Find matching user (decrypt email for comparison)
     let user = null;
     for (const row of result.rows) {
       const decryptedEmail = decrypt(row.email);
@@ -427,7 +427,7 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'User not found.' });
     }
     
-    // 解密现有用户数据
+    // 
     const existingUser = decryptObject(resultUser.rows[0]);
     
     const updates = {
@@ -445,11 +445,11 @@ app.put('/api/users/profile', authMiddleware, async (req, res) => {
           : parseInt(children_count, 10)
     };
     
-    // 加密敏感信息
+    // 
     const encryptedEmail = encrypt(updates.email);
     const encryptedPhone = updates.phone ? encrypt(updates.phone) : null;
     
-    let hashedPassword = resultUser.rows[0].password; // 使用原始加密密码
+    let hashedPassword = resultUser.rows[0].password; // 
     if (password) {
       hashedPassword = await bcrypt.hash(password, 10);
     }
