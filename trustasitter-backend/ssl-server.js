@@ -899,7 +899,6 @@ app.post('/api/login', async (req, res) => {
     console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
 });
 /* -----------------------------------
    Bookings Routes
