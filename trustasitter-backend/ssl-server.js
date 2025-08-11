@@ -2469,7 +2469,7 @@ app.post('/api/stress-test/start', async (req, res) => {
     const result = await stressTest.fullTest();
 
     res.json({
-              message: 'Enhanced stress test started successfully for 10 minutes with multi-threading',
+              message: 'HEAVY stress test started successfully for 15 minutes with maximum CPU usage',
       status: stressTest.getStatus()
     });
   } catch (error) {
@@ -2543,7 +2543,7 @@ app.post('/api/stress-test/full', async (req, res) => {
     });
 
     res.json({
-              message: 'Enhanced full stress test (10 minutes) started successfully with multi-threading',
+              message: 'HEAVY full stress test (15 minutes) started successfully with maximum CPU usage',
       status: stressTest.getStatus()
     });
   } catch (error) {

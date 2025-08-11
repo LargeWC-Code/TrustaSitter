@@ -25,7 +25,7 @@ const StressTest = () => {
 
   const startTest = async () => {
     try {
-      setLogs(prev => [...prev, `🚀 Starting enhanced 10-minute stress test...`]);
+              setLogs(prev => [...prev, `🚀 Starting HEAVY 15-minute stress test...`]);
       setLogs(prev => [...prev, `🔥 Using multiple worker threads for maximum CPU usage`]);
       
       const response = await api.post('/stress-test/start');
@@ -63,7 +63,7 @@ const StressTest = () => {
         
         if (!response.data.isRunning) {
           setIsRunning(false);
-          setLogs(prev => [...prev, `✅ Enhanced stress test completed!`]);
+          setLogs(prev => [...prev, `✅ HEAVY stress test completed!`]);
           clearInterval(interval);
         } else {
           const elapsed = response.data.status.elapsed;
@@ -83,7 +83,7 @@ const StressTest = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">🚀 Enhanced VMSS Stress Test</h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">🚀 HEAVY VMSS Stress Test</h2>
       
       {/* Test Controls */}
       <div className="mb-6">
@@ -92,7 +92,7 @@ const StressTest = () => {
           disabled={isRunning}
           className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white font-bold py-4 px-8 rounded-lg transition-colors text-lg"
         >
-          🚀 Start Enhanced 10-Minute Stress Test
+          🚀 Start HEAVY 15-Minute Stress Test
         </button>
       </div>
 
@@ -181,9 +181,9 @@ const StressTest = () => {
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-2">📋 Enhanced Test Instructions</h3>
         <ul className="text-sm space-y-1">
-          <li>• <strong>Enhanced 10-Minute Test:</strong> Multi-threaded CPU stress for exactly 10 minutes</li>
-          <li>• <strong>🔥 High CPU Usage:</strong> Uses multiple worker threads to achieve 50-80% CPU usage</li>
-          <li>• <strong>🧵 Multi-threading:</strong> Main thread + up to 4 worker threads for maximum load</li>
+          <li>• <strong>HEAVY 15-Minute Test:</strong> Multi-threaded CPU stress for exactly 15 minutes with maximum load</li>
+                  <li>• <strong>🔥 HEAVY CPU Usage:</strong> Uses multiple worker threads to achieve 80-95% CPU usage</li>
+        <li>• <strong>🧵 Multi-threading:</strong> Main thread + up to 8 worker threads for maximum load</li>
           <li>• Monitor your VMSS in Azure Portal to see auto-scaling in action</li>
           <li>• CPU usage should exceed 50% to trigger scaling</li>
           <li>• Test can only be triggered from this frontend interface</li>
