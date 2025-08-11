@@ -13,6 +13,8 @@ class StressTest {
     this.testDuration = 15 * 60 * 1000; // 15 minutes in milliseconds
     this.workers = [];
     this.cpuCount = os.cpus().length;
+    this.errorCount = 0;
+    this.maxErrors = 10; // Allow some errors before stopping
   }
 
   // CPU-intensive prime number calculation with much larger range
@@ -90,44 +92,59 @@ class StressTest {
   async intensiveOperation() {
     const start = performance.now();
     
-    // Calculate much larger prime numbers
-    const primes = this.calculatePrimes(500000);
-    
-    // Generate much larger data structures
-    const largeData = this.generateLargeData(50000);
-    
-    // Perform much more intensive calculations
-    const mathResult = this.intensiveMathOperations();
-    
-    // Enhanced hash operations
-    const hashes = this.intensiveHashOperations();
-    
-    // Additional CPU-intensive operations with larger matrices
-    let matrixResult = 0;
-    for (let i = 0; i < 2000; i++) {
-      for (let j = 0; j < 2000; j++) {
-        matrixResult += Math.pow(i, j % 15) * Math.sin(i + j) * Math.cos(i * j);
-        matrixResult += Math.tan(i / 100) * Math.atan(j / 100);
+    try {
+      // Calculate much larger prime numbers
+      const primes = this.calculatePrimes(500000);
+      
+      // Generate much larger data structures
+      const largeData = this.generateLargeData(50000);
+      
+      // Perform much more intensive calculations
+      const mathResult = this.intensiveMathOperations();
+      
+      // Enhanced hash operations
+      const hashes = this.intensiveHashOperations();
+      
+      // Additional CPU-intensive operations with larger matrices
+      let matrixResult = 0;
+      for (let i = 0; i < 2000; i++) {
+        for (let j = 0; j < 2000; j++) {
+          matrixResult += Math.pow(i, j % 15) * Math.sin(i + j) * Math.cos(i * j);
+          matrixResult += Math.tan(i / 100) * Math.atan(j / 100);
+        }
       }
+      
+      // Additional floating point intensive operations
+      let floatResult = 0;
+      for (let i = 0; i < 1000000; i++) {
+        floatResult += Math.pow(Math.E, i / 100000) * Math.log(i + 1);
+        floatResult += Math.sqrt(Math.pow(i, 2) + Math.pow(i, 3));
+      }
+      
+      const end = performance.now();
+      return {
+        duration: end - start,
+        primesCount: primes.length,
+        dataSize: largeData.length,
+        mathResult: mathResult,
+        hashesCount: hashes.length,
+        matrixResult: matrixResult,
+        floatResult: floatResult
+      };
+    } catch (error) {
+      console.error('❌ Error in intensive operation:', error.message);
+      this.errorCount++;
+      return {
+        duration: performance.now() - start,
+        error: error.message,
+        primesCount: 0,
+        dataSize: 0,
+        mathResult: 0,
+        hashesCount: 0,
+        matrixResult: 0,
+        floatResult: 0
+      };
     }
-    
-    // Additional floating point intensive operations
-    let floatResult = 0;
-    for (let i = 0; i < 1000000; i++) {
-      floatResult += Math.pow(Math.E, i / 100000) * Math.log(i + 1);
-      floatResult += Math.sqrt(Math.pow(i, 2) + Math.pow(i, 3));
-    }
-    
-    const end = performance.now();
-    return {
-      duration: end - start,
-      primesCount: primes.length,
-      dataSize: largeData.length,
-      mathResult: mathResult,
-      hashesCount: hashes.length,
-      matrixResult: matrixResult,
-      floatResult: floatResult
-    };
   }
 
   // Worker thread function for parallel processing - heavily enhanced
@@ -140,34 +157,38 @@ class StressTest {
         function workerIntensiveOperation() {
           const start = Date.now();
           
-          // Much more CPU-intensive operations in worker thread
-          let result = 0;
-          for (let i = 0; i < 8000000; i++) {
-            result += Math.sqrt(i) * Math.sin(i) * Math.cos(i) * Math.tan(i);
-            result += Math.pow(i, 0.5) * Math.log(i + 1);
-            result += Math.atan2(i, i + 1) * Math.asin(Math.min(1, i / 1000000));
-            result += Math.cosh(i / 100000) * Math.sinh(i / 100000);
-          }
-          
-          // Much more hash operations in worker
-          const hashes = [];
-          for (let i = 0; i < 8000; i++) {
-            const data = crypto.randomBytes(2048);
-            hashes.push(crypto.createHash('sha512').update(data).digest('hex'));
-            hashes.push(crypto.createHash('sha256').update(data).digest('hex'));
-            hashes.push(crypto.createHash('md5').update(data).digest('hex'));
-          }
-          
-          // Additional matrix operations in worker
-          let matrixResult = 0;
-          for (let i = 0; i < 1500; i++) {
-            for (let j = 0; j < 1500; j++) {
-              matrixResult += Math.pow(i, j % 10) * Math.sin(i + j) * Math.cos(i * j);
+          try {
+            // Much more CPU-intensive operations in worker thread
+            let result = 0;
+            for (let i = 0; i < 8000000; i++) {
+              result += Math.sqrt(i) * Math.sin(i) * Math.cos(i) * Math.tan(i);
+              result += Math.pow(i, 0.5) * Math.log(i + 1);
+              result += Math.atan2(i, i + 1) * Math.asin(Math.min(1, i / 1000000));
+              result += Math.cosh(i / 100000) * Math.sinh(i / 100000);
             }
+            
+            // Much more hash operations in worker
+            const hashes = [];
+            for (let i = 0; i < 8000; i++) {
+              const data = crypto.randomBytes(2048);
+              hashes.push(crypto.createHash('sha512').update(data).digest('hex'));
+              hashes.push(crypto.createHash('sha256').update(data).digest('hex'));
+              hashes.push(crypto.createHash('md5').update(data).digest('hex'));
+            }
+            
+            // Additional matrix operations in worker
+            let matrixResult = 0;
+            for (let i = 0; i < 1500; i++) {
+              for (let j = 0; j < 1500; j++) {
+                matrixResult += Math.pow(i, j % 10) * Math.sin(i + j) * Math.cos(i * j);
+              }
+            }
+            
+            const end = Date.now();
+            return { duration: end - start, result, hashesCount: hashes.length, matrixResult };
+          } catch (error) {
+            return { duration: Date.now() - start, error: error.message, result: 0, hashesCount: 0, matrixResult: 0 };
           }
-          
-          const end = Date.now();
-          return { duration: end - start, result, hashesCount: hashes.length, matrixResult };
         }
         
         parentPort.on('message', (message) => {
@@ -182,10 +203,16 @@ class StressTest {
         resolve(result);
       });
       
-      worker.on('error', reject);
+      worker.on('error', (error) => {
+        console.error('❌ Worker error:', error.message);
+        this.errorCount++;
+        resolve({ error: error.message, duration: 0, result: 0, hashesCount: 0, matrixResult: 0 });
+      });
+      
       worker.on('exit', (code) => {
         if (code !== 0) {
-          reject(new Error(`Worker stopped with exit code ${code}`));
+          console.error(`❌ Worker stopped with exit code ${code}`);
+          this.errorCount++;
         }
       });
       
@@ -202,6 +229,7 @@ class StressTest {
     this.isRunning = true;
     this.startTime = Date.now();
     this.testDuration = duration * 60 * 1000; // Convert minutes to milliseconds
+    this.errorCount = 0;
 
     console.log(`🚀 Starting HEAVY stress test for ${duration} minutes...`);
     console.log(`⏰ Start time: ${new Date().toISOString()}`);
@@ -216,13 +244,26 @@ class StressTest {
 
     // Create worker threads
     for (let i = 0; i < workerCount; i++) {
-      const worker = await this.createWorker();
-      this.workers.push(worker);
+      try {
+        const worker = await this.createWorker();
+        this.workers.push(worker);
+      } catch (error) {
+        console.error(`❌ Failed to create worker ${i}:`, error.message);
+        this.errorCount++;
+      }
     }
+
+    console.log(`✅ Created ${this.workers.length} worker threads`);
 
     while (this.isRunning && (Date.now() - this.startTime) < this.testDuration) {
       try {
         iteration++;
+        
+        // Check if we've had too many errors
+        if (this.errorCount > this.maxErrors) {
+          console.error(`❌ Too many errors (${this.errorCount}), stopping test`);
+          break;
+        }
         
         // Main thread intensive operation
         const mainResult = await this.intensiveOperation();
@@ -230,8 +271,14 @@ class StressTest {
         // Worker threads parallel operations
         const workerPromises = this.workers.map(worker => {
           return new Promise((resolve) => {
-            worker.postMessage('start');
-            worker.once('message', resolve);
+            try {
+              worker.postMessage('start');
+              worker.once('message', resolve);
+            } catch (error) {
+              console.error('❌ Worker communication error:', error.message);
+              this.errorCount++;
+              resolve({ error: error.message, duration: 0, result: 0, hashesCount: 0, matrixResult: 0 });
+            }
           });
         });
         
@@ -241,7 +288,8 @@ class StressTest {
           iteration,
           timestamp: Date.now(),
           mainThread: mainResult,
-          workerResults: workerResults
+          workerResults: workerResults,
+          errorCount: this.errorCount
         });
 
         // Log progress every 3 iterations (more frequent due to increased intensity)
@@ -249,20 +297,31 @@ class StressTest {
           const elapsed = (Date.now() - this.startTime) / 1000;
           const remaining = (this.testDuration - (Date.now() - this.startTime)) / 1000;
           console.log(`📊 Iteration ${iteration} - Elapsed: ${elapsed.toFixed(1)}s, Remaining: ${remaining.toFixed(1)}s`);
-          console.log(`🔥 HEAVY CPU Usage: Main thread + ${workerCount} workers active`);
-          console.log(`💪 Expected CPU usage: 80-95% across ${workerCount + 1} threads`);
+          console.log(`🔥 HEAVY CPU Usage: Main thread + ${this.workers.length} workers active`);
+          console.log(`💪 Expected CPU usage: 80-95% across ${this.workers.length + 1} threads`);
+          console.log(`⚠️ Error count: ${this.errorCount}/${this.maxErrors}`);
         }
 
         // Minimal delay for maximum intensity
         await new Promise(resolve => setTimeout(resolve, 25));
       } catch (error) {
         console.error(`❌ Error in iteration ${iteration}:`, error.message);
+        this.errorCount++;
+        
+        if (this.errorCount > this.maxErrors) {
+          console.error(`❌ Too many errors, stopping test`);
+          break;
+        }
       }
     }
 
     // Clean up workers
     for (const worker of this.workers) {
-      worker.terminate();
+      try {
+        worker.terminate();
+      } catch (error) {
+        console.error('❌ Error terminating worker:', error.message);
+      }
     }
     this.workers = [];
 
@@ -273,11 +332,12 @@ class StressTest {
       totalIterations: iteration,
       totalDuration: totalDuration,
       workerCount: workerCount,
-      averageIterationTime: results.reduce((sum, r) => sum + r.mainThread.duration, 0) / results.length,
-      totalPrimesCalculated: results.reduce((sum, r) => sum + r.mainThread.primesCount, 0),
-      totalDataGenerated: results.reduce((sum, r) => sum + r.mainThread.dataSize, 0),
-      totalHashesGenerated: results.reduce((sum, r) => sum + r.mainThread.hashesCount, 0),
-      workerOperations: results.reduce((sum, r) => sum + r.workerResults.length, 0),
+      errorCount: this.errorCount,
+      averageIterationTime: results.length > 0 ? results.reduce((sum, r) => sum + r.mainThread.duration, 0) / results.length : 0,
+      totalPrimesCalculated: results.reduce((sum, r) => sum + (r.mainThread.primesCount || 0), 0),
+      totalDataGenerated: results.reduce((sum, r) => sum + (r.mainThread.dataSize || 0), 0),
+      totalHashesGenerated: results.reduce((sum, r) => sum + (r.mainThread.hashesCount || 0), 0),
+      workerOperations: results.reduce((sum, r) => sum + (r.workerResults ? r.workerResults.length : 0), 0),
       results: results
     };
 
@@ -298,7 +358,11 @@ class StressTest {
     
     // Clean up workers
     for (const worker of this.workers) {
-      worker.terminate();
+      try {
+        worker.terminate();
+      } catch (error) {
+        console.error('❌ Error terminating worker:', error.message);
+      }
     }
     this.workers = [];
     
@@ -319,7 +383,8 @@ class StressTest {
       elapsed: this.isRunning ? (Date.now() - this.startTime) / 1000 : 0,
       testDuration: this.testDuration / 1000,
       workerCount: this.workers.length,
-      cpuCores: this.cpuCount
+      cpuCores: this.cpuCount,
+      errorCount: this.errorCount
     };
   }
 
