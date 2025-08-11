@@ -4,7 +4,7 @@ import { config } from "../config/environment.js";
 // Create an Axios instance with the base URL from environment configuration
 export const api = axios.create({
   baseURL: config.apiUrl,
-  timeout: 10000,
+  timeout: 30000, // Increased timeout for stress test operations
 });
 
 // Add request interceptor for debugging and authentication
