@@ -9,7 +9,7 @@ const serverConfig = {
         origin.includes('azurestaticapps.net') ||
         origin.includes('localhost') ||
         origin.includes('127.0.0.1') ||
-        origin.includes('largewc.org')
+        origin.includes('largewc.ink')
       ) {
         callback(null, true);
       } else {
@@ -20,7 +20,7 @@ const serverConfig = {
   },
   socketIO: {
     cors: {
-      origin: ["http://localhost:5173", "http://localhost:3000", "https://largewc.org"],
+      origin: ["http://localhost:5173", "http://localhost:3000", "https://www.largewc.ink"],
       methods: ["GET", "POST"]
     }
   }

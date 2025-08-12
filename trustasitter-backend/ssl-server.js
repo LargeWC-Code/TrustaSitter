@@ -2571,11 +2571,11 @@ server.listen(serverConfig.port, () => {
   if (ssl.exists) {
     console.log(`🚀 HTTPS Server running on port ${serverConfig.port}`);
     console.log(`🔒 SSL enabled`);
-    console.log(`🌐 Access: https://largewc.org:${serverConfig.port}`);
+    console.log(`🌐 Access: https://www.largewc.ink:${serverConfig.port}`);
   } else {
     console.log(`🚀 HTTP Server running on port ${serverConfig.port}`);
     console.log(`🔓 SSL disabled`);
-    console.log(`🌐 Access: http://largewc.org:${serverConfig.port}`);
+    console.log(`🌐 Access: http://www.largewc.ink:${serverConfig.port}`);
   }
   console.log(`WebSocket server is ready`);
 });

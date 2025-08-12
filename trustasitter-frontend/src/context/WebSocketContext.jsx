@@ -29,7 +29,7 @@ export const WebSocketProvider = ({ children }) => {
 
     // Create socket connection
     console.log('🔌 Creating WebSocket connection...');
-    const newSocket = io('https://largewc.org:3000', {
+    const newSocket = io('https://www.largewc.ink:443', {
       transports: ['websocket', 'polling']
     });
 
