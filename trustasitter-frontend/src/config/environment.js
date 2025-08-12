@@ -5,4 +5,11 @@ export const config = {
       ? "https://www.largewc.ink:443/api"  // Always use the correct backend in production
       : "https://www.largewc.ink:443/api"), // 默认使用 HTTPS
   environment: import.meta.env.MODE || "development"
-}; 
+};
+
+// Debug logging
+console.log('🔧 Environment config:', {
+  mode: import.meta.env.MODE,
+  viteApiUrl: import.meta.env.VITE_API_URL,
+  finalApiUrl: config.apiUrl
+}); 
